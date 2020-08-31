@@ -1,7 +1,7 @@
 const Express = require("express");
-const Validation_Helper = require('../_Helpers/Validation_Helper');
-const AuthHelper = require('../_Helpers/Auth_Helper');
-const UserService= require('../Data Services/UserService');
+const Validation_Helper = require('../Helpers/Validation_Helper');
+const AuthHelper = require('../Helpers/Auth_Helper');
+const UserService= require('../DataServices/UserService');
 const Joi = require('joi');
 
 exports.GetAll = async (req,res,next)=>{ 

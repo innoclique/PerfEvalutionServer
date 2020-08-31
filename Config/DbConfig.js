@@ -1,6 +1,9 @@
 const Mongoose = require("mongoose");
-Mongoose.connect(process.env.DATABASEPATH, { useNewUrlParser:true, useCreateIndex:true ,useUnifiedTopology:true})
-.then( con=>{console.error(" Connection Successful  "+process.env.DATABASEPATH);})
+var env = process.env.NODE_ENV || "dev";
+var config = require(`../Config/${env}.config`);
+
+Mongoose.connect(config.database, { useNewUrlParser:true, useCreateIndex:true ,useUnifiedTopology:true})
+.then( con=>{console.error(" Connection Successful  "+config.database);})
 .catch( err=>{console.error(" Failed To Connect to Db " + err);}); 
 Mongoose.Promise = global.Promise;  
 

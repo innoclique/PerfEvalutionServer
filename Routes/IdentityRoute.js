@@ -1,7 +1,7 @@
 const Express = require("express");
 const router = Express.Router();
-const ValidationHelper = require('../_Helpers/Validation_Helper');
-const AuthHelper = require('../_Helpers/Auth_Helper');
+const ValidationHelper = require('../Helpers/Validation_Helper');
+const AuthHelper = require('../Helpers/Auth_Helper');
 
 const IdentityRoute = require('../Controller/IdentityController');
 

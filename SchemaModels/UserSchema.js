@@ -1,6 +1,7 @@
 const Express = require("express");
 require('dotenv').config();
 const Mongoose = require("mongoose");
+const { boolean } = require("joi");
 
 const UserSchema = new Mongoose.Schema({
 
@@ -15,7 +16,9 @@ const UserSchema = new Mongoose.Schema({
     LastName:{ type:String, required:true},
     DateCreated:{ type:String, required:true, default: Date()},
     UpdatedDate:{type:String},
-    LastLogin: { type:String}
+    LastLogin: { type:String},
+    IsLoggedIn:{type:Boolean},
+
 
 });
 

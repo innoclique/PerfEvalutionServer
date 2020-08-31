@@ -1,7 +1,7 @@
 const Express = require('express');
 const route = Express.Router();
 const ApplicationController = require('../Controller/ApplicationController');
-const AuthHelper = require('../_Helpers/Auth_Helper');
+const AuthHelper = require('../Helpers/Auth_Helper');
 
 
 route.get('/GetAllApplication', AuthHelper.Authorization(), ApplicationController.GetAllApplication);

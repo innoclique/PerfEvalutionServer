@@ -1,5 +1,5 @@
 
-const ApplcationService = require('../Data Services/Application_Service')
+const ApplcationService = require('../DataServices/Application_Service')
 const Validation_Helper = require('../_Helpers/Validation_Helper');
 const Joi = require('joi');
 

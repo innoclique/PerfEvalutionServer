@@ -3,7 +3,7 @@ require('dotenv').config();
 const Mongoose = require("mongoose");
 const Bcrypt = require('bcrypt');
 const UserRepo = require('../SchemaModels/UserSchema');
-const AuthHelper = require('../_Helpers/Auth_Helper');
+const AuthHelper = require('../Helpers/Auth_Helper');
 
 
 
@@ -91,11 +91,13 @@ const User = await UserRepo.findOne({'Email':Email});
 debugger
 if(User  && true ){//Bcrypt.compareSync(Password,User.Password)){
 
+   if(User.IsLoggedIn){ throw Error("User has loggedin someother browser.");}
    // if(User.Role !== "User"){ throw Error("Invalid Login");}
    const AccesToken = AuthHelper.CreateAccesstoken(User);
    const RefreshToken = AuthHelper.CreateRefreshtoken(User);
    User.RefreshToken = RefreshToken;
    User.LastLogin = Date();
+   User.IsLoggedIn=true;
    User.save();
 
     return {ID:User._id, Role:User.Role, Email:User.Email, UserName: User.UserName, AccessToken: AccesToken,RefreshToken:User.RefreshToken};
@@ -190,7 +192,7 @@ const UsertoLogOut = await UserRepo.findById(Id);
 if (UsertoLogOut === null ){ throw Error('User Not Foundn ');}else{
 
     UsertoLogOut.RefreshToken = null;
-
+UsertoLogOut.IsLoggedIn=false;
      UsertoLogOut.save();
 
      return ("Logout");

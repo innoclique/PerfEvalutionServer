@@ -3,6 +3,8 @@ const Validation_Helper = require('../Helpers/Validation_Helper');
 const AuthHelper = require('../Helpers/Auth_Helper');
 const UserService= require('../DataServices/UserService');
 const Joi = require('joi');
+var logger=require('../logger');
+
 
 exports.GetAll = async (req,res,next)=>{ 
     
@@ -130,7 +132,8 @@ await UserService.GetUserByPhoneNumber(PhoneNumber)
 };
 
 
-exports.Authenticate = async (req, res, next) => {
+exports.Authenticate = async (req, res, next) => {   
+    logger.info(JSON.stringify(req.body))
         /////validate user input with joi-------------
  Joi.validate(req.body, Validation_Helper.ValidateAuthenticationInput(req.body),  async (err, Result )=>{
 

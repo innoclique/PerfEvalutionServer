@@ -23,6 +23,8 @@
     "nodemailer": "^4.1.0",
     "nodemailer-smtp-transport": "^2.7.4",
     "mongoose": "^5.9.16",
-    "nodemon": "^2.0.4"
-  }
+    "nodemon": "^2.0.4",
+    "winston": "^3.3.3"
+  },
+  "devDependencies": {}
 }

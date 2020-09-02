@@ -16,6 +16,8 @@ router.post("/GetUserByPhoneNumber", IdentityRoute.FindUserByPhoneNumber);
 router.post("/CreateAccount", IdentityRoute.CreateAccount);
 router.post("/CreateStaffAccount", IdentityRoute.CreateStaffAccount);
 router.post("/Authenticate", IdentityRoute.Authenticate);
+router.post("/UpdatePassword", IdentityRoute.UpdatePassword);
+router.post("/SendResetPsw", IdentityRoute.SendResetPsw);
 router.post("/AuthenticateAdmin", IdentityRoute.AuthenticateAdmin);
 router.post("/Refresh_Token", IdentityRoute.RefreshToken);
 router.post("/ManageAccount/:id", AuthHelper.Authorization(), IdentityRoute.ManageAccount);

@@ -171,6 +171,53 @@ Joi.validate(req.body, Validation_Helper.ValidateAuthenticationInput(req.body), 
 
 };
 
+
+
+exports.SendResetPsw = async (req, res, next) => {
+    /////validate user input with joi-------------
+    Joi.validate(req.body, Validation_Helper.ValidateEmail(req.body), async (err, Result) => {
+
+        if (err) { res.status(442).json({ mgs: err.details.map(i => i.message).join(" / ") }) }
+
+        else {
+            await UserService.SendResetPsw(req.body)
+                .then(Response => {
+                    if (Response) {
+                        //res.cookie('refreshtoken', Response.RefreshToken, { httpOnly: true, path: '/refresh_token' });
+                        res.status(200).json(Response)
+                    } else { res.status(400).json("Ivalid Login") }
+                })
+                .catch(err => next(err));
+        }
+
+    });
+
+
+};
+
+
+exports.UpdatePassword = async (req, res, next) => {
+    /////validate user input with joi-------------
+    Joi.validate(req.body, Validation_Helper.ValidatePasswordUpdate(req.body), async (err, Result) => {
+
+        if (err) { res.status(442).json({ mgs: err.details.map(i => i.message).join(" / ") }) }
+
+        else {
+            await UserService.UpdatePassword(req.body)
+                .then(Response => {
+                    if (Response) {
+                        //res.cookie('refreshtoken', Response.RefreshToken, { httpOnly: true, path: '/refresh_token' });
+                        res.status(200).json(Response)
+                    } else { res.status(400).json("Ivalid Login") }
+                })
+                .catch(err => next(err));
+        }
+
+    });
+
+
+};
+
 exports.RefreshToken =  async (req,res, next)=>{
 
     if(req.body.refreshtoken  !== null)

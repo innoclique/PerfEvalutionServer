@@ -33,6 +33,22 @@ exports.ValidateAuthenticationInput = ( data)=>{
 
 }
 
+
+exports.ValidatePasswordUpdate = ( data)=>{
+
+   const schema = Joi.object().keys({
+      // email is required
+      // email must be a valid email string
+      userId: Joi.string().required().trim(),
+      password: Joi.string().required(),
+  });
+
+  return schema;
+
+}
+
+
+
 exports.ValidateEmail = (data)=>{
 
 

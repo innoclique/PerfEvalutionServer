@@ -4,6 +4,7 @@ const Mongoose = require("mongoose");
 const Bcrypt = require('bcrypt');
 const UserRepo = require('../SchemaModels/UserSchema');
 const AuthHelper = require('../Helpers/Auth_Helper');
+const SendMail = require("../Helpers/mail.js");
 
 
 
@@ -88,7 +89,7 @@ Email= LoginModel.Email;
 Password = LoginModel.Password;
 var ff=await UserRepo.find({}).count();
 const User = await UserRepo.findOne({'Email':Email});
-debugger
+
 if(User  && true ){//Bcrypt.compareSync(Password,User.Password)){
 
    if(User.IsLoggedIn){ throw Error("User has loggedin someother browser.");}
@@ -100,7 +101,9 @@ if(User  && true ){//Bcrypt.compareSync(Password,User.Password)){
    User.IsLoggedIn=true;
    User.save();
 
-    return {ID:User._id, Role:User.Role, Email:User.Email, UserName: User.UserName, AccessToken: AccesToken,RefreshToken:User.RefreshToken};
+    return {ID:User._id, Role:User.Role, Email:User.Email,
+         UserName: User.UserName, AccessToken: AccesToken,
+         RefreshToken:User.RefreshToken,IsPswChangedOnFirstLogin:User.IsPswChangedOnFirstLogin};
 }
 
 
@@ -131,6 +134,56 @@ catch(err)
 }
     
     }
+
+exports.SendResetPsw = async (LoginModel) => {
+    Email = LoginModel.Email;
+    var ff=await UserRepo.find({}).count();
+    const User = await UserRepo.findOne({'Email':Email});
+    
+    if (User && true) {
+
+        User.Password=AuthHelper.GenerateRandomPassword();
+        User.IsPswChangedOnFirstLogin = false;
+        User.IsActive = false;
+        User.save();
+
+        mailObject = SendMail.GetMailObject(
+           Email,
+            "Password Reset",
+            `Hey!  Your password has been updated.
+            Here are the details of Password : ${User.Password}    `,
+            null,
+            null
+        );
+
+        // SendMail.SendEmail(mailObject, function (res) {
+        //     console.log(res);
+        // });
+
+        return { status: "temp psw email sent" };
+    }else { throw Error("User Not Found");}
+
+
+}
+
+exports.UpdatePassword = async (resetModel) => {
+    id = resetModel.userId;
+    const User = await UserRepo.findById(id);
+    
+    if (User) {
+
+        User.IsPswChangedOnFirstLogin = true;
+        User.IsActive = true;
+        User.PswUpdatedOn= new Date();
+        User.Password = resetModel.password;
+        User.save();
+
+        return { status: "psw updated" };
+    }else { throw Error("User Not Found");}
+
+
+}
+
 
 exports.ManageAccount = async ( id, Model) =>{
 

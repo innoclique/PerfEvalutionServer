@@ -17,8 +17,15 @@ const UserSchema = new Mongoose.Schema({
     DateCreated:{ type:String, required:true, default: Date()},
     UpdatedDate:{type:String},
     LastLogin: { type:String},
-    IsLoggedIn:{type:Boolean},
+    IsLoggedIn:{type:Boolean,
+        default: false},
 
+    isPswChanged:{
+        type: Boolean,
+        default: false
+    },
+    pswUpdatedOn:{type:String},
+    isActive:{type:Boolean,default:false},
 
 });
 

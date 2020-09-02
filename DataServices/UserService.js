@@ -88,7 +88,7 @@ Email= LoginModel.Email;
 Password = LoginModel.Password;
 var ff=await UserRepo.find({}).count();
 const User = await UserRepo.findOne({'Email':Email});
-debugger
+
 if(User  && true ){//Bcrypt.compareSync(Password,User.Password)){
 
    if(User.IsLoggedIn){ throw Error("User has loggedin someother browser.");}
@@ -100,7 +100,9 @@ if(User  && true ){//Bcrypt.compareSync(Password,User.Password)){
    User.IsLoggedIn=true;
    User.save();
 
-    return {ID:User._id, Role:User.Role, Email:User.Email, UserName: User.UserName, AccessToken: AccesToken,RefreshToken:User.RefreshToken};
+    return {ID:User._id, Role:User.Role, Email:User.Email,
+         UserName: User.UserName, AccessToken: AccesToken,
+         RefreshToken:User.RefreshToken,isPswChanged:User.isPswChanged};
 }
 
 
@@ -131,6 +133,43 @@ catch(err)
 }
     
     }
+
+exports.sendResetPswLink = async (LoginModel) => {
+    Email = LoginModel.Email;
+    var ff=await UserRepo.find({}).count();
+    const User = await UserRepo.findOne({'Email':Email});
+    
+    if (User && true) {
+
+
+        User.isPswChanged = false;
+        User.isActive = false;
+        User.save();
+
+        return { status: "temp psw email sent" };
+    }
+
+
+}
+
+exports.updatePassword = async (resetModel) => {
+    id = resetModel.userId;
+    const User = await UserRepo.findById(id);
+    
+    if (User) {
+
+        User.isPswChanged = true;
+        User.isActive = true;
+        User.pswUpdatedOn= new Date();
+        User.Password = resetModel.password;
+        User.save();
+
+        return { status: "psw updated" };
+    }
+
+
+}
+
 
 exports.ManageAccount = async ( id, Model) =>{
 

@@ -20,12 +20,12 @@ const UserSchema = new Mongoose.Schema({
     IsLoggedIn:{type:Boolean,
         default: false},
 
-    isPswChanged:{
+    IsPswChangedOnFirstLogin:{
         type: Boolean,
         default: false
     },
-    pswUpdatedOn:{type:String},
-    isActive:{type:Boolean,default:false},
+    PswUpdatedOn:{type:String},
+    IsActive:{type:Boolean,default:false},
 
 });
 

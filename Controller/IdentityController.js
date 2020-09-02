@@ -173,14 +173,14 @@ Joi.validate(req.body, Validation_Helper.ValidateAuthenticationInput(req.body), 
 
 
 
-exports.sendResetPswLink = async (req, res, next) => {
+exports.SendResetPsw = async (req, res, next) => {
     /////validate user input with joi-------------
     Joi.validate(req.body, Validation_Helper.ValidateEmail(req.body), async (err, Result) => {
 
         if (err) { res.status(442).json({ mgs: err.details.map(i => i.message).join(" / ") }) }
 
         else {
-            await UserService.sendResetPswLink(req.body)
+            await UserService.SendResetPsw(req.body)
                 .then(Response => {
                     if (Response) {
                         //res.cookie('refreshtoken', Response.RefreshToken, { httpOnly: true, path: '/refresh_token' });
@@ -196,14 +196,14 @@ exports.sendResetPswLink = async (req, res, next) => {
 };
 
 
-exports.updatePassword = async (req, res, next) => {
+exports.UpdatePassword = async (req, res, next) => {
     /////validate user input with joi-------------
     Joi.validate(req.body, Validation_Helper.ValidatePasswordUpdate(req.body), async (err, Result) => {
 
         if (err) { res.status(442).json({ mgs: err.details.map(i => i.message).join(" / ") }) }
 
         else {
-            await UserService.updatePassword(req.body)
+            await UserService.UpdatePassword(req.body)
                 .then(Response => {
                     if (Response) {
                         //res.cookie('refreshtoken', Response.RefreshToken, { httpOnly: true, path: '/refresh_token' });

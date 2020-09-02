@@ -3,12 +3,11 @@
   "version": "1.0.0",
   "description": "hr-management",
   "main": "index.js",
-  
   "scripts": {
-		"watch": "node index.js",
-		"start": "node index.js",
-		"build": "node index.js"
-	},
+    "watch": "node index.js",
+    "start": "node index.js",
+    "build": "node index.js"
+  },
   "author": "",
   "license": "ISC",
   "dependencies": {
@@ -21,6 +20,8 @@
     "express-jwt": "^5.3.3",
     "joi": "^14.3.1",
     "jsonwebtoken": "^8.5.1",
+    "nodemailer": "^4.1.0",
+    "nodemailer-smtp-transport": "^2.7.4",
     "mongoose": "^5.9.16",
     "nodemon": "^2.0.4"
   }

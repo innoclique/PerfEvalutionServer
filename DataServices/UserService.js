@@ -5,7 +5,7 @@ const Bcrypt = require('bcrypt');
 const UserRepo = require('../SchemaModels/UserSchema');
 const AuthHelper = require('../Helpers/Auth_Helper');
 const SendMail = require("../Helpers/mail.js");
-
+var logger = require('../logger');
 
 
 
@@ -92,7 +92,9 @@ const User = await UserRepo.findOne({'Email':Email});
 
 if(User  && true ){//Bcrypt.compareSync(Password,User.Password)){
 
-   if(User.IsLoggedIn){ throw Error("User has loggedin someother browser.");}
+   if(User.IsLoggedIn){ 
+    logger.error(`User ::${User.Email} has loggedin already`)  ;
+    throw Error("User has loggedin someother browser.");}
    // if(User.Role !== "User"){ throw Error("Invalid Login");}
    const AccesToken = AuthHelper.CreateAccesstoken(User);
    const RefreshToken = AuthHelper.CreateRefreshtoken(User);
@@ -237,12 +239,12 @@ exports.ManageProfile = async ( id, Model) =>{
 
 };
 
-exports.Log_Out = async (Id) => {
+exports.Log_Out = async (email) => {
 
 
-const UsertoLogOut = await UserRepo.findById(Id);
+const UsertoLogOut = await UserRepo.find({'Email':email});
 
-if (UsertoLogOut === null ){ throw Error('User Not Foundn ');}else{
+if (UsertoLogOut === null ){ throw Error('User Not Found ');}else{
 
     UsertoLogOut.RefreshToken = null;
 UsertoLogOut.IsLoggedIn=false;

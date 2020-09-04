@@ -33,7 +33,11 @@ App.put('*', function(req, res){ res.status(404).json("404 Page Not found ")});
 App.delete('*', function(req, res){ res.status(404).json("404 Page  Not found ")});
 
 
-
+process.on('unhandledRejection',function (error,p) {        
+    logger.error('error '+error);
+    logger.error('stack ::'+ error.stack)
+    //process.exit(1);
+})
 ////////Start serve connection --------
 App.listen( Port ,(err)=>{ 
     logger.debug('starting app');

@@ -95,7 +95,7 @@ exports.Authenticate = async (LoginModel) => {
            if(User.IsLoggedIn){ 
             logger.error(`User ::${User.Email} has loggedin already`)  ;
             throw Error('DuplicateSession');}
-        if(User.Role !== "User"){ throw Error("Invalid Login");}
+        //if(User.Role !== "User"){ throw Error("Invalid Login");}
         const AccesToken = AuthHelper.CreateAccesstoken(User);
         const RefreshToken = AuthHelper.CreateRefreshtoken(User);
         User.RefreshToken = RefreshToken;

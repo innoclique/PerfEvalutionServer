@@ -87,7 +87,7 @@ exports.Authorization =  (roles = [])=> {
 
     const Token = jwt.sign({ Id:User._id , 
       Email: User.Email, role:User.Role,
-       FullName:User.FirstName  }, secret, { expiresIn:'10m'} );
+       FullName:User.FirstName  }, secret, { expiresIn:'5m'} );
     return Token;
   }  
 
@@ -110,7 +110,7 @@ exports.GenerateRandomPassword = function () {
   
   exports.CreateRefreshtoken = (User) =>{
   
-    const RefreshToken = jwt.sign({ sub:User._id , Email: User.Email }, process.env.REFRESHTOKENSECRET, {expiresIn:'7d'});
+    const RefreshToken = jwt.sign({ sub:User._id , Email: User.Email }, process.env.REFRESHTOKENSECRET, {expiresIn:'30m'});
     return  RefreshToken;
   }
   

@@ -5,34 +5,22 @@ const UserService = require('../DataServices/UserService');
 const Joi = require('joi');
 var logger = require('../logger');
 
-
 exports.GetAll = async (req, res, next) => {
-
     await UserService.GetAllUsers()
         .then(Response => Response ? res.status(200).json(Response) : res.status(404).json("No User Found"))
         .catch(err => next(err))
-
 };
 exports.CreateAccount = async (req, res, next) => {
-
-
     /////validate user input with joi-------------
     Joi.validate(req.body, Validation_Helper.ValidateCreateAccountModel(req.body), async (err, Result) => {
-
         if (err) { res.status(442).json({ mgs: err.details.map(i => i.message).join(" / ") }) }
-
         else {
-
             req.body.Role = "User";
             await UserService.CreateAccount(req.body).then(Response => {
                 res.status(201).json({ Mgs: " Registration Succeesful" });
             })
-                .catch(err => { res.status(400).json({ Mgs: err.message }); });
-
-
-
+            .catch(err => { res.status(400).json({ Mgs: err.message }); });
         }
-
     });
 
 
@@ -90,24 +78,15 @@ exports.FindUserByUserName = async (req, res, next) => {
 
     /////validate user input with joi-------------
     Joi.validate(req.body, Validation_Helper.ValidateUserName(req.body), async (err, Result) => {
-
         if (err) { res.status(442).json({ mgs: err.details.map(i => i.message).join(" / ") }) }
-
-
         else {
             const UserName = req.body.UserName;
-
             await UserService.GetUserByUserName(UserName)
                 .then(Response => Response ? res.status(200).json("User Name Found") : res.status(404).json("User Not Found"))
                 .catch(err => next(err));
-
         }
     });
-
-
-
 };
-
 exports.FindUserByPhoneNumber = async (req, res, next) => {
 
 
@@ -133,23 +112,22 @@ exports.FindUserByPhoneNumber = async (req, res, next) => {
 
 
 exports.Authenticate = async (req, res, next) => {
-    logger.info(JSON.stringify(req.body))
+    logger.info(JSON.stringify(req.body))    
     /////validate user input with joi-------------
     Joi.validate(req.body, Validation_Helper.ValidateAuthenticationInput(req.body), async (err, Result) => {
-
         if (err) { res.status(442).json({ mgs: err.details.map(i => i.message).join(" / ") }) }
-
         else {
             await UserService.Authenticate(req.body)
-                .then(Response => {
+                .then(Response => {                    
                     if (Response) {
                         res.cookie('refreshtoken', Response.RefreshToken, { httpOnly: true, path: '/refresh_token' });
                         res.status(200).json(Response)
-                    } else { res.status(400).json("Ivalid Login") }
+                    } else {                         
+                        res.status(400).json("Invalid Login") }
                 })
-                .catch(err => next(err));
+                .catch(
+                    err => {next(err)});
         }
-
     });
 
 
@@ -349,7 +327,6 @@ exports.DeleteUser = async (req, res, next) => {
 }
 
 exports.Log_Out = async (req, res, next) => {
-
     const CurrentUserId = req.user.Id;
     UserService.Log_Out(CurrentUserId)
         .then(Response => res.status(200).json("Log Out Successfull"))

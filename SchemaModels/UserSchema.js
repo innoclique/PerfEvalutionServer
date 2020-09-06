@@ -1,9 +1,9 @@
 const Express = require("express");
 require('dotenv').config();
-const Mongoose = require("mongoose");
+const mongoose = require("mongoose");
 const { boolean } = require("joi");
 
-const UserSchema = new Mongoose.Schema({
+const UserSchema = new mongoose.Schema({
 
     UserName: { type: String, required: true, unique: true },
     Email: { type: String, required: true, unique: true },
@@ -21,16 +21,21 @@ const UserSchema = new Mongoose.Schema({
         type: Boolean,
         default: false
     },
-
     IsPswChangedOnFirstLogin: {
         type: Boolean,
         default: false
     },
     PswUpdatedOn: { type: String },
     IsActive: { type: Boolean, default: false },
+    ParentUser:{ type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    TnCAccepted:{type:Boolean},
+    TnCAcceptedOn:{type:Date,default: Date() },
+    
+
+
 
 });
 
 UserSchema.set('toJSON', { versionKey: false });
 
-module.exports = Mongoose.model("User", UserSchema);
+module.exports = mongoose.model("User", UserSchema);

@@ -107,7 +107,7 @@ exports.Authenticate = async (LoginModel) => {
                 User:User
             };
         }
-        const AccesToken = AuthHelper.CreateAccesstoken(User);
+         AccesToken = AuthHelper.CreateAccesstoken(User);
         const RefreshToken = AuthHelper.CreateRefreshtoken(User);
         User.RefreshToken = RefreshToken;
         User.LastLogin = Date();

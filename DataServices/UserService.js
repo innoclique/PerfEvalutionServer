@@ -93,11 +93,20 @@ exports.Authenticate = async (LoginModel) => {
     const User = await UserRepo.findOne({ 'Email': Email });
 
     if (User && true) {//Bcrypt.compareSync(Password,User.Password)){        
+        const AccesToken = AuthHelper.CreateShortAccesstoken(User);
+        
+        
         if (User.IsLoggedIn) {
-            logger.error(`User ::${User.Email} has loggedin already`);
-            throw Error('DuplicateSession');
+            logger.info(`User ::${User.Email} has loggedin already`);
+            return {
+                Valid:false,
+                ID: User._id,
+                Error:'DuplicateSession' ,
+                UserName: User.UserName,
+                AccessToken: AccesToken,                
+                User:User
+            };
         }
-        //if(User.Role !== "User"){ throw Error("Invalid Login");}
         const AccesToken = AuthHelper.CreateAccesstoken(User);
         const RefreshToken = AuthHelper.CreateRefreshtoken(User);
         User.RefreshToken = RefreshToken;

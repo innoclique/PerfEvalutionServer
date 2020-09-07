@@ -90,7 +90,13 @@ exports.Authorization =  (roles = [])=> {
        FullName:User.FirstName  }, secret, { expiresIn:'5m'} );
     return Token;
   }  
+  exports.CreateShortAccesstoken = (User) =>{
 
+    const Token = jwt.sign({ Id:User._id , 
+      Email: User.Email, role:User.Role,
+       FullName:User.FirstName  }, secret, { expiresIn:'1m'} );
+    return Token;
+  } 
 
   /**
  * Generate Password

@@ -148,6 +148,7 @@ exports.SendResetPsw = async (LoginModel) => {
         User.Password = AuthHelper.GenerateRandomPassword();
         User.IsPswChangedOnFirstLogin = false;
         User.IsActive = false;
+        User.IsLoggedIn = false;
         User.save();
 
         mailObject = SendMail.GetMailObject(
@@ -163,26 +164,34 @@ exports.SendResetPsw = async (LoginModel) => {
         //     console.log(res);
         // });
 
-        return { status: "temp psw email sent" };
-    } else { throw Error("User Not Found"); }
+        return { status: "success" };
+    } else { throw Error("No user found"); }
 
 
 }
 
+
+// update user password by id
 exports.UpdatePassword = async (resetModel) => {
     id = resetModel.userId;
+
     const User = await UserRepo.findById(id);
 
-    if (User) {
+        if (User) {
 
-        User.IsPswChangedOnFirstLogin = true;
-        User.IsActive = true;
-        User.PswUpdatedOn = new Date();
-        User.Password = resetModel.password;
-        User.save();
+            if (User.Password !== resetModel.oldPassword) {
+                throw Error("Invalid old password");
+            }
 
-        return { status: "psw updated" };
-    } else { throw Error("User Not Found"); }
+            User.IsPswChangedOnFirstLogin = true;
+            User.IsActive = true;
+            User.PswUpdatedOn = new Date();
+            User.Password = resetModel.password;
+            User.save();
+
+            return { status: "success" };
+        } else { throw Error("No user found"); }
+
 
 
 }

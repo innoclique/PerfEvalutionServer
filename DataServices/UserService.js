@@ -3,6 +3,7 @@ require('dotenv').config();
 const Mongoose = require("mongoose");
 const Bcrypt = require('bcrypt');
 const UserRepo = require('../SchemaModels/UserSchema');
+const UserSettingsRepo = require('../SchemaModels/UserAppSettings');
 const AuthHelper = require('../Helpers/Auth_Helper');
 const SendMail = require("../Helpers/mail.js");
 var logger = require('../logger');
@@ -92,10 +93,20 @@ exports.Authenticate = async (LoginModel) => {
     const User = await UserRepo.findOne({ 'Email': Email });
 
     if (User && true) {//Bcrypt.compareSync(Password,User.Password)){        
-           if(User.IsLoggedIn){ 
-            logger.error(`User ::${User.Email} has loggedin already`)  ;
-            throw Error('DuplicateSession');}
-        if(User.Role !== "User"){ throw Error("Invalid Login");}
+        const AccesToken = AuthHelper.CreateShortAccesstoken(User);
+        
+        
+        if (User.IsLoggedIn) {
+            logger.info(`User ::${User.Email} has loggedin already`);
+            return {
+                Valid:false,
+                ID: User._id,
+                Error:'DuplicateSession' ,
+                UserName: User.UserName,
+                AccessToken: AccesToken,                
+                User:User
+            };
+        }
         const AccesToken = AuthHelper.CreateAccesstoken(User);
         const RefreshToken = AuthHelper.CreateRefreshtoken(User);
         User.RefreshToken = RefreshToken;
@@ -106,7 +117,8 @@ exports.Authenticate = async (LoginModel) => {
         return {
             ID: User._id, Role: User.Role, Email: User.Email,
             UserName: User.UserName, AccessToken: AccesToken,
-            RefreshToken: User.RefreshToken, IsPswChangedOnFirstLogin: User.IsPswChangedOnFirstLogin
+            RefreshToken: User.RefreshToken, IsPswChangedOnFirstLogin: User.IsPswChangedOnFirstLogin,
+            User:User
         };
     }
 
@@ -239,14 +251,9 @@ exports.ManageProfile = async (id, Model) => {
 
 
 exports.DeleteUser = async (id) => {
-
     const User = await UserRepo.findById(id);
-
     if (User == null) { throw Error("User Not Found"); }
-
     User.remove();
-
-
 };
 
 exports.Log_Out = async (id) => {
@@ -259,6 +266,31 @@ exports.Log_Out = async (id) => {
         return ("Logout");
 
 
+    }
+
+}
+/**to add user application level settings */
+exports.AddAppSettings = async (appSettings) => {
+    try {
+        const settings = new UserSettingsRepo(appSettings);
+        await settings.save();
+    } catch (error) {
+
+        console.log(err);
+        throw (err);
+    }
+
+
+}
+
+/**to add user application level settings */
+exports.ConfirmTnC = async (id) => {
+    const userTnC = await UserRepo.findById(id);
+    if (userTnC === null) { throw Error('User Not Found '); } else {
+        userTnC.TnCAccepted = true;
+        userTnC.TnCAcceptedOn = new Date();
+        userTnC.save();
+        return (true);
     }
 
 }

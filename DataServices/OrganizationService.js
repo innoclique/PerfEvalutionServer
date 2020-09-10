@@ -32,3 +32,19 @@ return true;
 
 
 }
+exports.GetOrganizationDataById= async (Id) => {
+debugger
+    const Organization = await OrganizationRepo.findById(Id);
+
+    return Organization;
+
+
+};
+exports.GetAllOrganizations= async () => {
+    debugger
+        const Organizations = await OrganizationRepo.find();
+    
+        return Organizations;
+    
+    
+    };

@@ -290,7 +290,7 @@ exports.OrganizationSchema=(schema)=>{
    const organization =  Joi.object().keys({
       Name: Joi.string().required().trim(),
       Industry : Joi.string().required().trim(),    
-      Email: Joi.string().required().trim(),
+      Email: Joi.string().required().email(),
       Phone: Joi.string().required().trim(),
       Address:Joi.string().required().trim(),
       State:Joi.string().required().trim(),

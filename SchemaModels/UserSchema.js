@@ -30,10 +30,6 @@ const UserSchema = new mongoose.Schema({
     ParentUser:{ type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     TnCAccepted:{type:Boolean},
     TnCAcceptedOn:{type:Date,default: Date() },
-    
-
-
-
 });
 
 UserSchema.set('toJSON', { versionKey: false });

@@ -111,26 +111,13 @@ exports.ValidateInteger = ()=>{
 exports.ValidateCreateAccountModel = ( data)=>{
 
    const schema = Joi.object().keys({
-
-      // email is required
-      // email must be a valid email string
-    
-
-      LastName: Joi.string().required(),
-
-      Email: Joi.string().email().required(),
-
-      UserName: Joi.string().required(),
-
-      PhoneNumber: Joi.string().required(),
-
-      Address: Joi.string().required(),
-      Password: Joi.string().required(),
       FirstName: Joi.string().required(),
-      ConfirmPassword: Joi.string().valid(Joi.ref('Password')).required()
-
-     
-
+      LastName: Joi.string().required(),
+      Email: Joi.string().email().required(),
+      UserName: Joi.string().required(),
+      PhoneNumber: Joi.string().required(),
+      Address: Joi.string().required(),
+      Password: Joi.string().required()
   });
 
   return schema;
@@ -283,5 +270,50 @@ AcademicEndDate :  Joi.string().required().trim(),
 
   return Applicationchema;
 
+
+}
+
+exports.OrganizationSchema=(schema)=>{
+   const organization =  Joi.object().keys({
+      Name: Joi.string().required().trim(),
+      Industry : Joi.string().required().trim(),    
+      Email: Joi.string().required().email(),
+      Phone: Joi.string().required().trim(),
+      Address:Joi.string().required().trim(),
+      State:Joi.string().required().trim(),
+      City:Joi.string().required().trim(),
+      Country:Joi.string().required().trim(),
+      ZipCode:Joi.string().required().trim(),
+      UsageType:Joi.string().required().trim(),
+      IsAtive:Joi.boolean().required(),
+      Role:Joi.string().required().trim(),
+      OrganizationType:Joi.string().required().trim(),
+      UsageCount:Joi.string().required().trim(),
+      ContactName:Joi.string().required().trim(),
+      ContactEmail:Joi.string().required().trim(),
+      ContactPhone:Joi.string().required().trim(),
+      ContactPersonSameAsAdmin:Joi.boolean().required(),
+      AdminName:Joi.when('ContactPersonSameAsAdmin',{
+         is:true,
+         then:Joi.string().required().trim()
+      }),
+      AdminEmail:Joi.when('ContactPersonSameAsAdmin',{
+         is:true,
+         then:Joi.string().required().trim()
+      }),
+      AdminPhone:Joi.when('ContactPersonSameAsAdmin',{
+         is:true,
+         then:Joi.string().required().trim()
+      }),
+      EvaluationPeriod:Joi.string().required().trim(),
+      EvaluationDuration:Joi.string().required().trim(),
+      MaxEvaluationDays:Joi.string().required().trim(),
+
+
+
+      
+ });
+
+ return organization;
 
 }

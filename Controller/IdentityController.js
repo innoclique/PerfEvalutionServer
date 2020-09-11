@@ -51,26 +51,16 @@ exports.FindUserById = async (req, res, next) => {
 }
 
 exports.FindUserByEmail = async (req, res, next) => {
-
     /////validate user input with joi-------------
     Joi.validate(req.body, Validation_Helper.ValidateEmail(req.body), async (err, Result) => {
-
         if (err) { res.status(442).json({ mgs: err.details.map(i => i.message).join(" / ") }) }
-
         else {
-
             const Email = req.body.Email;
-
             await UserService.GetUserByEmail(Email)
                 .then(Response => Response ? res.status(200).json("Email Found") : res.status(404).json("User Not Found"))
                 .catch(err => next(err));
-
-
         }
-
     });
-
-
 };
 
 exports.FindUserByUserName = async (req, res, next) => {

@@ -13,6 +13,7 @@ const Port = process.env.PORT||3000;
 const IdentityRoute = require("./Routes/IdentityRoute");
 const AuthHelper = require("./Helpers/Auth_Helper");
 const SharedRoute=require('./Routes/SharedRoute');
+const ApplicationRoute=require('./Routes/ApplicationRoute');
 /////////////////////////////////////////////////////
 var logger=require('./logger');
 App.use(Cors());
@@ -22,8 +23,9 @@ App.use(BodyParser.urlencoded({extended:true}));
 
 
 /////////////////////API- ROUTE----------------
-App.use("/Api/Identity", IdentityRoute );
-App.use("/Api/Shared", SharedRoute );
+App.use("/api/identity", IdentityRoute );
+App.use("/api/shared", SharedRoute );
+App.use("/api/app", ApplicationRoute );
 App.use(Cookieparser());
 ////////////////////global error handler-------
 App.use(AuthHelper.ErrorHandler);  

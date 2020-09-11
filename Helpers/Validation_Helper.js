@@ -111,26 +111,13 @@ exports.ValidateInteger = ()=>{
 exports.ValidateCreateAccountModel = ( data)=>{
 
    const schema = Joi.object().keys({
-
-      // email is required
-      // email must be a valid email string
-    
-
-      LastName: Joi.string().required(),
-
-      Email: Joi.string().email().required(),
-
-      UserName: Joi.string().required(),
-
-      PhoneNumber: Joi.string().required(),
-
-      Address: Joi.string().required(),
-      Password: Joi.string().required(),
       FirstName: Joi.string().required(),
-      ConfirmPassword: Joi.string().valid(Joi.ref('Password')).required()
-
-     
-
+      LastName: Joi.string().required(),
+      Email: Joi.string().email().required(),
+      UserName: Joi.string().required(),
+      PhoneNumber: Joi.string().required(),
+      Address: Joi.string().required(),
+      Password: Joi.string().required()
   });
 
   return schema;

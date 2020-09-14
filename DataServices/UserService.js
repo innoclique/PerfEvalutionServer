@@ -94,20 +94,20 @@ exports.Authenticate = async (LoginModel) => {
 
     if (User && true) {//Bcrypt.compareSync(Password,User.Password)){        
         const AccesToken = AuthHelper.CreateShortAccesstoken(User);
-        
-        
+
+
         if (User.IsLoggedIn) {
             logger.info(`User ::${User.Email} has loggedin already`);
             return {
-                Valid:false,
+                Valid: false,
                 ID: User._id,
-                Error:'DuplicateSession' ,
+                Error: 'DuplicateSession',
                 UserName: User.UserName,
-                AccessToken: AccesToken,                
-                User:User
+                AccessToken: AccesToken,
+                User: User
             };
         }
-         AccesToken = AuthHelper.CreateAccesstoken(User);
+        AccesToken = AuthHelper.CreateAccesstoken(User);
         const RefreshToken = AuthHelper.CreateRefreshtoken(User);
         User.RefreshToken = RefreshToken;
         User.LastLogin = Date();
@@ -118,7 +118,7 @@ exports.Authenticate = async (LoginModel) => {
             ID: User._id, Role: User.Role, Email: User.Email,
             UserName: User.UserName, AccessToken: AccesToken,
             RefreshToken: User.RefreshToken, IsPswChangedOnFirstLogin: User.IsPswChangedOnFirstLogin,
-            User:User
+            User: User
         };
     }
 
@@ -189,20 +189,20 @@ exports.UpdatePassword = async (resetModel) => {
 
     const User = await UserRepo.findById(id);
 
-        if (User) {
+    if (User) {
 
-            if (User.Password !== resetModel.oldPassword) {
-                throw Error("Invalid old password");
-            }
+        if (User.Password !== resetModel.oldPassword) {
+            throw Error("Invalid old password");
+        }
 
-            User.IsPswChangedOnFirstLogin = true;
-            User.IsActive = true;
-            User.PswUpdatedOn = new Date();
-            User.Password = resetModel.password;
-            User.save();
+        User.IsPswChangedOnFirstLogin = true;
+        User.IsActive = true;
+        User.PswUpdatedOn = new Date();
+        User.Password = resetModel.password;
+        User.save();
 
-            return { status: "success" };
-        } else { throw Error("No user found"); }
+        return { status: "success" };
+    } else { throw Error("No user found"); }
 
 
 
@@ -294,3 +294,45 @@ exports.ConfirmTnC = async (id) => {
     }
 
 }
+
+exports.CreateEmployee = async (employee) => {
+    try {
+        debugger
+        const EmployeeName = await UserRepo.findOne({ Name: employee.Name });
+        const EmployeeEmail = await UserRepo.findOne({ Email: employee.Email });
+        const EmployeePhone = await UserRepo.findOne({ Phone: employee.Phone });
+
+        if (EmployeeName !== null) { throw Error("Employee Name Already Exist"); }
+
+        if (EmployeeEmail !== null) { throw Error("Employee Email Already Exist "); }
+
+        if (EmployeePhone !== null) { throw Error("Employee Phone Number Already Exist"); }
+        const newemp = new UserRepo(employee);
+        newemp.Role="Employee";
+        await newemp.save();
+        return true;
+    }
+    catch (err) {
+        logger.error(err)
+
+        console.log(err);
+        throw (err);
+    }
+
+
+}
+exports.GetEmployeeDataById= async (Id) => {
+    debugger
+        const GetEmployee = await UserRepo.findById(Id);
+    
+        return GetEmployee;
+    
+    
+    };
+    exports.GetAllEmployees= async (parentId) => {
+        debugger
+            const Employees = await UserRepo.find({Role:'EMPLOYEE',ParentUser:parentId});        
+            return Employees;       
+        
+        };
+        

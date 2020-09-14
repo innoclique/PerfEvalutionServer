@@ -3,7 +3,7 @@ require('dotenv').config();
 const Mongoose = require("mongoose");
 const Bcrypt = require('bcrypt');
 const OrganizationRepo = require('../SchemaModels/OrganizationSchema');
-
+const UserRepo = require('../SchemaModels/UserSchema');
 const AuthHelper = require('../Helpers/Auth_Helper');
 const SendMail = require("../Helpers/mail.js");
 var logger = require('../logger');
@@ -48,3 +48,5 @@ exports.GetAllOrganizations= async () => {
     
     
     };
+    
+    

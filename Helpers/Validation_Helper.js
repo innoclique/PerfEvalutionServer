@@ -4,16 +4,10 @@ const Joi = require('joi');
 exports.ValidateManageAccount = ( data)=>{
 
    const schema = Joi.object().keys({
-
-     
-
       Password: Joi.string().required(),
       Old_Password: Joi.string().required(),
-      ConfirmPassword: Joi.string().required(),
-
-    
-
-  });
+      ConfirmPassword: Joi.string().required()
+    });
 
   return schema;
 
@@ -316,4 +310,18 @@ exports.OrganizationSchema=(schema)=>{
 
  return organization;
 
+}
+
+exports.ValidateStrength = ( data)=>{
+
+   const schema = Joi.object().keys({
+      Strength: Joi.string().required(),
+      Leverage: Joi.string().required(),
+      TeamBenifit: Joi.string().required(),
+      SelfBenifit: Joi.string().required(),
+      Status: Joi.string().required(),
+      Comments: Joi.string().required(),
+      Employee: Joi.string().required()
+  });
+  return schema;
 }

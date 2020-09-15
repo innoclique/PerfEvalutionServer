@@ -3,7 +3,8 @@ require('dotenv').config();
 const Mongoose = require("mongoose");
 const Bcrypt = require('bcrypt');
 const OrganizationRepo = require('..');
-const strengthRepo = require('../SchemaModels/Strengths');
+const StrengthRepo = require('../SchemaModels/Strengths');
+const AccomplishmentRepo = require('../SchemaModels/Accomplishments');
 const AuthHelper = require('../Helpers/Auth_Helper');
 const SendMail = require("../Helpers/mail.js");
 var logger = require('../logger');
@@ -32,21 +33,61 @@ return true;
 
 
 }
-exports.GetOrganizationDataById= async (Id) => {
-debugger
-    const Organization = await OrganizationRepo.findById(Id);
+exports.GetStrengthById= async (Id) => {
 
-    return Organization;
+    const Strength = await StrengthRepo.findById(Id);
+
+    return Strength;
 
 
 };
-exports.GetAllOrganizations= async () => {
-    debugger
-        const Organizations = await OrganizationRepo.find();
+exports.GetAllStrengths= async (empId) => {
     
-        return Organizations;
+        const Strengths = await StrengthRepo.find({'Employee':empId});    
+        return Strengths;   
+    };
+    exports.AddAccomplishment = async (accomplishment) => {
+        try {        
+            // const organizationName = await strengthRepo.findOne({ Name: organization.Name });
+            // const organizationEmail = await strengthRepo.findOne({ Email: organization.Email });
+            // const organizationPhone = await OrganizationRepo.findOne({ Phone: organization.Phone });
+    
+            // if (organizationName !== null) { throw Error("Organization Name Already Exist"); }
+    
+            // if (organizationEmail !== null) { throw Error("Organization Email Already Exist "); }
+    
+            // if (organizationPhone !== null) { throw Error("Organization Phone Number Already Exist"); }
+            const Accomplishment = new AccomplishmentRepo(accomplishment);
+            await Accomplishment.save();
+    return true;
+        }
+        catch (err) {
+            logger.error(err)
+    
+            console.log(err);
+            throw (err);
+        }
+    
+    
+    }
+    exports.GetAccomplishmentDataById= async (Id) => {
+    
+        const Accomplishment = await AccomplishmentRepo.findById(Id);
+    
+        return Accomplishment;
     
     
     };
-    
+    exports.GetAllAccomplishments= async (empId) => {
+        
+            const Accomplishments = await AccomplishmentRepo.find({'Employee':empId});    
+            return Accomplishments;   
+        };
+        
+        exports.UpdateAccomplishment= async (empId) => {
+            
+                const Accomplishments = await AccomplishmentRepo.find({'Employee':empId});    
+                return Accomplishments;   
+            };
+         
     

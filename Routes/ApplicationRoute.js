@@ -13,5 +13,11 @@ route.post('/GetEmployeeDataById',EmployeeController.GetEmployeeDataById);
 route.post('/GetAllEmployees',EmployeeController.GetAllEmployees);
 
 route.post('/AddStrength',EmployeeController.AddStrength);
+route.post('/GetAllStrengths',EmployeeController.GetAllStrengths);
+
+route.post('/AddAccomplishment', EmployeeController.AddAccomplishment);
+route.post('/GetAccomplishmentDataById',EmployeeController.GetAccomplishmentDataById);
+route.post('/GetAllAccomplishments',EmployeeController.GetAllAccomplishments);
+
 module.exports = route;
 

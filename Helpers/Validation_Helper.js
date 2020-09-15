@@ -325,3 +325,15 @@ exports.ValidateStrength = ( data)=>{
   });
   return schema;
 }
+exports.ValidateAccomplishment = ( data)=>{
+
+   const schema = Joi.object().keys({
+      Accomplishment: Joi.string().required(),
+      CompletionDate: Joi.string().required(),
+      Comments: Joi.string().required(),
+      ShowToManager: Joi.bool().required(),
+      Employee:Joi.string().required(),
+      CreatedBy:Joi.string().required()
+  });
+  return schema;
+}

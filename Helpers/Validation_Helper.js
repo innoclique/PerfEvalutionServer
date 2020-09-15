@@ -118,6 +118,25 @@ exports.ValidateCreateAccountModel = ( data)=>{
 
 }
 
+
+exports.ValidateCreateEmployeeModel = ( data)=>{
+
+   const schema = Joi.object().keys({
+      FirstName: Joi.string().required(),
+      LastName: Joi.string().required(),
+      Email: Joi.string().email().required(),
+      PhoneNumber: Joi.string().required(),
+      Address: Joi.string().required(),
+      
+    
+  });
+
+  return schema;
+
+}
+
+
+
 exports.ValidateManageprofileAccountModel = ( data)=>{
 
   const schema = Joi.object().keys({

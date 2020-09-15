@@ -18,6 +18,8 @@ route.post('/GetAllStrengths',EmployeeController.GetAllStrengths);
 route.post('/AddAccomplishment', EmployeeController.AddAccomplishment);
 route.post('/GetAccomplishmentDataById',EmployeeController.GetAccomplishmentDataById);
 route.post('/GetAllAccomplishments',EmployeeController.GetAllAccomplishments);
+route.post('/GetAllDepartments',EmployeeController.GetAllDepartments);
+route.post('/GetEmpSetupBasicData',EmployeeController.GetEmpSetupBasicData);
 
 module.exports = route;
 

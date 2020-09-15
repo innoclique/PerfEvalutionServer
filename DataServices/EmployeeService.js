@@ -5,6 +5,10 @@ const Bcrypt = require('bcrypt');
 const OrganizationRepo = require('..');
 const StrengthRepo = require('../SchemaModels/Strengths');
 const AccomplishmentRepo = require('../SchemaModels/Accomplishments');
+const DepartmentRepo = require('../SchemaModels/DepartmentSchema');
+const JobRoleRepo = require('../SchemaModels/JobRoleSchema');
+const JobLevelRepo = require('../SchemaModels/JobLevelSchema');
+const AppRoleRepo = require('../SchemaModels/ApplicationRolesSchema');
 const AuthHelper = require('../Helpers/Auth_Helper');
 const SendMail = require("../Helpers/mail.js");
 var logger = require('../logger');
@@ -70,6 +74,24 @@ exports.GetAllStrengths= async (empId) => {
     
     
     }
+
+    exports.GetAllDepartments= async (empId) => {
+      
+        const Departments = await DepartmentRepo.find();    
+        return Departments;   
+    };
+
+    exports.GetEmpSetupBasicData= async (empId) => {
+       
+       
+        const Departments = await DepartmentRepo.find();    
+        const JobRoles = await JobRoleRepo.find();    
+        const AppRoles = await AppRoleRepo.find();    
+        const JobLevels = await JobLevelRepo.find();    
+        return {Departments,JobRoles,AppRoles,JobLevels};   
+    };
+
+
     exports.GetAccomplishmentDataById= async (Id) => {
     
         const Accomplishment = await AccomplishmentRepo.findById(Id);

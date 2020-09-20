@@ -146,8 +146,8 @@ exports.UpdateNote = async (Id) => {
 };
 
 exports.IsOrgExist=async (orgName)=>{
-const orgName=await OrganizationRepo.findOne({'Name':orgName});
-return orgName;
+const org=await OrganizationRepo.findOne({'Name':orgName});
+return org;
 }
 
 

@@ -16,6 +16,18 @@ exports.AddOrganization = async (req, res, next) => {
         }
     });
 }
+exports.UpdateOrganization = async (req, res, next) => {
+    Joi.validate(req.body, Validation_Helper.OrganizationSchema(req.body), async (err, result) => {
+        if (err) { res.status(400).json({ message: err.details.map(i => i.message).join(" / ") }) }
+        else {
+            await OrganizaionService.UpdateOrganization(req.body)
+                .then((Response) => {
+                    res.status(200).json({ message: " Organization added Succeesfully" });
+                })
+                .catch(err => { next(err) });
+        }
+    });
+}
 exports.GetOrganizationDataById = async (req, res, next) => {
     Joi.validate(req.body.id, Validation_Helper.ValidateString(), async (err, Result) => {
         if (err) { res.status(442).json({ mgs: err.details.map(i => i.message).join(" / ") }) }

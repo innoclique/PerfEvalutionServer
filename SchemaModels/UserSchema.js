@@ -4,8 +4,6 @@ const mongoose = require("mongoose");
 const { boolean } = require("joi");
 
 const UserSchema = new mongoose.Schema({
-
-    UserName: { type: String, required: true, unique: true },
     Email: { type: String, required: true, unique: true },
     Password: { type: String, required: true },
     RefreshToken: { type: String },
@@ -19,6 +17,7 @@ const UserSchema = new mongoose.Schema({
     Country:{ type: String, required: true },
     ZipCode:{ type: String, required: true },
     Title:{ type: String },
+    MiddleName:{type:String},
     FirstName: { type: String, required: true },
     LastName: { type: String, required: true },
     ExtNumber: { type: String },

@@ -2,7 +2,6 @@ const Joi = require('joi');
 
 
 exports.ValidateManageAccount = ( data)=>{
-
    const schema = Joi.object().keys({
       Password: Joi.string().required(),
       Old_Password: Joi.string().required(),
@@ -10,26 +9,21 @@ exports.ValidateManageAccount = ( data)=>{
     });
 
   return schema;
-
 }
 
 
 exports.ValidateAuthenticationInput = ( data)=>{
-
    const schema = Joi.object().keys({
-      // email is required
+       // email is required
       // email must be a valid email string
       Email: Joi.string().email().required().trim(),
       Password: Joi.string().required(),
   });
-
   return schema;
-
 }
 
 
 exports.ValidatePasswordUpdate = ( data)=>{
-
    const schema = Joi.object().keys({
       // userId is required
       // userId must be a valid  string
@@ -37,73 +31,46 @@ exports.ValidatePasswordUpdate = ( data)=>{
       password: Joi.string().required(),
       oldPassword: Joi.string().required(),
   });
-
   return schema;
-
 }
 
-
-
 exports.ValidateEmail = (data)=>{
-
-
    const schema = Joi.object().keys({
-
       // email is required
       // email must be a valid email string
-      Email: Joi.string().email().required().trim(),
- 
-
+      Email: Joi.string().email().required().email().trim()
   });
-
   return schema;
 }
 
 exports.ValidateUserName = (data)=>{
-
-
    const schema = Joi.object().keys({
-
       // email is required
       // email must be a valid email string
       UserName: Joi.string().required().trim(),
- 
-
   });
 
   return schema;
 }
 
 exports.ValidatePhoneNumber = (data)=>{
-
-
    const schema = Joi.object().keys({
-
       // email is required
       // email must be a valid email string
       PhoneNumber: Joi.string().required().trim(),
- 
-
   });
-
   return schema;
 }
 
 
 
 exports.ValidateInteger = ()=>{
-
-
    const schema =  Joi.number().required();
- 
-
- 
   return schema;
 }
 
 
 exports.ValidateCreateAccountModel = ( data)=>{
-
    const schema = Joi.object().keys({
       FirstName: Joi.string().required(),
       LastName: Joi.string().required(),
@@ -113,7 +80,6 @@ exports.ValidateCreateAccountModel = ( data)=>{
       Address: Joi.string().required(),
       Password: Joi.string().required()
   });
-
   return schema;
 
 }
@@ -241,12 +207,10 @@ exports.CreateJobSchema = (schema) =>{
        Responsibility : Joi.string().required().trim(),
 
    });
-
    return CreateJobschema;
 }
 
 exports.ApplicationSchema = (schema) =>{
-
    const Applicationchema =  Joi.object().keys({
 
  
@@ -300,10 +264,7 @@ AcademicEndDate :  Joi.string().required().trim(),
 
 
   });
-
   return Applicationchema;
-
-
 }
 
 exports.OrganizationSchema=(schema)=>{
@@ -317,33 +278,42 @@ exports.OrganizationSchema=(schema)=>{
       City:Joi.string().required().trim(),
       Country:Joi.string().required().trim(),
       ZipCode:Joi.string().required().trim(),
-      UsageType:Joi.string().required().trim(),
-      IsAtive:Joi.boolean().required(),
-      Role:Joi.string().required().trim(),
-      OrganizationType:Joi.string().required().trim(),
-      UsageCount:Joi.string().required().trim(),
-      ContactName:Joi.string().required().trim(),
-      ContactEmail:Joi.string().required().trim(),
-      ContactPhone:Joi.string().required().trim(),
-      ContactPersonSameAsAdmin:Joi.boolean().required(),
-      AdminName:Joi.when('ContactPersonSameAsAdmin',{
-         is:true,
+      UsageType:Joi.string().required().trim(),            
+      ClientType:Joi.string().required().trim(),
+      UsageCount:Joi.number().required(),
+      AdminFirstName:Joi.string().required().trim(),      
+      AdminLastName:Joi.string().required().trim(),
+      AdminMiddleName:Joi.string().optional(),
+      AdminEmail:Joi.string().required().email(),
+      AdminPhone:Joi.string().required().trim(),
+      SameAsAdmin:Joi.boolean().required(),
+      ContactPersonFirstName:Joi.when('SameAsAdmin',{
+         is:"false",
          then:Joi.string().required().trim()
       }),
-      AdminEmail:Joi.when('ContactPersonSameAsAdmin',{
-         is:true,
+      ContactPersonLastName:Joi.when('SameAsAdmin',{
+         is:"flase",
          then:Joi.string().required().trim()
       }),
-      AdminPhone:Joi.when('ContactPersonSameAsAdmin',{
-         is:true,
+      ContactPersonEmail:Joi.when('SameAsAdmin',{
+         is:"false",
          then:Joi.string().required().trim()
       }),
+      ContactPersonPhone:Joi.when('SameAsAdmin',{
+         is:"false",
+         then:Joi.string().required().trim()
+      }),
+      ContactPersonMiddleName:Joi.string().optional(),
       EvaluationPeriod:Joi.string().required().trim(),
       EvaluationDuration:Joi.string().required().trim(),
-      MaxEvaluationDays:Joi.string().required().trim(),
-
-
-
+      
+      EvaluationModels:Joi.string().required().trim(),
+      PhoneExt:Joi.string(),
+      EvaluationMaximumDays:Joi.string(),
+      EmployeeBufferCount:Joi.string().optional(),
+      DownloadBufferDays:Joi.string().optional(),
+      CoachingReminder:Joi.string().optional(),
+      IsActive:Joi.optional()
       
  });
 

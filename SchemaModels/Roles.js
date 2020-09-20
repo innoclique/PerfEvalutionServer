@@ -5,8 +5,9 @@ const mongoose = require("mongoose");
 const RolesSchema = new mongoose.Schema({
 
     RoleCode: { type: String, required: true },
-    RoleName: { type: Date(), required: true },
-    RoleLevel: { type: String },    
+    RoleName: { type: String, required: true },
+    RoleLevel: { type: String },   
+    IsActive:{type:Boolean, default:true}, 
     CreatedOn:  { type: Date() },
     CreatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     UpdatedOn:  { type: Date() },

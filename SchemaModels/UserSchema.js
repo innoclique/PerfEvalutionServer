@@ -49,7 +49,8 @@ const UserSchema = new mongoose.Schema({
     CopiesTo:{ type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     ThirdSignatory:{ type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     UpdatedOn:{type:Date,default: Date() },
-    UpdatedBy:{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }
+    UpdatedBy:{ type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    Permissions:[]
 });
 
 UserSchema.set('toJSON', { versionKey: false });

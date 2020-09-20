@@ -298,17 +298,20 @@ exports.ConfirmTnC = async (id) => {
 exports.CreateEmployee = async (employee) => {
     try {
         debugger
-        const EmployeeName = await UserRepo.findOne({ Name: employee.Name });
+        const EmployeeName = await UserRepo.findOne({ FirstName: employee.FirstName,LastName:employee.LastName });
         const EmployeeEmail = await UserRepo.findOne({ Email: employee.Email });
-        const EmployeePhone = await UserRepo.findOne({ Phone: employee.Phone });
+        const EmployeePhone = await UserRepo.findOne({ Phone: employee.PhoneNumber });
 
         if (EmployeeName !== null) { throw Error("Employee Name Already Exist"); }
 
         if (EmployeeEmail !== null) { throw Error("Employee Email Already Exist "); }
 
         if (EmployeePhone !== null) { throw Error("Employee Phone Number Already Exist"); }
+        employee.Role="Employee";
+        employee.UserName=employee.FirstName+" "+employee.LastName;
+        employee.Password = Bcrypt.hashSync(AuthHelper.GenerateRandomPassword(), 10);
+
         const newemp = new UserRepo(employee);
-        newemp.Role="Employee";
         await newemp.save();
         return true;
     }

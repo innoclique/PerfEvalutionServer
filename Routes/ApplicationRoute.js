@@ -29,6 +29,8 @@ route.post('/AddNote', ApplicationController.AddNote);
 route.post('/GetNoteDataById',ApplicationController.GetNoteDataById);
 route.post('/GetAllNotes',ApplicationController.GetAllNotes);
 route.post('/UpdateNoteDataById',ApplicationController.UpdateNoteDataById);
+route.post('/GetAllDepartments',EmployeeController.GetAllDepartments);
+route.post('/GetEmpSetupBasicData',EmployeeController.GetEmpSetupBasicData);
 
 module.exports = route;
 

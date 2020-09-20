@@ -325,6 +325,7 @@ exports.ValidateStrength = ( data)=>{
   });
   return schema;
 }
+
 exports.ValidateAccomplishment = ( data)=>{
 
    const schema = Joi.object().keys({
@@ -334,6 +335,36 @@ exports.ValidateAccomplishment = ( data)=>{
       ShowToManager: Joi.bool().required(),
       Employee:Joi.string().required(),
       CreatedBy:Joi.string().required()
+  });
+  return schema;
+}
+exports.ValidateKpi = ( data)=>{
+
+   const schema = Joi.object().keys({
+      Kpi: Joi.string().required(),
+      MeasurementCriteria: Joi.string().required(),
+      TargetCompletionDate: Joi.string().required(),
+      Score: Joi.number().required(),
+      YearEndComments:Joi.string().required(),
+      Weighting:Joi.number().required(),
+      Signoff:Joi.string().required(),
+    Status:Joi.string().required(),
+    IsDraft:Joi.boolean().required(),
+    CreatedOn:Joi.string().required(),
+    CreatedBy:Joi.string().required(),
+    UpdatedOn:Joi.string().required(),
+    UpdatedBy:Joi.string().required()
+
+  });
+  return schema;
+}
+exports.ValidateNote = ( data)=>{
+
+   const schema = Joi.object().keys({
+      Notes: Joi.string().required(),
+      Discussedwith: Joi.string().required(),
+      Comments: Joi.string().required(),
+      User: Joi.string().required(),
   });
   return schema;
 }

@@ -18,6 +18,17 @@ route.post('/GetAllStrengths',EmployeeController.GetAllStrengths);
 route.post('/AddAccomplishment', EmployeeController.AddAccomplishment);
 route.post('/GetAccomplishmentDataById',EmployeeController.GetAccomplishmentDataById);
 route.post('/GetAllAccomplishments',EmployeeController.GetAllAccomplishments);
+route.post('/UpdateAccomplishmentDataById',EmployeeController.UpdateAccomplishmentDataById);
+
+route.post('/AddKpi', EmployeeController.AddKpi);
+route.post('/GetKpiDataById',EmployeeController.GetKpiDataById);
+route.post('/GetAllKpis',EmployeeController.GetAllKpis);
+route.post('/UpdateKpiDataById',EmployeeController.UpdateKpiDataById);
+
+route.post('/AddNote', ApplicationController.AddNote);
+route.post('/GetNoteDataById',ApplicationController.GetNoteDataById);
+route.post('/GetAllNotes',ApplicationController.GetAllNotes);
+route.post('/UpdateNoteDataById',ApplicationController.UpdateNoteDataById);
 
 module.exports = route;
 

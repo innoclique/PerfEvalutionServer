@@ -127,6 +127,26 @@ exports.ValidateCreateEmployeeModel = ( data)=>{
       Email: Joi.string().email().required(),
       PhoneNumber: Joi.string().required(),
       Address: Joi.string().required(),
+
+      MiddleName: Joi.string(),
+      ExtNumber:Joi.string(),
+      AltPhoneNumber:Joi.string(),
+      MobileNumber:Joi.string(),
+      IsActive:Joi.string(),
+      JobLevel:Joi.string(),
+      JobRole:Joi.string(),
+      Department:Joi.string(),
+      ApplicationRole:Joi.string(),
+
+      Title:Joi.string(),
+      ThirdSignatory:Joi.string(),
+      CopiesTo:Joi.string(),
+      DirectReports:Joi.string(),
+      Country:Joi.string(),
+      State:Joi.string(),
+      City:Joi.string(),
+      ZipCode:Joi.string(),
+      
       
     
   });

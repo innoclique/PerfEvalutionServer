@@ -300,7 +300,7 @@ exports.CreateEmployee = async (employee) => {
         if (EmployeeEmail !== null) { throw Error("Employee Email Already Exist "); }
 
         if (EmployeePhone !== null) { throw Error("Employee Phone Number Already Exist"); }
-        employee.Role = "Employee";
+        employee.Role = "EMPLOYEE";
         employee.UserName = employee.FirstName + " " + employee.LastName;
         employee.Password = Bcrypt.hashSync(AuthHelper.GenerateRandomPassword(), 10);
 
@@ -326,9 +326,10 @@ exports.GetEmployeeDataById = async (Id) => {
 
 };
 exports.GetAllEmployees = async (parentId) => {
-    debugger
-    const Employees = await UserRepo.find({ Role: 'EMPLOYEE', ParentUser: parentId });
-    return Employees;
+  
+     // const Employees = await UserRepo.find({Role:'EMPLOYEE',ParentUser:parentId});        
+     const Employees = await UserRepo.find({Role:'EMPLOYEE'});        
+     return Employees;    
 
 };
 

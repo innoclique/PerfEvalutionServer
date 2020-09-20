@@ -33,28 +33,21 @@ exports.GetUserByEmail = async (Email) => {
 
 };
 
-exports.GetUserByUserName = async (Username) => {
-
-    return await UserRepo.findOne({ UserName: Username });
+exports.GetUserByEmail = async (email) => {
+    return await UserRepo.findOne({ Email: email });
 };
 
 
 exports.GetUserByPhoneNumber = async (PhoneNumber) => {
-
     return await UserRepo.findOne({ PhoneNumber: PhoneNumber });
 };
 
 
-exports.MnageUserRole = async (id, Model) => {
-
+exports.ManageUserRole = async (id, Model) => {
     const User = await UserRepo.findById(id);
-
     if (User == null) { throw Error("User Not Found"); }
-
     User.Role = Model.Role;
     User.save();
-
-
 
 };
 
@@ -298,7 +291,7 @@ exports.ConfirmTnC = async (id) => {
 exports.CreateEmployee = async (employee) => {
     try {
         debugger
-        const EmployeeName = await UserRepo.findOne({ FirstName: employee.FirstName,LastName:employee.LastName });
+        const EmployeeName = await UserRepo.findOne({ FirstName: employee.FirstName, LastName: employee.LastName });
         const EmployeeEmail = await UserRepo.findOne({ Email: employee.Email });
         const EmployeePhone = await UserRepo.findOne({ Phone: employee.PhoneNumber });
 
@@ -307,8 +300,8 @@ exports.CreateEmployee = async (employee) => {
         if (EmployeeEmail !== null) { throw Error("Employee Email Already Exist "); }
 
         if (EmployeePhone !== null) { throw Error("Employee Phone Number Already Exist"); }
-        employee.Role="Employee";
-        employee.UserName=employee.FirstName+" "+employee.LastName;
+        employee.Role = "Employee";
+        employee.UserName = employee.FirstName + " " + employee.LastName;
         employee.Password = Bcrypt.hashSync(AuthHelper.GenerateRandomPassword(), 10);
 
         const newemp = new UserRepo(employee);
@@ -324,18 +317,18 @@ exports.CreateEmployee = async (employee) => {
 
 
 }
-exports.GetEmployeeDataById= async (Id) => {
+exports.GetEmployeeDataById = async (Id) => {
     debugger
-        const GetEmployee = await UserRepo.findById(Id);
-    
-        return GetEmployee;
-    
-    
-    };
-    exports.GetAllEmployees= async (parentId) => {
-        debugger
-            const Employees = await UserRepo.find({Role:'EMPLOYEE',ParentUser:parentId});        
-            return Employees;       
-        
-        };
-        
+    const GetEmployee = await UserRepo.findById(Id);
+
+    return GetEmployee;
+
+
+};
+exports.GetAllEmployees = async (parentId) => {
+    debugger
+    const Employees = await UserRepo.find({ Role: 'EMPLOYEE', ParentUser: parentId });
+    return Employees;
+
+};
+

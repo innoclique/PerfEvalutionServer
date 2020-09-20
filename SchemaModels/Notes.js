@@ -1,18 +1,18 @@
 const Express = require("express");
 require('dotenv').config();
 const mongoose = require("mongoose");
-const { date, string } = require("joi");
+
 //const { boolean } = require("joi");
 
 const NotesSchema = new mongoose.Schema({
 
     Discussedwith: { type: String, required: true },
-    Notes: { type: Date, required: true, unique: true },
+    Notes: { type: Date(), required: true },
     Comments: { type: String },
     user:{ type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-    CreatedOn:  { type: Date },
+    CreatedOn:  { type: Date() },
     CreatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    UpdatedOn:  { type: Date },
+    UpdatedOn:  { type: Date() },
     UpdatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
 });
 

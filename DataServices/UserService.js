@@ -85,10 +85,8 @@ exports.Authenticate = async (LoginModel) => {
 
     const User = await UserRepo.findOne({ 'Email': Email });
 
-    if (User && true) {//Bcrypt.compareSync(Password,User.Password)){        
+    if (User && Bcrypt.compareSync(Password,User.Password)){        
         const AccesToken = AuthHelper.CreateShortAccesstoken(User);
-
-
         if (User.IsLoggedIn) {
             logger.info(`User ::${User.Email} has loggedin already`);
             return {

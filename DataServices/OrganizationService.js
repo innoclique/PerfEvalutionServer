@@ -101,9 +101,8 @@ exports.GetOrganizationDataById = async (Id) => {
     return Organization;
 };
 exports.GetAllOrganizations = async () => {
-    debugger
-    const Organizations = await OrganizationRepo.find();
-
+    
+    const Organizations = await OrganizationRepo.find().sort({CreatedOn:-1});
     return Organizations;
 
 

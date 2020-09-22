@@ -4,11 +4,14 @@ const Mongoose = require("mongoose");
 
 const OrganizationRepo = require('../SchemaModels/OrganizationSchema');
 const IndustryRepo = require('../SchemaModels/Industry');
+const UserRepo = require('../SchemaModels/UserSchema');
 const SendMail = require("../Helpers/mail.js");
 var logger = require('../logger');
 
-exports.GetIndustries = async () => {    
-    const industries = await IndustryRepo.find().sort({Name:1});
+exports.GetIndustries = async () => {
+        
+    
+    const industries = await IndustryRepo.find({}).sort({Name:1});
     return industries;
 };
 

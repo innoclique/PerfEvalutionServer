@@ -12,7 +12,22 @@ exports.CreateEmployee = async (req, res, next) => {
             
             await UserService.CreateEmployee(req.body)
                 .then((Response) => {
-                    res.status(200).json({ message: " Employee added Succeesfully" });
+                    res.status(200).json({ message: "Success" });
+                })
+                .catch(err => { next(err) });
+        }
+    });
+}
+
+
+exports.UpdateEmployee = async (req, res, next) => {
+    Joi.validate(req.body, Validation_Helper.ValidateCreateEmployeeModel(req.body), async (err, result) => {
+        if (err) { res.status(400).json({ message: err.details.map(i => i.message).join(" / ") }) }
+        else {
+            
+            await UserService.UpdateEmployee(req.body)
+                .then((Response) => {
+                    res.status(200).json({ message: "Success" });
                 })
                 .catch(err => { next(err) });
         }

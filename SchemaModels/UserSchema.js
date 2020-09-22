@@ -38,6 +38,7 @@ const UserSchema = new mongoose.Schema({
     },
     PswUpdatedOn: { type: String },
     IsActive: { type: Boolean, default: false },
+    IsSubmit: { type: Boolean, default: false },
     ParentUser:{ type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     JobRole:{ type: mongoose.Schema.Types.ObjectId, ref: 'jobrole' },
     JobLevel:{ type: mongoose.Schema.Types.ObjectId, ref: 'joblevel' },

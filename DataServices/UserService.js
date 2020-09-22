@@ -288,7 +288,7 @@ exports.ConfirmTnC = async (id) => {
 
 exports.CreateEmployee = async (employee) => {
     try {
-        debugger
+        
         const EmployeeName = await UserRepo.findOne({ FirstName: employee.FirstName, LastName: employee.LastName });
         const EmployeeEmail = await UserRepo.findOne({ Email: employee.Email });
         const EmployeePhone = await UserRepo.findOne({ Phone: employee.PhoneNumber });
@@ -298,6 +298,13 @@ exports.CreateEmployee = async (employee) => {
         if (EmployeeEmail !== null) { throw Error("Employee Email Already Exist "); }
 
         if (EmployeePhone !== null) { throw Error("Employee Phone Number Already Exist"); }
+
+        const ApplicationRole = await UserRepo.findOne({ParentUser:employee.ParentUser, ApplicationRole: '5f60e0919a4e1b15986bc251' });
+       
+        // if (employee.ApplicationRole=='5f60e09c9a4e1b15986bc252' && ApplicationRole==null  ) {
+        //     throw Error("Evaluation Administrator Not Found"); 
+        // }
+
         employee.Role = "EMPLOYEE";
         employee.UserName = employee.FirstName + " " + employee.LastName;
         employee.Password = Bcrypt.hashSync(AuthHelper.GenerateRandomPassword(), 10);
@@ -315,6 +322,39 @@ exports.CreateEmployee = async (employee) => {
 
 
 }
+
+
+
+exports.UpdateEmployee = async (employee) => {
+    try {
+        
+        let empId= employee._id;
+        const EmployeeName = await UserRepo.findOne({ FirstName: employee.FirstName, LastName: employee.LastName });
+        
+        const EmployeePhone = await UserRepo.findOne({ PhoneNumber: employee.PhoneNumber });
+
+        if (EmployeeName !== null && EmployeeName._id!= employee._id)  { throw Error("Employee Name Already Exist"); }
+
+        if (EmployeePhone !== null && EmployeePhone._id!= employee._id ) { throw Error("Employee Phone Number Already Exist"); }
+      
+        employee.UserName = employee.FirstName + " " + employee.LastName;
+
+        delete employee._id;
+        employee.UpdatedOn= new Date();
+         const emp = await UserRepo.findByIdAndUpdate(empId,employee);
+
+        return true;
+    }
+    catch (err) {
+        logger.error(err)
+
+        console.log(err);
+        throw (err);
+    }
+
+
+}
+
 exports.GetEmployeeDataById = async (Id) => {
     debugger
     const GetEmployee = await UserRepo.findById(Id);
@@ -326,7 +366,8 @@ exports.GetEmployeeDataById = async (Id) => {
 exports.GetAllEmployees = async (parentId) => {
   
      // const Employees = await UserRepo.find({Role:'EMPLOYEE',ParentUser:parentId});        
-     const Employees = await UserRepo.find({Role:'EMPLOYEE'});        
+     const Employees = await UserRepo.find({Role:'EMPLOYEE'})
+     .populate('ThirdSignatory CopiesTo DirectReports');        
      return Employees;    
 
 };

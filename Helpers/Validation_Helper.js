@@ -87,18 +87,27 @@ exports.ValidateCreateAccountModel = ( data)=>{
 
 exports.ValidateCreateEmployeeModel = ( data)=>{
 
+
+
    const schema = Joi.object().keys({
       FirstName: Joi.string().required(),
       LastName: Joi.string().required(),
       Email: Joi.string().email().required(),
       PhoneNumber: Joi.string().required(),
       Address: Joi.string().required(),
+      JoiningDate: Joi.string().required(),
 
       MiddleName: Joi.string(),
       ExtNumber:Joi.string(),
       AltPhoneNumber:Joi.string(),
       MobileNumber:Joi.string(),
       IsActive:Joi.string(),
+      IsSubmit:Joi.string(),
+      UpdatedBy:Joi.string(),
+      CreatedBy:Joi.string(),
+      ParentUser:Joi.string(),
+
+      _id:Joi.string(),
       JobLevel:Joi.string(),
       JobRole:Joi.string(),
       Department:Joi.string(),
@@ -116,6 +125,7 @@ exports.ValidateCreateEmployeeModel = ( data)=>{
       
     
   });
+ 
 
   return schema;
 

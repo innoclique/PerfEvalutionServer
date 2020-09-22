@@ -82,7 +82,9 @@ exports.CreateAccount = async (UserModel) => {
 exports.Authenticate = async (LoginModel) => {
     Email = LoginModel.Email;
     Password = LoginModel.Password;
-
+console.log('came into login metho')
+try{
+debugger
     const User = await UserRepo.findOne({ 'Email': Email });
 
     if (User && Bcrypt.compareSync(Password,User.Password)){        
@@ -111,8 +113,14 @@ exports.Authenticate = async (LoginModel) => {
             RefreshToken: User.RefreshToken, IsPswChangedOnFirstLogin: User.IsPswChangedOnFirstLogin,
             User: User
         };
+    }else{
+        console.log('not found')
+throw "User not found";
     }
-
+}catch(error){
+    console.log(error);
+    logger.error(error);
+}
 
 }
 

@@ -21,7 +21,11 @@ exports.CreateOrganization = async (organization) => {
             LastName: organization.AdminLastName,
             MiddleName: organization.AdminMiddleName,
             Address: organization.Address,            
-            PhoneNumber: organization.AdminPhone
+            PhoneNumber: organization.AdminPhone,
+            Country:organization.Country,
+            State:organization.State,
+            ZipCode:organization.ZipCode,
+            City:organization.City
         }
         // const UserNameUser = await UserRepo.findOne({ Email: UserModel.Username });
         const EmailUser = await UserRepo.findOne({ Email: userRecord.Email });
@@ -59,35 +63,27 @@ exports.CreateOrganization = async (organization) => {
 }
 exports.UpdateOrganization = async (organization) => {
     try {
-        const organizationName = await OrganizationRepo.findOne({ Name: organization.Name });
-        const organizationEmail = await OrganizationRepo.findOne({ Email: organization.Email });
-        const organizationPhone = await OrganizationRepo.findOne({ Phone: organization.Phone });
-
-        if (organizationName !== null) { throw Error("Organization Name Already Exist"); }
-        if (organizationEmail !== null) { throw Error("Organization Email Already Exist "); }
-        if (organizationPhone !== null) { throw Error("Organization Phone Number Already Exist"); }
-        const Organization = new OrganizationRepo.findByIdAndUpdate(organization);
-        await Organization.save();
+        const toupdateOrg =await  OrganizationRepo.findOne({_id:Mongoose.Types.ObjectId(organization.id)});
+        Object.assign(toupdateOrg, organization);
+var ff=await toupdateOrg.save();
+     //var _g=await Organization.save();
         //save user account for this organization
-        //     const pwd = Bcrypt.hashSync(AuthHelper.GenerateRandomPassword(), 10);
-        //     const userRecord = {
-        //         Email: organization.AdminEmail,
-        //         ContactPhone: organization.AdminPhone,
-        //         Role: 'Client',
-        //         Password: Bcrypt.hashSync(pwd, 10),
-        //         FirstName: organization.AdminName,
-        //         Address: organization.Address,
-        //         LastName: organization.AdminName,
-        //         PhoneNumber: organization.Phone
-        //     }
-        //    // const UserNameUser = await UserRepo.findOne({ Email: UserModel.Username });
-        //     const EmailUser = await UserRepo.findOne({ Email: userRecord.Email });
-        //     //const PhoneNumberUser = await UserRepo.findOne({ PhoneNumber: UserModel.PhoneNumber });
+        const userRecord = {
+            Email: organization.AdminEmail,
+            ContactPhone: organization.AdminPhone,
+            Role: 'Client',            
+            FirstName: organization.AdminFirstName,
+            LastName: organization.AdminLastName,
+            MiddleName: organization.AdminMiddleName,
+            Address: organization.Address,            
+            PhoneNumber: organization.AdminPhone,
+            Country:organization.Country,
+            State:organization.State,
+            ZipCode:organization.ZipCode,
+            City:organization.City
+        }
+        const user = await UserRepo.findOneAndUpdate({id:ff.Admin},{userRecord});  
 
-        //     if (EmailUser !== null) { throw Error("Email Already Exist"); }
-        //     const user = new UserRepo(userRecord)
-        //     await user.save();
-        //send email to admin user
         return true;
     }
     catch (err) {

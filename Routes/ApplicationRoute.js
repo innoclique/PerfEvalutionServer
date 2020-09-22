@@ -5,6 +5,7 @@ const EmployeeController = require('../Controller/EmployeeController');
 const AuthHelper = require('../Helpers/Auth_Helper');
 
 
+route.post('/UpdateOrganization', ApplicationController.UpdateOrganization);
 route.post('/AddOrganization', ApplicationController.AddOrganization);
 route.post('/GetOrganizationDataById',ApplicationController.GetOrganizationDataById);
 route.post('/GetAllOrganizations',ApplicationController.GetAllOrganizations);

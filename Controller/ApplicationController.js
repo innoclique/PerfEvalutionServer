@@ -17,7 +17,7 @@ exports.AddOrganization = async (req, res, next) => {
     });
 }
 exports.UpdateOrganization = async (req, res, next) => {
-    Joi.validate(req.body, Validation_Helper.OrganizationSchema(req.body), async (err, result) => {
+    Joi.validate(req.body, Validation_Helper.UpdateOrganizationSchema(req.body), async (err, result) => {
         if (err) { res.status(400).json({ message: err.details.map(i => i.message).join(" / ") }) }
         else {
             await OrganizaionService.UpdateOrganization(req.body)

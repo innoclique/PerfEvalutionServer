@@ -293,7 +293,7 @@ exports.OrganizationSchema=(schema)=>{
       UsageCount:Joi.number().required(),
       AdminFirstName:Joi.string().required().trim(),      
       AdminLastName:Joi.string().required().trim(),
-      AdminMiddleName:Joi.string().optional(),
+      AdminMiddleName:Joi.optional(),
       AdminEmail:Joi.string().required().email(),
       AdminPhone:Joi.string().required().trim(),
       SameAsAdmin:Joi.boolean().required(),
@@ -313,7 +313,7 @@ exports.OrganizationSchema=(schema)=>{
          is:"false",
          then:Joi.string().required().trim()
       }),
-      ContactPersonMiddleName:Joi.string().optional(),
+      ContactPersonMiddleName:Joi.optional(),
       EvaluationPeriod:Joi.string().required().trim(),
       EvaluationDuration:Joi.string().required().trim(),
       
@@ -323,14 +323,71 @@ exports.OrganizationSchema=(schema)=>{
       EmployeeBufferCount:Joi.string().optional(),
       DownloadBufferDays:Joi.string().optional(),
       CoachingReminder:Joi.string().optional(),
-      IsActive:Joi.optional()
+      IsActive:Joi.optional(),
+      CreatedBy:Joi.string().required().trim(),
+      CreatedOn:Joi.optional()
       
  });
 
  return organization;
 
 }
+exports.UpdateOrganizationSchema=(schema)=>{
+   const organization =  Joi.object().keys({
+      id:Joi.string().required().trim(),
+      Name: Joi.string().required().trim(),
+      Industry : Joi.string().required().trim(),    
+      Email: Joi.string().required().email(),
+      Phone: Joi.string().required().trim(),
+      Address:Joi.string().required().trim(),
+      State:Joi.string().required().trim(),
+      City:Joi.string().required().trim(),
+      Country:Joi.string().required().trim(),
+      ZipCode:Joi.string().required().trim(),
+      UsageType:Joi.string().required().trim(),            
+      ClientType:Joi.string().required().trim(),
+      UsageCount:Joi.number().required(),
+      AdminFirstName:Joi.string().required().trim(),      
+      AdminLastName:Joi.string().required().trim(),
+      AdminMiddleName:Joi.optional(),
+      AdminEmail:Joi.string().required().email(),
+      AdminPhone:Joi.string().required().trim(),
+      SameAsAdmin:Joi.boolean().required(),
+      ContactPersonFirstName:Joi.when('SameAsAdmin',{
+         is:"false",
+         then:Joi.string().required().trim()
+      }),
+      ContactPersonLastName:Joi.when('SameAsAdmin',{
+         is:"flase",
+         then:Joi.string().required().trim()
+      }),
+      ContactPersonEmail:Joi.when('SameAsAdmin',{
+         is:"false",
+         then:Joi.string().required().trim()
+      }),
+      ContactPersonPhone:Joi.when('SameAsAdmin',{
+         is:"false",
+         then:Joi.string().required().trim()
+      }),
+      ContactPersonMiddleName:Joi.optional(),
+      EvaluationPeriod:Joi.string().required().trim(),
+      EvaluationDuration:Joi.string().required().trim(),
+      
+      EvaluationModels:Joi.string().required().trim(),
+      PhoneExt:Joi.string(),
+      EvaluationMaximumDays:Joi.string(),
+      EmployeeBufferCount:Joi.string().optional(),
+      DownloadBufferDays:Joi.string().optional(),
+      CoachingReminder:Joi.string().optional(),
+      IsActive:Joi.optional(),
+      UpdatedBy:Joi.string().required().trim(),
+      UpdatedOn:Joi.optional()
+      
+ });
 
+ return organization;
+
+}
 exports.ValidateStrength = ( data)=>{
 
    const schema = Joi.object().keys({

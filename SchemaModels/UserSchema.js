@@ -26,6 +26,7 @@ const UserSchema = new mongoose.Schema({
       MobileNumber: { type: String },
     DateCreated: { type: String, required: true, default: Date() },
     JoiningDate: { type: String, required: true, default: Date() },
+    RoleEffFrom: { type: String },
     UpdatedDate: { type: String },
     LastLogin: { type: String },
     IsLoggedIn: {

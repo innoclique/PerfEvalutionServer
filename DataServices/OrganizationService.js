@@ -15,7 +15,7 @@ exports.CreateOrganization = async (organization) => {
         const userRecord = {
             Email: organization.AdminEmail,
             ContactPhone: organization.AdminPhone,
-            Role: 'Client',
+            Role: organization.ClientType,
             Password: Bcrypt.hashSync(pwd, 10),
             FirstName: organization.AdminFirstName,
             LastName: organization.AdminLastName,

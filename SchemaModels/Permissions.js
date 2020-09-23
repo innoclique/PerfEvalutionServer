@@ -8,9 +8,9 @@ const PermissionsSchema = new mongoose.Schema({
     PermissionName: { type: String, required: true },
     PermissionDescription: { type: String },
     IsActive:{type:Boolean, default:true},
-    CreatedOn:  { type: Date() },
-    CreatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    UpdatedOn:  { type: Date() },
+    CreatedOn:  { type: Date },
+    CreatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    UpdatedOn:  { type: Date },
     UpdatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
 });
 

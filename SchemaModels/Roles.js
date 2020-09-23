@@ -8,9 +8,15 @@ const RolesSchema = new mongoose.Schema({
     RoleName: { type: String, required: true },
     RoleLevel: { type: String },   
     IsActive:{type:Boolean, default:true}, 
-    CreatedOn:  { type: Date() },
-    CreatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    UpdatedOn:  { type: Date() },
+    Permissions:[{ 
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Permissions' }],
+        NavigationMenu:[{ 
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Navigations' }],
+    CreatedOn:  { type: Date },
+    CreatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User'},
+    UpdatedOn:  { type: Date },
     UpdatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
 });
 

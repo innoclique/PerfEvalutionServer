@@ -3,11 +3,13 @@ require('dotenv').config();
 const Mongoose = require("mongoose");
 const Bcrypt = require('bcrypt');
 const UserRepo = require('../SchemaModels/UserSchema');
+const RoleRepo = require('../SchemaModels/Roles');
 const UserSettingsRepo = require('../SchemaModels/UserAppSettings');
 const AuthHelper = require('../Helpers/Auth_Helper');
 const SendMail = require("../Helpers/mail.js");
 var logger = require('../logger');
-
+var permissions=require('../SchemaModels/Permissions');
+const Permissions = require("../SchemaModels/Permissions");
 
 
 exports.GetAllUsers = async () => {
@@ -82,45 +84,49 @@ exports.CreateAccount = async (UserModel) => {
 exports.Authenticate = async (LoginModel) => {
     Email = LoginModel.Email;
     Password = LoginModel.Password;
-console.log('came into login metho')
-try{
-debugger
-    const User = await UserRepo.findOne({ 'Email': Email });
-
-    if (User && Bcrypt.compareSync(Password,User.Password)){        
-        var AccesToken = AuthHelper.CreateShortAccesstoken(User);
-        if (User.IsLoggedIn) {
-            logger.info(`User ::${User.Email} has loggedin already`);
+    console.log('came into login metho')
+    try {
+        
+        const User = await UserRepo.findOne({ 'Email': Email });
+        if (User && Bcrypt.compareSync(Password, User.Password)) {
+            var AccesToken = AuthHelper.CreateShortAccesstoken(User);
+            if (User.IsLoggedIn) {
+                logger.info(`User ::${User.Email} has loggedin already`);
+                return {
+                    Valid: false,
+                    ID: User._id,
+                    Error: 'DuplicateSession',
+                    UserName: User.UserName,
+                    AccessToken: AccesToken,
+                    User: User
+                };
+            }
+            AccesToken = AuthHelper.CreateAccesstoken(User);
+            const RefreshToken = AuthHelper.CreateRefreshtoken(User);
+            User.RefreshToken = RefreshToken;
+            User.LastLogin = Date();
+            User.IsLoggedIn = true;
+            User.save();
+            
+            var permissions=await RoleRepo.findOne({RoleCode:User.Role}).populate("Permissions NavigationMenu")
+            
             return {
-                Valid: false,
-                ID: User._id,
-                Error: 'DuplicateSession',
-                UserName: User.UserName,
-                AccessToken: AccesToken,
-                User: User
-            };
-        }
-        AccesToken = AuthHelper.CreateAccesstoken(User);
-        const RefreshToken = AuthHelper.CreateRefreshtoken(User);
-        User.RefreshToken = RefreshToken;
-        User.LastLogin = Date();
-        User.IsLoggedIn = true;
-        User.save();
+                ID: User._id, Role: User.Role, Email: User.Email,
+                UserName: User.UserName, AccessToken: AccesToken,
+                RefreshToken: User.RefreshToken, IsPswChangedOnFirstLogin: User.IsPswChangedOnFirstLogin,
+                User: User,
+                Permissions:permissions.Permissions,
+                NavigationMenu:permissions.NavigationMenu
 
-        return {
-            ID: User._id, Role: User.Role, Email: User.Email,
-            UserName: User.UserName, AccessToken: AccesToken,
-            RefreshToken: User.RefreshToken, IsPswChangedOnFirstLogin: User.IsPswChangedOnFirstLogin,
-            User: User
-        };
-    }else{
-        console.log('not found')
-throw "User not found";
+            };
+        } else {
+            console.log('not found')
+            throw "User not found";
+        }
+    } catch (error) {
+        console.log(error);
+        logger.error(error);
     }
-}catch(error){
-    console.log(error);
-    logger.error(error);
-}
 
 }
 
@@ -296,7 +302,7 @@ exports.ConfirmTnC = async (id) => {
 
 exports.CreateEmployee = async (employee) => {
     try {
-        
+
         const EmployeeName = await UserRepo.findOne({ FirstName: employee.FirstName, LastName: employee.LastName });
         const EmployeeEmail = await UserRepo.findOne({ Email: employee.Email });
         const EmployeePhone = await UserRepo.findOne({ Phone: employee.PhoneNumber });
@@ -307,14 +313,14 @@ exports.CreateEmployee = async (employee) => {
 
         if (EmployeePhone !== null) { throw Error("Employee Phone Number Already Exist"); }
 
-        const EvalAdminFound = await UserRepo.findOne({ParentUser:employee.ParentUser, ApplicationRole: '5f60e0919a4e1b15986bc251' });
-       
+        const EvalAdminFound = await UserRepo.findOne({ ParentUser: employee.ParentUser, ApplicationRole: '5f60e0919a4e1b15986bc251' });
+
 
         if (EvalAdminFound) {
             //send email to Evalution admin
         }
-        else if (!employee.IgnoreEvalAdminCreated && employee.ApplicationRole=='5f60e09c9a4e1b15986bc252' && EvalAdminFound==null  ) {
-            throw Error("Evaluation Administrator Not Found"); 
+        else if (!employee.IgnoreEvalAdminCreated && employee.ApplicationRole == '5f60e09c9a4e1b15986bc252' && EvalAdminFound == null) {
+            throw Error("Evaluation Administrator Not Found");
         }
 
         employee.Role = "EMPLOYEE";
@@ -339,21 +345,21 @@ exports.CreateEmployee = async (employee) => {
 
 exports.UpdateEmployee = async (employee) => {
     try {
-        
-        let empId= employee._id;
+
+        let empId = employee._id;
         const EmployeeName = await UserRepo.findOne({ FirstName: employee.FirstName, LastName: employee.LastName });
-        
+
         const EmployeePhone = await UserRepo.findOne({ PhoneNumber: employee.PhoneNumber });
 
-        if (EmployeeName !== null && EmployeeName._id!= employee._id)  { throw Error("Employee Name Already Exist"); }
+        if (EmployeeName !== null && EmployeeName._id != employee._id) { throw Error("Employee Name Already Exist"); }
 
-        if (EmployeePhone !== null && EmployeePhone._id!= employee._id ) { throw Error("Employee Phone Number Already Exist"); }
-      
+        if (EmployeePhone !== null && EmployeePhone._id != employee._id) { throw Error("Employee Phone Number Already Exist"); }
+
         employee.UserName = employee.FirstName + " " + employee.LastName;
 
         delete employee._id;
-        employee.UpdatedOn= new Date();
-         const emp = await UserRepo.findByIdAndUpdate(empId,employee);
+        employee.UpdatedOn = new Date();
+        const emp = await UserRepo.findByIdAndUpdate(empId, employee);
 
         return true;
     }
@@ -376,11 +382,11 @@ exports.GetEmployeeDataById = async (Id) => {
 
 };
 exports.GetAllEmployees = async (parentId) => {
-  
-     // const Employees = await UserRepo.find({Role:'EMPLOYEE',ParentUser:parentId});        
-     const Employees = await UserRepo.find({Role:'EMPLOYEE'})
-     .populate('ThirdSignatory CopiesTo DirectReports');        
-     return Employees;    
+
+    // const Employees = await UserRepo.find({Role:'EMPLOYEE',ParentUser:parentId});        
+    const Employees = await UserRepo.find({ Role: 'EMPLOYEE' })
+        .populate('ThirdSignatory CopiesTo DirectReports');
+    return Employees;
 
 };
 

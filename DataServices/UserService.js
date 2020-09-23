@@ -190,14 +190,14 @@ exports.UpdatePassword = async (resetModel) => {
 
     if (User) {
 
-        if (User.Password !== resetModel.oldPassword) {
+        if (!Bcrypt.compareSync(resetModel.oldPassword, User.Password)) {
             throw Error("Invalid old password");
         }
 
         User.IsPswChangedOnFirstLogin = true;
         User.IsActive = true;
         User.PswUpdatedOn = new Date();
-        User.Password = resetModel.password;
+        User.Password = Bcrypt.hashSync(resetModel.password, 10);
         User.save();
 
         return { status: "success" };
@@ -307,11 +307,15 @@ exports.CreateEmployee = async (employee) => {
 
         if (EmployeePhone !== null) { throw Error("Employee Phone Number Already Exist"); }
 
-        const ApplicationRole = await UserRepo.findOne({ParentUser:employee.ParentUser, ApplicationRole: '5f60e0919a4e1b15986bc251' });
+        const EvalAdminFound = await UserRepo.findOne({ParentUser:employee.ParentUser, ApplicationRole: '5f60e0919a4e1b15986bc251' });
        
-        // if (employee.ApplicationRole=='5f60e09c9a4e1b15986bc252' && ApplicationRole==null  ) {
-        //     throw Error("Evaluation Administrator Not Found"); 
-        // }
+
+        if (EvalAdminFound) {
+            //send email to Evalution admin
+        }
+        else if (!employee.IgnoreEvalAdminCreated && employee.ApplicationRole=='5f60e09c9a4e1b15986bc252' && EvalAdminFound==null  ) {
+            throw Error("Evaluation Administrator Not Found"); 
+        }
 
         employee.Role = "EMPLOYEE";
         employee.UserName = employee.FirstName + " " + employee.LastName;

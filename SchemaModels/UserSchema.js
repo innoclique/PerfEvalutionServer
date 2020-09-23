@@ -48,9 +48,9 @@ const UserSchema = new mongoose.Schema({
     TnCAcceptedOn:{type:Date,default: Date() },
     CreatedOn:{type:Date,default: Date() },
     CreatedBy:{ type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-    DirectReports:{ type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-    CopiesTo:{ type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-    ThirdSignatory:{ type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    DirectReports:{ type: mongoose.Schema.Types.ObjectId,default:'5f60f96d08967f4688416a00', ref: 'User' },
+    CopiesTo:{ type: mongoose.Schema.Types.ObjectId,default:'5f60f96d08967f4688416a00', ref: 'User' },
+    ThirdSignatory:{ type: mongoose.Schema.Types.ObjectId,default:'5f60f96d08967f4688416a00', ref: 'User' },
     UpdatedOn:{type:Date,default: Date() },
     UpdatedBy:{ type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     Permissions:[]

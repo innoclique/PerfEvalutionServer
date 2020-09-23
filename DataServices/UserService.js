@@ -84,7 +84,7 @@ exports.Authenticate = async (LoginModel) => {
     Password = LoginModel.Password;
 console.log('came into login metho')
 try{
-debugger
+
     const User = await UserRepo.findOne({ 'Email': Email });
 
     if (User && Bcrypt.compareSync(Password,User.Password)){        
@@ -377,8 +377,9 @@ exports.GetEmployeeDataById = async (Id) => {
 };
 exports.GetAllEmployees = async (parentId) => {
   
-     // const Employees = await UserRepo.find({Role:'EMPLOYEE',ParentUser:parentId});        
-     const Employees = await UserRepo.find({Role:'EMPLOYEE'})
+     const Employees = await UserRepo.find({Role:'EMPLOYEE',
+     ParentUser:Mongoose.Types.ObjectId(parentId)})     
+    //  const Employees = await UserRepo.find({Role:'EMPLOYEE'})
      .populate('ThirdSignatory CopiesTo DirectReports');        
      return Employees;    
 

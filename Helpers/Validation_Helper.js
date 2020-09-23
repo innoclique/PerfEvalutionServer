@@ -96,6 +96,7 @@ exports.ValidateCreateEmployeeModel = ( data)=>{
       PhoneNumber: Joi.string().required(),
       Address: Joi.string().required(),
       JoiningDate: Joi.string().required(),
+      RoleEffFrom: Joi.optional(),
 
       MiddleName: Joi.optional(),
       ExtNumber:Joi.optional(),

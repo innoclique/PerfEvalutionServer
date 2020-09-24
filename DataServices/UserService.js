@@ -108,7 +108,7 @@ exports.Authenticate = async (LoginModel) => {
             User.IsLoggedIn = true;
             User.save();
             
-            var permissions=await RoleRepo.findOne({RoleCode:User.Role}).populate("Permissions NavigationMenu")
+            var permissions=await RoleRepo.findOne({RoleCode:User.Role}).populate("Permissions")
             
             return {
                 ID: User._id, Role: User.Role, Email: User.Email,

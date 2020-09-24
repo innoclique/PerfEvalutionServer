@@ -11,9 +11,7 @@ const RolesSchema = new mongoose.Schema({
     Permissions:[{ 
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Permissions' }],
-        NavigationMenu:[{ 
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'Navigations' }],
+        NavigationMenu:[],
     CreatedOn:  { type: Date },
     CreatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User'},
     UpdatedOn:  { type: Date },

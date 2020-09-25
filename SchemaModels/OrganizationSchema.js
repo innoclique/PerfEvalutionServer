@@ -33,14 +33,16 @@ const OrganizationSchema = new mongoose.Schema({
     CoachingReminder:{ type: String },
     EvaluationModels:{ type: String, required: true },
     EvaluationPeriod:{ type: String, required: true },
-    EvaluationDuration:{ type: String, required: true },
-    EvaluationMaximumDays:{ type: String },
+    EvaluationDuration:{ type: String, default:'12 Months' },
+    
     EmployeeBufferCount:{ type: String},
     DownloadBufferDays:{ type: String},
     CreatedOn:{type:Date,default: Date() },
     CreatedBy:{ type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     UpdatedOn:{type:Date,default: Date() },
-    UpdatedBy:{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }
+    UpdatedBy:{ type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    StartMonth:{type:String},
+    EndMonth:{type:String}
 });
 
 OrganizationSchema.set('toJSON', { versionKey: false });

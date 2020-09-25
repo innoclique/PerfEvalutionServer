@@ -317,8 +317,7 @@ exports.OrganizationSchema=(schema)=>{
          then:Joi.string().required().trim()
       }),
       ContactPersonMiddleName:Joi.optional(),
-      EvaluationPeriod:Joi.string().required().trim(),
-      EvaluationDuration:Joi.string().required().trim(),
+      EvaluationPeriod:Joi.string().required().trim(),     
       
       EvaluationModels:Joi.string().required().trim(),
       PhoneExt:Joi.string(),
@@ -328,7 +327,12 @@ exports.OrganizationSchema=(schema)=>{
       CoachingReminder:Joi.string().optional(),
       IsActive:Joi.optional(),
       CreatedBy:Joi.string().required().trim(),
-      CreatedOn:Joi.optional()
+      CreatedOn:Joi.optional(),
+      StartMonth:Joi.when('EvaluationPeriod',{
+         is:"FiscalYear",
+         then:Joi.string().required().trim()
+      }),
+      EndMonth:Joi.optional()
       
  });
 
@@ -373,18 +377,21 @@ exports.UpdateOrganizationSchema=(schema)=>{
          then:Joi.string().required().trim()
       }),
       ContactPersonMiddleName:Joi.optional(),
-      EvaluationPeriod:Joi.string().required().trim(),
-      EvaluationDuration:Joi.string().required().trim(),
+      EvaluationPeriod:Joi.string().required().trim(),     
       
       EvaluationModels:Joi.string().required().trim(),
-      PhoneExt:Joi.string(),
-      EvaluationMaximumDays:Joi.string(),
+      PhoneExt:Joi.string(),      
       EmployeeBufferCount:Joi.string().optional(),
       DownloadBufferDays:Joi.string().optional(),
       CoachingReminder:Joi.string().optional(),
       IsActive:Joi.optional(),
       UpdatedBy:Joi.string().required().trim(),
-      UpdatedOn:Joi.optional()
+      UpdatedOn:Joi.optional(),
+      StartMonth:Joi.when('EvaluationPeriod',{
+         is:"FiscalYear",
+         then:Joi.string().required().trim()
+      }),
+      EndMonth:Joi.optional()
       
  });
 

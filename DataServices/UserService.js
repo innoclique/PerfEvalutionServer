@@ -357,7 +357,7 @@ exports.UpdateEmployee = async (employee) => {
 
         if (EmployeePhone !== null && EmployeePhone._id != employee._id) { throw Error("Employee Phone Number Already Exist"); }
 
-        employee.UserName = employee.FirstName + " " + employee.LastName;
+      
 
         delete employee._id;
         employee.UpdatedOn = new Date();

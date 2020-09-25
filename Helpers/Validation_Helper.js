@@ -93,7 +93,7 @@ exports.ValidateCreateEmployeeModel = ( data)=>{
       FirstName: Joi.string().required(),
       LastName: Joi.string().required(),
       Email: Joi.string().email().required(),
-      PhoneNumber: Joi.string().required(),
+      PhoneNumber: Joi.optional(),
       Address: Joi.string().required(),
       JoiningDate: Joi.string().required(),
       RoleEffFrom: Joi.optional(),
@@ -115,6 +115,7 @@ exports.ValidateCreateEmployeeModel = ( data)=>{
       Department:Joi.string().required(),
       ApplicationRole:Joi.string().required(),
 
+      Role:Joi.string().optional(),
       Title:Joi.string().required(),
       ThirdSignatory:Joi.optional(),
       CopiesTo:Joi.optional(),

@@ -8,7 +8,7 @@ const UserSchema = new mongoose.Schema({
     Password: { type: String, required: true },
     RefreshToken: { type: String },
     Role: { type: String },
-    ApplicationRole: { type: String },
+    ApplicationRole: { type: mongoose.Schema.Types.ObjectId, ref: 'Roles' },
    
     PhoneNumber: { type: String, required: true },
     Address: { type: String, required: true },

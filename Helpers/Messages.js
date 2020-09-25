@@ -40,5 +40,13 @@ module.exports = {
         ACCOO1:"Invalid username and password",
         PRC002:"Invalid username and password",
         ACC007:"Data not found"
+    },
+
+    constants:    {
+        EA_ID:'5f6891d510b400230086f967',
+        EO_ID:'5f6891ef10b400230086f968',
+        EO_ROLE_CODE:'EO',
+       
+       
     }
 }

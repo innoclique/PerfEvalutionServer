@@ -6,10 +6,12 @@ const UserRepo = require('../SchemaModels/UserSchema');
 const RoleRepo = require('../SchemaModels/Roles');
 const UserSettingsRepo = require('../SchemaModels/UserAppSettings');
 const AuthHelper = require('../Helpers/Auth_Helper');
+const Messages = require('../Helpers/Messages');
 const SendMail = require("../Helpers/mail.js");
 var logger = require('../logger');
 var permissions=require('../SchemaModels/Permissions');
 const Permissions = require("../SchemaModels/Permissions");
+const { messages } = require("../Helpers/Messages");
 
 
 exports.GetAllUsers = async () => {
@@ -313,17 +315,17 @@ exports.CreateEmployee = async (employee) => {
 
         if (EmployeePhone !== null) { throw Error("Employee Phone Number Already Exist"); }
 
-        const EvalAdminFound = await UserRepo.findOne({ ParentUser: employee.ParentUser, ApplicationRole: '5f60e0919a4e1b15986bc251' });
+        const EvalAdminFound = await UserRepo.findOne({ ParentUser: employee.ParentUser, ApplicationRole: Messages.constants.EA_ID });
 
 
         if (EvalAdminFound) {
             //send email to Evalution admin
         }
-        else if (!employee.IgnoreEvalAdminCreated && employee.ApplicationRole == '5f60e09c9a4e1b15986bc252' && EvalAdminFound == null) {
+        else if (!employee.IgnoreEvalAdminCreated && employee.ApplicationRole == Messages.constants.EO_ID && EvalAdminFound == null) {
             throw Error("Evaluation Administrator Not Found");
         }
 
-        employee.Role = "EMPLOYEE";
+       // employee.Role = Messages.constants.EO_ROLE_CODE
         employee.UserName = employee.FirstName + " " + employee.LastName;
         employee.Password = Bcrypt.hashSync(AuthHelper.GenerateRandomPassword(), 10);
 
@@ -383,9 +385,9 @@ exports.GetEmployeeDataById = async (Id) => {
 };
 exports.GetAllEmployees = async (parentId) => {
   
-     const Employees = await UserRepo.find({Role:'EMPLOYEE',
+     const Employees = await UserRepo.find({
+         //Role:Messages.constants.EO_ROLE_CODE,
      ParentUser:Mongoose.Types.ObjectId(parentId)})     
-    //  const Employees = await UserRepo.find({Role:'EMPLOYEE'})
      .populate('ThirdSignatory CopiesTo DirectReports');        
      return Employees;    
 

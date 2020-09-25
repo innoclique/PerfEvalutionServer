@@ -9,6 +9,7 @@ const DepartmentRepo = require('../SchemaModels/DepartmentSchema');
 const JobRoleRepo = require('../SchemaModels/JobRoleSchema');
 const JobLevelRepo = require('../SchemaModels/JobLevelSchema');
 const AppRoleRepo = require('../SchemaModels/ApplicationRolesSchema');
+const RoleRepo = require('../SchemaModels/Roles');
 const AuthHelper = require('../Helpers/Auth_Helper');
 const SendMail = require("../Helpers/mail.js");
 var logger = require('../logger');
@@ -86,7 +87,8 @@ exports.GetAllStrengths= async (empId) => {
        
         const Departments = await DepartmentRepo.find();    
         const JobRoles = await JobRoleRepo.find();    
-        const AppRoles = await AppRoleRepo.find();    
+        // const AppRoles = await AppRoleRepo.find();    
+        var AppRoles=await RoleRepo.find({RoleLevel:{$in: ['3','4','5','6' ] }})
         const JobLevels = await JobLevelRepo.find();    
         return {Departments,JobRoles,AppRoles,JobLevels};   
     };

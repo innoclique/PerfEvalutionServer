@@ -16,14 +16,7 @@ exports.GetIndustries = async () => {
     return industries;
 };
 
-exports.GetEvaluationCategories = async () => {   
-    var _cc={
-        Code:"CalendarYear",
-        Name:"Calendar Year",
-        IsActive:true
-    }   
-    var f=new EvaluationPeriods(_cc);
-    await f.save();
+exports.GetEvaluationCategories = async () => {       
     const evaluationperiods = await EvaluationPeriods.find({}).sort({Name:1});
     return evaluationperiods;
 };

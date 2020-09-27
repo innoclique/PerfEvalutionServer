@@ -20,3 +20,9 @@ exports.GetIndustries = async (req, res, next) => {
     .then(Response => res.status(200).json(Response))
     .catch(err => next(err));
 }
+
+exports.GetEvaluationCategories = async (req, res, next) => {    
+    await SharedService.GetEvaluationCategories()
+    .then(Response => res.status(200).json(Response))
+    .catch(err => next(err));
+}

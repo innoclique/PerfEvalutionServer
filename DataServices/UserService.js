@@ -194,18 +194,16 @@ exports.UpdatePassword = async (resetModel) => {
     id = resetModel.userId;
 
     const User = await UserRepo.findById(id);
-
     if (User) {
-
         if (!Bcrypt.compareSync(resetModel.oldPassword, User.Password)) {
             throw Error("Invalid old password");
         }
-
-        User.IsPswChangedOnFirstLogin = true;
-        User.IsActive = true;
-        User.PswUpdatedOn = new Date();
-        User.Password = Bcrypt.hashSync(resetModel.password, 10);
-        User.save();
+        await   User.updateOne({$set:{
+        IsPswChangedOnFirstLogin : true,
+        IsActive :true,
+        PswUpdatedOn : new Date(),
+        Password : Bcrypt.hashSync(resetModel.password, 10)
+    }})
 
         return { status: "success" };
     } else { throw Error("No user found"); }
@@ -293,9 +291,10 @@ exports.AddAppSettings = async (appSettings) => {
 exports.ConfirmTnC = async (id) => {
     const userTnC = await UserRepo.findById(id);
     if (userTnC === null) { throw Error('User Not Found '); } else {
-        userTnC.TnCAccepted = true;
-        userTnC.TnCAcceptedOn = new Date();
-        userTnC.save();
+     await   userTnC.updateOne({$set:{TnCAccepted:true,TnCAcceptedOn:new Date()}})
+        //userTnC.TnCAccepted = true;
+        //userTnC.TnCAcceptedOn = new Date();
+       //await userTnC.save();
         return (true);
     }
 

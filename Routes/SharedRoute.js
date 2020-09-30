@@ -8,5 +8,6 @@ const AuthHelper = require('../Helpers/Auth_Helper');
 ///////Confirm TnC-----------------------
 router.post("/ConfirmTnC", AuthHelper.Authorization(), SharedRoute.ConfirmTnC);
 router.post("/GetIndustries", SharedRoute.GetIndustries);
+router.post("/GetEvaluationCategories", SharedRoute.GetEvaluationCategories);
 
 module.exports = router;

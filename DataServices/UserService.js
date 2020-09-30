@@ -6,10 +6,12 @@ const UserRepo = require('../SchemaModels/UserSchema');
 const RoleRepo = require('../SchemaModels/Roles');
 const UserSettingsRepo = require('../SchemaModels/UserAppSettings');
 const AuthHelper = require('../Helpers/Auth_Helper');
+const Messages = require('../Helpers/Messages');
 const SendMail = require("../Helpers/mail.js");
 var logger = require('../logger');
 var permissions=require('../SchemaModels/Permissions');
 const Permissions = require("../SchemaModels/Permissions");
+const { messages } = require("../Helpers/Messages");
 
 
 exports.GetAllUsers = async () => {
@@ -85,8 +87,7 @@ exports.Authenticate = async (LoginModel) => {
     Email = LoginModel.Email;
     Password = LoginModel.Password;
     console.log('came into login metho')
-    try {
-        
+    try {        
         const User = await UserRepo.findOne({ 'Email': Email });
         if (User && Bcrypt.compareSync(Password, User.Password)) {
             var AccesToken = AuthHelper.CreateShortAccesstoken(User);
@@ -193,18 +194,16 @@ exports.UpdatePassword = async (resetModel) => {
     id = resetModel.userId;
 
     const User = await UserRepo.findById(id);
-
     if (User) {
-
         if (!Bcrypt.compareSync(resetModel.oldPassword, User.Password)) {
             throw Error("Invalid old password");
         }
-
-        User.IsPswChangedOnFirstLogin = true;
-        User.IsActive = true;
-        User.PswUpdatedOn = new Date();
-        User.Password = Bcrypt.hashSync(resetModel.password, 10);
-        User.save();
+        await   User.updateOne({$set:{
+        IsPswChangedOnFirstLogin : true,
+        IsActive :true,
+        PswUpdatedOn : new Date(),
+        Password : Bcrypt.hashSync(resetModel.password, 10)
+    }})
 
         return { status: "success" };
     } else { throw Error("No user found"); }
@@ -292,9 +291,10 @@ exports.AddAppSettings = async (appSettings) => {
 exports.ConfirmTnC = async (id) => {
     const userTnC = await UserRepo.findById(id);
     if (userTnC === null) { throw Error('User Not Found '); } else {
-        userTnC.TnCAccepted = true;
-        userTnC.TnCAcceptedOn = new Date();
-        userTnC.save();
+     await   userTnC.updateOne({$set:{TnCAccepted:true,TnCAcceptedOn:new Date()}})
+        //userTnC.TnCAccepted = true;
+        //userTnC.TnCAcceptedOn = new Date();
+       //await userTnC.save();
         return (true);
     }
 
@@ -313,17 +313,17 @@ exports.CreateEmployee = async (employee) => {
 
         if (EmployeePhone !== null) { throw Error("Employee Phone Number Already Exist"); }
 
-        const EvalAdminFound = await UserRepo.findOne({ ParentUser: employee.ParentUser, ApplicationRole: '5f60e0919a4e1b15986bc251' });
+        const EvalAdminFound = await UserRepo.findOne({ ParentUser: employee.ParentUser, ApplicationRole: Messages.constants.EA_ID });
 
 
         if (EvalAdminFound) {
             //send email to Evalution admin
         }
-        else if (!employee.IgnoreEvalAdminCreated && employee.ApplicationRole == '5f60e09c9a4e1b15986bc252' && EvalAdminFound == null) {
+        else if (!employee.IgnoreEvalAdminCreated && employee.ApplicationRole == Messages.constants.EO_ID && EvalAdminFound == null) {
             throw Error("Evaluation Administrator Not Found");
         }
 
-        employee.Role = "EMPLOYEE";
+       // employee.Role = Messages.constants.EO_ROLE_CODE
         employee.UserName = employee.FirstName + " " + employee.LastName;
         employee.Password = Bcrypt.hashSync(AuthHelper.GenerateRandomPassword(), 10);
 
@@ -355,7 +355,7 @@ exports.UpdateEmployee = async (employee) => {
 
         if (EmployeePhone !== null && EmployeePhone._id != employee._id) { throw Error("Employee Phone Number Already Exist"); }
 
-        employee.UserName = employee.FirstName + " " + employee.LastName;
+      
 
         delete employee._id;
         employee.UpdatedOn = new Date();
@@ -383,9 +383,9 @@ exports.GetEmployeeDataById = async (Id) => {
 };
 exports.GetAllEmployees = async (parentId) => {
   
-     const Employees = await UserRepo.find({Role:'EMPLOYEE',
+     const Employees = await UserRepo.find({
+         //Role:Messages.constants.EO_ROLE_CODE,
      ParentUser:Mongoose.Types.ObjectId(parentId)})     
-    //  const Employees = await UserRepo.find({Role:'EMPLOYEE'})
      .populate('ThirdSignatory CopiesTo DirectReports');        
      return Employees;    
 

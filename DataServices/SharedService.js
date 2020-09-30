@@ -5,6 +5,8 @@ const Mongoose = require("mongoose");
 const OrganizationRepo = require('../SchemaModels/OrganizationSchema');
 const IndustryRepo = require('../SchemaModels/Industry');
 const UserRepo = require('../SchemaModels/UserSchema');
+const EvaluationPeriods = require('../SchemaModels/EvaluationPeriod');
+
 const NavigationMenu = require('../SchemaModels/NavigationMenu');
 const SendMail = require("../Helpers/mail.js");
 var logger = require('../logger');
@@ -14,6 +16,10 @@ exports.GetIndustries = async () => {
     return industries;
 };
 
+exports.GetEvaluationCategories = async () => {       
+    const evaluationperiods = await EvaluationPeriods.find({}).sort({Name:1});
+    return evaluationperiods;
+};
 
 
 

@@ -332,8 +332,8 @@ exports.OrganizationSchema=(schema)=>{
          is:"FiscalYear",
          then:Joi.string().required().trim()
       }),
-      EndMonth:Joi.optional()
-      
+      EndMonth:Joi.optional(),
+      IsDraft:Joi.optional()
  });
 
  return organization;
@@ -391,8 +391,8 @@ exports.UpdateOrganizationSchema=(schema)=>{
          is:"FiscalYear",
          then:Joi.string().required().trim()
       }),
-      EndMonth:Joi.optional()
-      
+      EndMonth:Joi.optional(),
+      IsDraft:Joi.optional()
  });
 
  return organization;

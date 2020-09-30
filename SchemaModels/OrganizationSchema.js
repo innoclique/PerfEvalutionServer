@@ -38,11 +38,12 @@ const OrganizationSchema = new mongoose.Schema({
     EmployeeBufferCount:{ type: String},
     DownloadBufferDays:{ type: String},
     CreatedOn:{type:Date,default: Date() },
-    CreatedBy:{ type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    CreatedBy:{ type: mongoose.Schema.Types.ObjectId, ref: 'User',default:null },
     UpdatedOn:{type:Date,default: Date() },
-    UpdatedBy:{ type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    UpdatedBy:{ type: mongoose.Schema.Types.ObjectId, ref: 'User',default:null },
     StartMonth:{type:String},
-    EndMonth:{type:String}
+    EndMonth:{type:String},
+    IsDraft:Boolean
 });
 
 OrganizationSchema.set('toJSON', { versionKey: false });

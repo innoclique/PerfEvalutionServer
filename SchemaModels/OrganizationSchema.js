@@ -31,7 +31,7 @@ const OrganizationSchema = new mongoose.Schema({
     AdminLastName:{ type: String, required: true },
     AdminPhone:{ type: String, required: true },
     CoachingReminder:{ type: String },
-    EvaluationModels:{ type: String },
+    EvaluationModels:[],
     EvaluationPeriod:{ type: String },
     EvaluationDuration:{ type: String, default:'12 Months' },
     

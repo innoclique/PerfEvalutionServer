@@ -88,7 +88,7 @@ exports.Authenticate = async (LoginModel) => {
     Password = LoginModel.Password;
     console.log('came into login metho')
     try {        
-        const User = await UserRepo.findOne({ 'Email': Email });
+        const User = await  UserRepo.findOne({ 'Email': Email }) .populate('ThirdSignatory CopiesTo DirectReports');
         if (User && Bcrypt.compareSync(Password, User.Password)) {
             var AccesToken = AuthHelper.CreateShortAccesstoken(User);
             if (User.IsLoggedIn) {
@@ -323,8 +323,7 @@ exports.CreateEmployee = async (employee) => {
             throw Error("Evaluation Administrator Not Found");
         }
 
-       // employee.Role = Messages.constants.EO_ROLE_CODE
-        employee.UserName = employee.FirstName + " " + employee.LastName;
+           
         employee.Password = Bcrypt.hashSync(AuthHelper.GenerateRandomPassword(), 10);
 
         const newemp = new UserRepo(employee);

@@ -69,6 +69,41 @@ exports.GetEmpSetupBasicData = async (req, res, next) => {
 }
 
 
+exports.GetKpiSetupBasicData = async (req, res, next) => {
+    await EmployeeService.GetKpiSetupBasicData(req.body.empId)
+        .then(Response => Response ? res.status(200).json(Response) : res.status(404).json("Accomplishments Not Found"))
+        .catch(err => next(err => { next(err) }));
+
+}
+
+
+
+exports.GetAllMeasurementCriterias = async (req, res, next) => {
+    await EmployeeService.GetAllMeasurementCriterias(req.body.empId)
+        .then(Response => Response ? res.status(200).json(Response) : res.status(404).json("Accomplishments Not Found"))
+        .catch(err => next(err => { next(err) }));
+
+}
+
+
+
+
+exports.CreateMeasurementCriteria = async (req, res, next) => {
+    Joi.validate(req.body, Validation_Helper.ValidateCommonModel(req.body), async (err, result) => {
+        if (err) { res.status(400).json({ message: err.details.map(i => i.message).join(" / ") }) }
+        else {
+            
+            await EmployeeService.CreateMeasurementCriteria(req.body)
+                .then((Response) => {
+                    res.status(200).json({ message: "Success" });
+                })
+                .catch(err => { next(err) });
+        }
+    });
+}
+
+
+
 exports.AddStrength = async (req, res, next) => {
     debugger
     Joi.validate(req.body, Validation_Helper.ValidateStrength(req.body), async (err, result) => {

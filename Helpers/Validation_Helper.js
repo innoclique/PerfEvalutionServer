@@ -424,26 +424,54 @@ exports.ValidateAccomplishment = ( data)=>{
   });
   return schema;
 }
+
+
+
+
 exports.ValidateKpi = ( data)=>{
 
    const schema = Joi.object().keys({
       Kpi: Joi.string().required(),
-      MeasurementCriteria: Joi.string().required(),
+      MeasurementCriteria: Joi.required(),
       TargetCompletionDate: Joi.string().required(),
       Score: Joi.number().required(),
-      YearEndComments:Joi.string().required(),
-      Weighting:Joi.number().required(),
+      YearEndComments:Joi.optional(),
+      Weighting:Joi.required(),
       Signoff:Joi.string().required(),
     Status:Joi.string().required(),
+    YECommManager:Joi.optional(),
+    IsSubmit:Joi.optional(),
+     ManagerId:Joi.optional(),
     IsDraft:Joi.boolean().required(),
-    CreatedOn:Joi.string().required(),
+ 
     CreatedBy:Joi.string().required(),
-    UpdatedOn:Joi.string().required(),
+  
     UpdatedBy:Joi.string().required()
 
   });
   return schema;
 }
+
+
+
+exports.ValidateCommonModel = ( data)=>{
+
+   const schema = Joi.object().keys({
+      Name: Joi.string().required(),
+      CreatedBy:Joi.optional(),
+      UpdatedBy:Joi.optional(),
+   });
+
+  return schema;
+}
+
+
+
+
+
+
+
+
 exports.ValidateNote = ( data)=>{
 
    const schema = Joi.object().keys({

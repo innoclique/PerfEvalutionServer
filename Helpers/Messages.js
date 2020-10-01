@@ -46,6 +46,9 @@ module.exports = {
         EA_ID:'5f6891d510b400230086f967',
         EO_ID:'5f6891ef10b400230086f968',
         EO_ROLE_CODE:'EO',
+
+        KPI_STATUS:['New', 'In Progress', 'Completed'],
+        KPI_SCORE :['1', '2', '3']
        
        
     }

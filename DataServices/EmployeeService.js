@@ -10,8 +10,11 @@ const JobRoleRepo = require('../SchemaModels/JobRoleSchema');
 const JobLevelRepo = require('../SchemaModels/JobLevelSchema');
 const AppRoleRepo = require('../SchemaModels/ApplicationRolesSchema');
 const RoleRepo = require('../SchemaModels/Roles');
+const KpiRepo = require('../SchemaModels/KPI');
+const MeasureCriteriaRepo = require('../SchemaModels/MeasurementCriteria');
 const IndustriesRepo = require('../SchemaModels/Industry');
 const AuthHelper = require('../Helpers/Auth_Helper');
+const Messages = require('../Helpers/Messages');
 const SendMail = require("../Helpers/mail.js");
 var logger = require('../logger');
 
@@ -94,6 +97,26 @@ exports.GetAllStrengths= async (empId) => {
     };
 
 
+    exports.GetKpiSetupBasicData= async (id) => {
+                   
+        const KpiStatus =  Messages.constants.KPI_STATUS;
+        const KpiScore =  Messages.constants.KPI_SCORE;
+       return {KpiStatus,KpiScore};   
+   };
+
+   exports.GetAllMeasurementCriterias= async (empId) => {
+    const MeasureCriterias = await MeasureCriteriaRepo.find({'CreatedBy':empId});    
+    return MeasureCriterias;     
+   
+   };
+
+   exports.CreateMeasurementCriteria= async (measures) => {
+    const MeasureCriteria = new MeasureCriteriaRepo(measures);
+    await MeasureCriteria.save();
+   
+   };
+
+
     exports.GetAccomplishmentDataById= async (Id) => {
     
         const Accomplishment = await AccomplishmentRepo.findById(Id);
@@ -121,6 +144,8 @@ exports.GetAllStrengths= async (empId) => {
             // if (organizationEmail !== null) { throw Error("Organization Email Already Exist "); }
     
             // if (organizationPhone !== null) { throw Error("Organization Phone Number Already Exist"); }
+         
+          
             const Kpi = new KpiRepo(kpi);
             await Kpi.save();
     return true;
@@ -144,7 +169,7 @@ exports.GetAllStrengths= async (empId) => {
     };
     exports.GetAllKpis= async (empId) => {
         
-            const Kpi = await KpiRepo.find({'Employee':empId});    
+            const Kpi = await KpiRepo.find({'CreatedBy':empId}).populate('MeasurementCriteria.measureId');    
             return Kpi;   
         };
      exports.UpdateKpi=async(Id)   =>{

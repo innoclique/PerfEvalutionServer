@@ -82,3 +82,28 @@ exports.UpdateNoteDataById = async (req, res, next) => {
 }
 
 
+
+exports.AddReseller = async (req, res, next) => {
+    Joi.validate(req.body, Validation_Helper.ValidateAddReseller(req.body), async (err, result) => {
+        if (err) { res.status(400).json({ message: err.details.map(i => i.message).join(" / ") }) }
+        else {
+            await OrganizaionService.AddReseller(req.body)
+                .then((Response) => {
+                    res.status(200).json({ message: " Reseller added Succeesfully" });
+                })
+                .catch(err => { next(err) });
+        }
+    });
+}
+exports.UpdateReseller = async (req, res, next) => {
+    Joi.validate(req.body, Validation_Helper.ValidateUpdateReseller(req.body), async (err, result) => {
+        if (err) { res.status(400).json({ message: err.details.map(i => i.message).join(" / ") }) }
+        else {
+            await OrganizaionService.UpdateReseller(req.body)
+                .then((Response) => {
+                    res.status(200).json({ message: " Reseller updated Succeesfully" });
+                })
+                .catch(err => { next(err) });
+        }
+    });
+}

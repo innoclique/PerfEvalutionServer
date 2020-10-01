@@ -37,5 +37,8 @@ route.post('/GetKpiSetupBasicData',EmployeeController.GetKpiSetupBasicData);
 route.post('/GetAllMeasurementCriterias',EmployeeController.GetAllMeasurementCriterias);
 route.post('/CreateMeasurementCriteria',EmployeeController.CreateMeasurementCriteria);
 
+route.post('/AddReseller', ApplicationController.AddReseller);
+route.post('/UpdateReseller', ApplicationController.UpdateReseller);
+
 module.exports = route;
 

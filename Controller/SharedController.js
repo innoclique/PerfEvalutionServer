@@ -26,3 +26,9 @@ exports.GetEvaluationCategories = async (req, res, next) => {
     .then(Response => res.status(200).json(Response))
     .catch(err => next(err));
 }
+
+exports.GetModelsByIndustry=async (req, res, next) => {        
+    await SharedService.GetModelsByIndustry(req.body)
+    .then(Response => res.status(200).json(Response))
+    .catch(err => next(err));
+}

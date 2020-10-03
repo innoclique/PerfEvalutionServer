@@ -12,7 +12,7 @@ var logger = require('../logger');
 var permissions=require('../SchemaModels/Permissions');
 const Permissions = require("../SchemaModels/Permissions");
 const { messages } = require("../Helpers/Messages");
-
+const OrganizationRepo = require('../SchemaModels/OrganizationSchema');
 
 exports.GetAllUsers = async () => {
 
@@ -110,15 +110,18 @@ exports.Authenticate = async (LoginModel) => {
             User.save();
             
             var permissions=await RoleRepo.findOne({RoleCode:User.Role}).populate("Permissions")
-            
+            const adminId=User.ParentUser?User.ParentUser:User._id;
+
+            var OrganizationData=await OrganizationRepo.findOne({Admin:adminId})
+
             return {
                 ID: User._id, Role: User.Role, Email: User.Email,
                 UserName: User.UserName, AccessToken: AccesToken,
                 RefreshToken: User.RefreshToken, IsPswChangedOnFirstLogin: User.IsPswChangedOnFirstLogin,
                 User: User,
                 Permissions:permissions.Permissions,
-                NavigationMenu:permissions.NavigationMenu
-
+                NavigationMenu:permissions.NavigationMenu,
+OrganizationData:OrganizationData
             };
         } else {
             console.log('not found')

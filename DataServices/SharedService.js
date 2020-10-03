@@ -6,10 +6,13 @@ const OrganizationRepo = require('../SchemaModels/OrganizationSchema');
 const IndustryRepo = require('../SchemaModels/Industry');
 const UserRepo = require('../SchemaModels/UserSchema');
 const EvaluationPeriods = require('../SchemaModels/EvaluationPeriod');
-
 const NavigationMenu = require('../SchemaModels/NavigationMenu');
 const SendMail = require("../Helpers/mail.js");
-var logger = require('../logger');
+const logger = require('../logger');
+
+const Questions=require('../SchemaModels/Questions');
+const Competency=require('../SchemaModels/Competency');
+const Models=require('../SchemaModels/Model');
 
 exports.GetIndustries = async () => {      
     const industries = await IndustryRepo.find({}).sort({Name:1});
@@ -21,5 +24,10 @@ exports.GetEvaluationCategories = async () => {
     return evaluationperiods;
 };
 
+exports.GetModelsByIndustry=async (industryId)=>{
+    const indId=await IndustryRepo.findOne({Name:industryId.id});
+    const _models=await Models.find({Industry:indId.id});
+return _models;
+}
 
 

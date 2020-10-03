@@ -1,17 +1,18 @@
 const Express = require("express");
 require('dotenv').config();
 const mongoose = require("mongoose");
-const { boolean, number } = require("joi");
+
 
 const Evalution = new mongoose.Schema({
-    Employees:[],
+    Employees:[{_id:{ type: mongoose.Schema.Types.ObjectId, ref: 'User',default:null }}],
     ActivateKPI:Boolean,
     ActivateActionPlan:Boolean,
     EvaluationForRole:String,
     EvaluationPeriod:String,
     EvaluationDuration:String,
     Model:[],
-    PeerRatingNeeded:Boolean,
+    PeerRatingNeeded:{type:Boolean,default:false},
+    DirectReportRateNeeded:{type:Boolean,default:false},
     Peers:[],
     PeersComptency:[],
     PeersMessage:String,
@@ -43,7 +44,8 @@ const Evalution = new mongoose.Schema({
     //         default: Date.now
     //     }
     // }],
-
+KPIFor:String,
+Department:String
 
     
     

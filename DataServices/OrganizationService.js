@@ -7,9 +7,6 @@ const UserRepo = require('../SchemaModels/UserSchema');
 const AuthHelper = require('../Helpers/Auth_Helper');
 const SendMail = require("../Helpers/mail.js");
 const logger = require('../logger');
-const questions=require('../SchemaModels/Questions');
-const competency=require('../SchemaModels/Competency');
-const models=require('../SchemaModels/Model');
 
 exports.CreateOrganization = async (organization) => {
     try {

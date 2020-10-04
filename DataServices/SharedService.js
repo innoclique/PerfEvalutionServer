@@ -29,5 +29,8 @@ exports.GetModelsByIndustry=async (industryId)=>{
     const _models=await Models.find({Industry:indId.id});
 return _models;
 }
-
+exports.GetCompetencyList=async (company)=>{
+    const _comtencyList=await Competency.find({Company: Mongoose.Types.ObjectId(company.id)});    
+return _comtencyList;
+}
 

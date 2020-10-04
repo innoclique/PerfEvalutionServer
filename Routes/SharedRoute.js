@@ -10,5 +10,7 @@ router.post("/ConfirmTnC", AuthHelper.Authorization(), SharedRoute.ConfirmTnC);
 router.post("/GetIndustries", SharedRoute.GetIndustries);
 router.post("/GetEvaluationCategories", SharedRoute.GetEvaluationCategories);
 router.post("/GetModelsByIndustry", SharedRoute.GetModelsByIndustry);
+router.post("/GetCompetencyList", SharedRoute.GetCompetencyList);
+
 
 module.exports = router;

@@ -15,6 +15,9 @@ exports.AddEvaluation = async (evaluation) => {
     await _evaluation.save();
     return true;
 };
+exports.GetEvaluations=async (clientId)=>{
+    return await EvaluationRepo.find({Company: Mongoose.Types.ObjectId(clientId.clientId)}).sort({CreatedDate:-1});  ;
+}
 
 
 

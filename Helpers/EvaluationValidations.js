@@ -8,28 +8,41 @@ exports.ValidateEvaluationForm = (data) => {
         ActivateActionPlan: Joi.bool().optional(),
         EvaluationForRole: Joi.string().optional(),
         EvaluationDuration: Joi.string().optional(),
-        Model: Joi.string().required(),
+        Model:Joi.array().items(Joi.object().required()).min(1).required(),
         PeerRatingNeeded: Joi.bool().optional(),
         
         DirectReportRateNeeded: Joi.bool().optional(),
         Peers:Joi.when('PeerRatingNeeded',{
             is:"true",
-            then:Joi.array().items(Joi.string().required()).min(2).required(),
+            then:Joi.array().min(2).required()
          }),
-        PeersComptency: Joi.string().optional(),
-        PeersMessage: Joi.string().optional(),
+         PeersCompetency: Joi.when('PeerRatingNeeded',{
+            is:"true",
+            then:Joi.array().min(1).required()
+         }),
+         PeersComptencyMessage: Joi.optional(),
         DirectReports:Joi.when('DirectReportRateNeeded',{
             is:"true",
-            then:Joi.array().items(Joi.string().required()).min(2).required(),
+            then:Joi.array().min(2).required()
          }),
-        DirectReportsCompetency: Joi.string().optional(),        
-        DirectReportMessage: Joi.string().optional(),
-        PeerCompetency: Joi.string().optional(),
-        PeerComptencyMessage: Joi.string().optional(),        
-        KPIFor:Joi.optional(),
-        Department:Joi.string()
+        DirectReportsCompetency: Joi.when('DirectReportRateNeeded',{
+            is:"true",
+            then:Joi.array().min(1).required()
+         }),
+        DirectReportMessage: Joi.optional(),        
         
+        KPIFor:Joi.optional(),
+        Department:Joi.string(),
+        Company:Joi.string(),
+        CreatedBy:Joi.string()
     });
     return schema;
 
+}
+
+exports.ValidateClientId=(data)=>{
+    const schema = Joi.object().keys({        
+        clientId: Joi.string().required(),
+    });
+    return schema;   
 }

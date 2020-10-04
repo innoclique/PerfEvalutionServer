@@ -32,3 +32,9 @@ exports.GetModelsByIndustry=async (req, res, next) => {
     .then(Response => res.status(200).json(Response))
     .catch(err => next(err));
 }
+
+exports.GetCompetencyList=async (req, res, next) => {        
+    await SharedService.GetCompetencyList(req.body)
+    .then(Response => res.status(200).json(Response))
+    .catch(err => next(err));
+}

@@ -9,8 +9,7 @@ const UserRepo = require('../SchemaModels/UserSchema');
 const SendMail = require("../Helpers/mail.js");
 var logger = require('../logger');
 
-exports.AddEvaluation = async (evaluation) => {      
-    
+exports.AddEvaluation = async (evaluation) => {
     const _evaluation = await EvaluationRepo(evaluation);
     await _evaluation.save();
     return true;
@@ -19,6 +18,12 @@ exports.GetEvaluations=async (clientId)=>{
     return await EvaluationRepo.find({Company: Mongoose.Types.ObjectId(clientId.clientId)}).sort({CreatedDate:-1});  ;
 }
 
+
+exports.DraftEvaluation = async (evaluation) => {
+    const _evaluation = await EvaluationRepo(evaluation);
+    await _evaluation.save();
+    return true;
+};
 
 
 

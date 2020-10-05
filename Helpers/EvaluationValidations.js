@@ -34,12 +34,54 @@ exports.ValidateEvaluationForm = (data) => {
         KPIFor:Joi.optional(),
         Department:Joi.string(),
         Company:Joi.string(),
-        CreatedBy:Joi.string()
+        CreatedBy:Joi.string(),
+        IsDraft:Joi.optional()
     });
     return schema;
 
 }
+exports.ValidateDraftEvaluationForm = (data) => {
+    const schema = Joi.object().keys({
+        Department:Joi.string().required(),
+        Employees:Joi.array().items(Joi.object().required()).min(1).required(),
+        EvaluationPeriod: Joi.string().allow('').optional(),
+        EvaluationDuration: Joi.string().allow('').optional(),
+        ActivateKPI:Joi.bool().allow(false).optional(),
+        ActivateActionPlan: Joi.bool().allow(false).optional(),
+        EvaluationForRole: Joi.string().allow('').optional(),
+        EvaluationDuration: Joi.string().allow('').optional(),
+        Model:Joi.object().allow(null).optional(),
+        PeerRatingNeeded: Joi.bool().allow(false).optional(),
+        
+        DirectReportRateNeeded: Joi.bool().allow(false).optional(),
+        Peers:Joi.when('PeerRatingNeeded',{
+            is:"true",
+            then:Joi.array().optional()
+         }),
+         PeersCompetency: Joi.when('PeerRatingNeeded',{
+            is:"true",
+            then:Joi.array().optional()
+         }),
+         PeersComptencyMessage: Joi.optional(),
+        DirectReports:Joi.when('DirectReportRateNeeded',{
+            is:"true",
+            then:Joi.array().optional()
+         }),
+        DirectReportsCompetency: Joi.when('DirectReportRateNeeded',{
+            is:"true",
+            then:Joi.array().optional()
+         }),
+        DirectReportMessage: Joi.string().allow('').optional(),        
+        
+        KPIFor:Joi.string().allow('').optional(),
+        
+        Company:Joi.string().required(),
+        CreatedBy:Joi.string().required(),
+        IsDraft:Joi.bool().required()
+    });
+    return schema;
 
+}
 exports.ValidateClientId=(data)=>{
     const schema = Joi.object().keys({        
         clientId: Joi.string().required(),

@@ -23,6 +23,23 @@ exports.CreateEvaluation = async (req, res, next) => {
     //const CurrentUserId = req.user.Id;
     
 }
+exports.DraftEvaluation = async (req, res, next) => {
+    
+    Joi.validate(req.body, Validation.ValidateDraftEvaluationForm(req.body), async (err, result) => {
+        if (err) { res.status(400).json({ message: err.details.map(i => i.message).join(" / ") }) }
+        else {
+            await EvaluationService.DraftEvaluation( req.body)
+            .then(Response => res.status(200).json(Response))
+            .catch(error =>{
+                logger.error(error)
+                 next(error)});
+        }
+    });
+
+    //const CurrentUserId = req.user.Id;
+    
+}
+
 exports.GetEvaluations = async (req,res,next)=>{
     
     Joi.validate(req.body, Validation.ValidateClientId(req.body), async (err, result) => {

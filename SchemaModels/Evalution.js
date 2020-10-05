@@ -46,8 +46,8 @@ const Evalution = new mongoose.Schema({
     //     }
     // }],
 KPIFor:String,
-Department:String
-
+Department:String,
+IsDraft:{type:Boolean,default:false}
     
     
 });

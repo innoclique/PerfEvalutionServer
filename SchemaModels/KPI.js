@@ -15,9 +15,13 @@ const KpiSchema = new mongoose.Schema({
     Signoff:{ type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     Status:{ type: String, required: true },
     IsDraft:{ type: Boolean, required: true },
-    CreatedOn:  { type: Date },
+    IsSubmitedKPIs:{ type: Boolean, default:false },
+    CreatedOn:  { type: Date,default:Date() },
+    EmpFTSubmitedOn:  { type: Date },
+    EmpFTViewOn:  { type: Date },
+    ManagerFTSubmitedOn:  { type: Date },
     CreatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    UpdatedOn:  { type: Date },
+    UpdatedOn:  { type: Date ,default:Date()},
     UpdatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
 }
 ,{usePushEach: true}

@@ -165,7 +165,7 @@ exports.AddKpi = async (req, res, next) => {
             
             await EmployeeService.AddKpi(req.body)
                 .then((Response) => {
-                    res.status(200).json({ message: " Kpi added Succeesfully" });
+                    res.status(200).json({  message: "Success" });
                 })
                 .catch(err => { next(err) });
         }
@@ -174,9 +174,24 @@ exports.AddKpi = async (req, res, next) => {
 exports.GetAllKpis = async (req, res, next) => {
     await EmployeeService.GetAllKpis(req.body.empId)
         .then(Response => Response ? res.status(200).json(Response) : res.status(404).json("Kpi Not Found"))
-        .catch(err => next(err => { next(err) }));
+        .catch(err => next(err));
+
+      
 
 }
+
+
+
+exports.SubmitKpisForEvaluation = async (req, res, next) => {
+    await EmployeeService.SubmitAllKpis(req.body.empId)
+        .then(Response => Response ? res.status(200).json({message: " KPIs Submited For Evaluation"}) : res.status(404).json("Kpi Not Found"))
+        .catch(err => next(err));
+
+      
+
+}
+
+
 exports.GetKpiDataById = async (req, res, next) => {
     Joi.validate(req.body.id, Validation_Helper.ValidateString(), async (err, Result) => {
         if (err) { res.status(442).json({ mgs: err.details.map(i => i.message).join(" / ") }) }
@@ -188,8 +203,24 @@ exports.GetKpiDataById = async (req, res, next) => {
         }
     });
 }
+
+
+
 exports.UpdateKpiDataById = async (req, res, next) => {
+    
+    Joi.validate(req.body, Validation_Helper.ValidateKpi(req.body), async (err, result) => {
+        if (err) { res.status(400).json({ message: err.details.map(i => i.message).join(" / ") }) }
+        else {
+            
+            await EmployeeService.UpdateKpi(req.body)
+                .then((Response) => {
+                    res.status(200).json({  message: "Success" });
+                })
+                .catch(err => { next(err) });
+        }
+    });
 }
+
 
 
 

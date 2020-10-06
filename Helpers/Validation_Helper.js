@@ -535,6 +535,7 @@ exports.ValidateKpi = ( data)=>{
       MeasurementCriteria: Joi.required(),
       TargetCompletionDate: Joi.string().required(),
       Score: Joi.number().required(),
+      kpiId:Joi.optional(),
       YearEndComments:Joi.optional(),
       Weighting:Joi.required(),
       Signoff:Joi.string().required(),

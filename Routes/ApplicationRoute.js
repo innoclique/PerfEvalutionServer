@@ -25,6 +25,7 @@ route.post('/UpdateAccomplishmentDataById',EmployeeController.UpdateAccomplishme
 route.post('/AddKpi', EmployeeController.AddKpi);
 route.post('/GetKpiDataById',EmployeeController.GetKpiDataById);
 route.post('/GetAllKpis',EmployeeController.GetAllKpis);
+route.post('/SubmitKpisForEvaluation',EmployeeController.SubmitKpisForEvaluation);
 route.post('/UpdateKpiDataById',EmployeeController.UpdateKpiDataById);
 
 route.post('/AddNote', ApplicationController.AddNote);

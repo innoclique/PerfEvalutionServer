@@ -13,6 +13,7 @@ const RoleRepo = require('../SchemaModels/Roles');
 const KpiRepo = require('../SchemaModels/KPI');
 const MeasureCriteriaRepo = require('../SchemaModels/MeasurementCriteria');
 const IndustriesRepo = require('../SchemaModels/Industry');
+const EvaluationRepo = require('../SchemaModels/Evalution');
 const AuthHelper = require('../Helpers/Auth_Helper');
 const Messages = require('../Helpers/Messages');
 const SendMail = require("../Helpers/mail.js");
@@ -133,32 +134,35 @@ exports.GetAllStrengths= async (empId) => {
      exports.UpdateAccomplishments=async(Id)   =>{
 
      };
-     exports.AddKpi = async (kpi) => {
-        try {        
-            // const organizationName = await strengthRepo.findOne({ Name: organization.Name });
-            // const organizationEmail = await strengthRepo.findOne({ Email: organization.Email });
-            // const organizationPhone = await OrganizationRepo.findOne({ Phone: organization.Phone });
-    
-            // if (organizationName !== null) { throw Error("Organization Name Already Exist"); }
-    
-            // if (organizationEmail !== null) { throw Error("Organization Email Already Exist "); }
-    
-            // if (organizationPhone !== null) { throw Error("Organization Phone Number Already Exist"); }
-         
-          
-            const Kpi = new KpiRepo(kpi);
-            await Kpi.save();
-    return true;
-        }
-        catch (err) {
-            logger.error(err)
-    
-            console.log(err);
-            throw (err);
-        }
-    
-    
+
+
+exports.AddKpi = async (kpi) => {
+    try {
+
+
+        const Kpi = new KpiRepo(kpi);
+        await Kpi.save();
+
+        //Updateing other kpis waiting 
+        if (!kpi.IsDraft) {       
+        let updatedKPIs = await KpiRepo.updateMany({
+            'CreatedBy': Mongoose.Types.ObjectId(kpi.CreatedBy),
+            'IsDraft': false,
+        },
+            { $set: { 'Weighting': kpi.Weighting } });
+       }
+
+        return true;
     }
+    catch (err) {
+        logger.error(err)
+
+        console.log(err);
+        throw (err);
+    }
+
+
+}
     exports.GetKpiDataById= async (Id) => {
     
         const Kpi = await KpiRepo.findById(Id);
@@ -169,10 +173,66 @@ exports.GetAllStrengths= async (empId) => {
     };
     exports.GetAllKpis= async (empId) => {
         
-            const Kpi = await KpiRepo.find({'CreatedBy':empId}).populate('MeasurementCriteria.measureId');    
+       
+      let  evaluation=await EvaluationRepo.find( { Employees: { $elemMatch:{_id: Mongoose.Types.ObjectId(empId)} }}); 
+      if (!evaluation || evaluation.length==0) {
+      //  throw Error("KPI Setting Form Not Activeted");
+      }
+            const Kpi = await KpiRepo.find({'CreatedBy':empId}).populate('MeasurementCriteria.measureId')
+            .sort({UpdatedOn:-1});    
             return Kpi;   
         };
-     exports.UpdateKpi=async(Id)   =>{
 
-     };
+
+
+
+        exports.SubmitAllKpis = async (empId) => {
+            try {
+        
+                let submitedKPIs = await KpiRepo.updateMany({
+                    'CreatedBy': Mongoose.Types.ObjectId(empId),
+                    'IsDraft':false,
+                    'IsSubmitedKPIs':false
+                },
+                    { $set: { 
+                        'IsSubmitedKPIs': true,
+                        'EmpFTSubmitedOn': new Date()
+                   } });
+
+                    if (submitedKPIs) {
+                        // send email to manager 
+                    }
+
+                    return true
+            }
+            catch (err) {
+                logger.error(err)
+        
+                console.log(err);
+                throw (err);
+            }
+        
+        
+        };
+
+        exports.UpdateKpi = async (kpi) => {
+            try {
+        
+              
+                kpi.UpdatedOn = new Date();
+               await KpiRepo.findByIdAndUpdate(kpi.kpiId, kpi);
+        
+                return true;
+            }
+            catch (err) {
+                logger.error(err)
+        
+                console.log(err);
+                throw (err);
+            }
+        
+        
+        }
+
+
        

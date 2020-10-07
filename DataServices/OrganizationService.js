@@ -20,12 +20,12 @@ exports.CreateOrganization = async (organization) => {
             FirstName: organization.AdminFirstName,
             LastName: organization.AdminLastName,
             MiddleName: organization.AdminMiddleName,
-            Address: organization.Address,            
+            Address: organization.Address,
             PhoneNumber: organization.AdminPhone,
-            Country:organization.Country,
-            State:organization.State,
-            ZipCode:organization.ZipCode,
-            City:organization.City
+            Country: organization.Country,
+            State: organization.State,
+            ZipCode: organization.ZipCode,
+            City: organization.City
         }
         // const UserNameUser = await UserRepo.findOne({ Email: UserModel.Username });
         const EmailUser = await UserRepo.findOne({ Email: userRecord.Email });
@@ -63,26 +63,26 @@ exports.CreateOrganization = async (organization) => {
 }
 exports.UpdateOrganization = async (organization) => {
     try {
-        const toupdateOrg =await  OrganizationRepo.findOne({_id:Mongoose.Types.ObjectId(organization.id)});
+        const toupdateOrg = await OrganizationRepo.findOne({ _id: Mongoose.Types.ObjectId(organization.id) });
         Object.assign(toupdateOrg, organization);
-var ff=await toupdateOrg.save();
-     //var _g=await Organization.save();
+        var ff = await toupdateOrg.save();
+        //var _g=await Organization.save();
         //save user account for this organization
         const userRecord = {
             Email: organization.AdminEmail,
             ContactPhone: organization.AdminPhone,
-            Role: 'Client',            
+            Role: 'Client',
             FirstName: organization.AdminFirstName,
             LastName: organization.AdminLastName,
             MiddleName: organization.AdminMiddleName,
-            Address: organization.Address,            
+            Address: organization.Address,
             PhoneNumber: organization.AdminPhone,
-            Country:organization.Country,
-            State:organization.State,
-            ZipCode:organization.ZipCode,
-            City:organization.City
+            Country: organization.Country,
+            State: organization.State,
+            ZipCode: organization.ZipCode,
+            City: organization.City
         }
-        const user = await UserRepo.findOneAndUpdate({id:ff.Admin},{userRecord});  
+        const user = await UserRepo.findOneAndUpdate({ id: ff.Admin }, { userRecord });
 
         return true;
     }
@@ -97,25 +97,18 @@ exports.GetOrganizationDataById = async (Id) => {
     return Organization;
 };
 exports.GetAllOrganizations = async () => {
-    
-    const Organizations = await OrganizationRepo.find().sort({CreatedOn:-1});  
-return Organizations;
-
-// var q={
-//     Name:'Question 1',
-//     IsActive:1
-// }
-// var qq=new questions(q);
-// var f=await qq.save();
-
-// var c={
-//     Name:'Conduct ',
-//     IsActive:1,
-//     Questions:[f.id]
-// }
-// var cc=new competency(c);
-// await cc.save();
+    const Organizations = await OrganizationRepo.find().sort({ CreatedOn: -1 });
+    return Organizations;
 };
+exports.SuspendOrg = async (client) => {
+    const Organizations = await OrganizationRepo.findByIdAndUpdate({_id: Mongoose.Types.ObjectId(client.id)},{IsActive:false})
+    return {Success:true};
+};
+exports.ActivateOrg = async (client) => {
+    const Organizations = await OrganizationRepo.findByIdAndUpdate({_id:Mongoose.Types.ObjectId(client.id)},{IsActive:true})
+    return {Success:true};
+};
+
 exports.AddNotes = async (note) => {
     try {
         // const organizationName = await strengthRepo.findOne({ Name: organization.Name });
@@ -153,9 +146,9 @@ exports.UpdateNote = async (Id) => {
 
 };
 
-exports.IsOrgExist=async (orgName)=>{
-const org=await OrganizationRepo.findOne({'Name':orgName});
-return org;
+exports.IsOrgExist = async (orgName) => {
+    const org = await OrganizationRepo.findOne({ 'Name': orgName });
+    return org;
 }
 
 exports.AddReseller = async (organization) => {
@@ -170,12 +163,12 @@ exports.AddReseller = async (organization) => {
             FirstName: organization.AdminFirstName,
             LastName: organization.AdminLastName,
             MiddleName: organization.AdminMiddleName,
-            Address: organization.Address,            
+            Address: organization.Address,
             PhoneNumber: organization.AdminPhone,
-            Country:organization.Country,
-            State:organization.State,
-            ZipCode:organization.ZipCode,
-            City:organization.City
+            Country: organization.Country,
+            State: organization.State,
+            ZipCode: organization.ZipCode,
+            City: organization.City
         }
         // const UserNameUser = await UserRepo.findOne({ Email: UserModel.Username });
         const EmailUser = await UserRepo.findOne({ Email: userRecord.Email });
@@ -213,26 +206,26 @@ exports.AddReseller = async (organization) => {
 }
 exports.UpdateReseller = async (organization) => {
     try {
-        const toupdateOrg =await  OrganizationRepo.findOne({_id:Mongoose.Types.ObjectId(organization.id)});
+        const toupdateOrg = await OrganizationRepo.findOne({ _id: Mongoose.Types.ObjectId(organization.id) });
         Object.assign(toupdateOrg, organization);
-var ff=await toupdateOrg.save();
-     //var _g=await Organization.save();
+        var ff = await toupdateOrg.save();
+        //var _g=await Organization.save();
         //save user account for this organization
         const userRecord = {
             Email: organization.AdminEmail,
             ContactPhone: organization.AdminPhone,
-            Role: 'Client',            
+            Role: 'Client',
             FirstName: organization.AdminFirstName,
             LastName: organization.AdminLastName,
             MiddleName: organization.AdminMiddleName,
-            Address: organization.Address,            
+            Address: organization.Address,
             PhoneNumber: organization.AdminPhone,
-            Country:organization.Country,
-            State:organization.State,
-            ZipCode:organization.ZipCode,
-            City:organization.City
+            Country: organization.Country,
+            State: organization.State,
+            ZipCode: organization.ZipCode,
+            City: organization.City
         }
-        const user = await UserRepo.findOneAndUpdate({id:ff.Admin},{userRecord});  
+        const user = await UserRepo.findOneAndUpdate({ id: ff.Admin }, { userRecord });
 
         return true;
     }

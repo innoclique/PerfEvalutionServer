@@ -1,6 +1,7 @@
 const Validation_Helper = require('../Helpers/Validation_Helper');
 const Joi = require('joi');
-const OrganizaionService = require('../DataServices/OrganizationService')
+const OrganizaionService = require('../DataServices/OrganizationService');
+const logger = require('../logger');
 
 
 
@@ -49,6 +50,18 @@ exports.GetAllOrganizations = async (req, res, next) => {
         .then(Response => Response ? res.status(200).json(Response) : res.status(404).json("Organizations Not Found"))
         .catch(err => next(err => { next(err) }));
 
+}
+
+exports.SuspendOrg = async (req, res, next) => {    
+            await OrganizaionService.SuspendOrg(req.body)
+                .then(Response => Response ? res.status(200).json(Response) :
+                 res.status(404).json("Organization Suspended Successfully"))
+                .catch(err => next(err => {logger.error(err); next(err) }));
+}
+exports.ActivateOrg = async (req, res, next) => {    
+    await OrganizaionService.ActivateOrg(req.body)
+        .then(Response => Response ? res.status(200).json(Response) : res.status(404).json("Organization Activated Successfully"))
+        .catch(err => next(err => { logger.error(err);next(err) }));
 }
 exports.AddNote = async (req, res, next) => {
     

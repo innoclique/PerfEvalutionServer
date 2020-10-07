@@ -9,6 +9,8 @@ route.post('/UpdateOrganization', ApplicationController.UpdateOrganization);
 route.post('/AddOrganization', ApplicationController.AddOrganization);
 route.post('/GetOrganizationDataById',ApplicationController.GetOrganizationDataById);
 route.post('/GetAllOrganizations',ApplicationController.GetAllOrganizations);
+route.post('/SuspendOrg',ApplicationController.SuspendOrg);
+route.post('/ActivateOrg',ApplicationController.ActivateOrg);
 route.post('/CreateEmployee', EmployeeController.CreateEmployee);
 route.post('/UpdateEmployee', EmployeeController.UpdateEmployee);
 route.post('/GetEmployeeDataById',EmployeeController.GetEmployeeDataById);

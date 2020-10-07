@@ -8,7 +8,7 @@ exports.ValidateEvaluationForm = (data) => {
         ActivateActionPlan: Joi.bool().optional(),
         EvaluationForRole: Joi.string().optional(),
         EvaluationDuration: Joi.string().optional(),
-        Model:Joi.array().items(Joi.object().required()).min(1).required(),
+        Model:Joi.string().allow(['',null]).optional(),
         PeerRatingNeeded: Joi.bool().optional(),
         
         DirectReportRateNeeded: Joi.bool().optional(),
@@ -50,9 +50,8 @@ exports.ValidateDraftEvaluationForm = (data) => {
         ActivateActionPlan: Joi.bool().allow(false).optional(),
         EvaluationForRole: Joi.string().allow('').optional(),
         EvaluationDuration: Joi.string().allow('').optional(),
-        Model:Joi.object().allow(null).optional(),
-        PeerRatingNeeded: Joi.bool().allow(false).optional(),
-        
+        Model:Joi.string().allow(['',null]).optional(),
+        PeerRatingNeeded: Joi.bool().allow(false).optional(),        
         DirectReportRateNeeded: Joi.bool().allow(false).optional(),
         Peers:Joi.when('PeerRatingNeeded',{
             is:"true",

@@ -10,7 +10,7 @@ const Evalution = new mongoose.Schema({
     EvaluationForRole:String,
     EvaluationPeriod:String,
     EvaluationDuration:String,
-    Model:[{_id:{ type: mongoose.Schema.Types.ObjectId, ref: 'models',default:null }}],
+    Model:{ type: mongoose.Schema.Types.ObjectId, ref: 'models',default:null },
     PeerRatingNeeded:{type:Boolean,default:false},
     DirectReportRateNeeded:{type:Boolean,default:false},
     Peers:[],

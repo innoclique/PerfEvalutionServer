@@ -32,7 +32,7 @@ console.log('getmailobj')
     if (to && to !="")
     {
         if(env==='dev'){
-            mailObject.to =  ['yviswanadh@innoclique.com'];// ['ksamba@innoclique.com','yviswanadh@innoclique.com','snagineni@innoclique.com']
+            mailObject.to =   ['ksamba@innoclique.com','yviswanadh@innoclique.com']
         }else{
             mailObject.to = to;
         }

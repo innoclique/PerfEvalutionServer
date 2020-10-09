@@ -42,16 +42,43 @@ exports.CreateOrganization = async (organization) => {
         if (organizationName !== null) { throw Error("Organization Name Already Exist"); }
         if (organizationEmail !== null) { throw Error("Organization Email Already Exist "); }
         if (organizationPhone !== null) { throw Error("Organization Phone Number Already Exist"); }
-
-        const user = new UserRepo(userRecord)
+        const session =await Mongoose.startSession();
+    session.startTransaction();
+try {
+    const user = new UserRepo(userRecord)
         var createdUser = await user.save()
         organization.Admin = createdUser.id;
 
         const Organization = new OrganizationRepo(organization);
         await Organization.save();
+        // If all queries are successfully executed then session commit the transactions and changes get refelected
+        await session.commitTransaction();
+        
+        // After the successfull transaction sesstion gets ended and connection must be closed
+        session.endSession();
+   
+        
+} catch (error) {
+    console.log('came here samba',error)
+    // If an error occurred, abort the whole transaction and undo any changes that might have happened
+    await session.abortTransaction();
+    session.endSession();
+   
+    throw error; // Rethrow so calling function sees error
+}
+    
+        
+        var mailObject = SendMail.GetMailObject(
+            userRecord.Email,
+                  "Oraganization Added",
+                  "Thank you",
+                  null,
+                  null
+                );
 
-
-
+        SendMail.SendEmail(mailObject, function (res) {
+            console.log(res);
+        });
         //send email to admin user
         return true;
     }
@@ -83,7 +110,17 @@ exports.UpdateOrganization = async (organization) => {
             City: organization.City
         }
         const user = await UserRepo.findOneAndUpdate({ id: ff.Admin }, { userRecord });
+        var mailObject = SendMail.GetMailObject(
+            userRecord.Email,
+                  "Oraganization Updated",
+                  "Thank you",
+                  null,
+                  null
+                );
 
+        SendMail.sendEmail(mailObject, function (res) {
+            console.log(res);
+        });
         return true;
     }
     catch (err) {
@@ -102,10 +139,32 @@ exports.GetAllOrganizations = async () => {
 };
 exports.SuspendOrg = async (client) => {
     const Organizations = await OrganizationRepo.findByIdAndUpdate({_id: Mongoose.Types.ObjectId(client.id)},{IsActive:false})
+    var mailObject = SendMail.GetMailObject(
+        userRecord.Email,
+              "Oraganization Suspended",
+              "Thank you",
+              null,
+              null
+            );
+
+    SendMail.sendEmail(mailObject, function (res) {
+        console.log(res);
+    });
     return {Success:true};
 };
 exports.ActivateOrg = async (client) => {
     const Organizations = await OrganizationRepo.findByIdAndUpdate({_id:Mongoose.Types.ObjectId(client.id)},{IsActive:true})
+    var mailObject = SendMail.GetMailObject(
+        userRecord.Email,
+              "Oraganization Activated",
+              "Thank you",
+              null,
+              null
+            );
+
+    SendMail.sendEmail(mailObject, function (res) {
+        console.log(res);
+    });
     return {Success:true};
 };
 

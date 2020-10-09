@@ -48,7 +48,9 @@ module.exports = {
         EO_ROLE_CODE:'EO',
 
         KPI_STATUS:['New', 'In Progress', 'Completed'],
-        KPI_SCORE :['1', '2', '3']
+        KPI_SCORE :['1', '2', '3'],
+        COACHING_REM_DAYS  :['45', '60', '75','90']
+       
        
        
     }

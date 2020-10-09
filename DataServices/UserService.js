@@ -88,7 +88,7 @@ exports.Authenticate = async (LoginModel) => {
     Password = LoginModel.Password;
     console.log('came into login metho')
     try {        
-        const User = await  UserRepo.findOne({ 'Email': Email }) .populate('ThirdSignatory CopiesTo DirectReports');
+        const User = await  UserRepo.findOne({ 'Email': Email }) .populate('ThirdSignatory CopiesTo DirectReports Manager Organization');
         if (User && Bcrypt.compareSync(Password, User.Password)) {
             var AccesToken = AuthHelper.CreateShortAccesstoken(User);
             if (User.IsLoggedIn) {
@@ -316,6 +316,7 @@ exports.CreateEmployee = async (employee) => {
 
         if (EmployeePhone !== null) { throw Error("Employee Phone Number Already Exist"); }
 
+        // need to do some other impl should not use ids
         const EvalAdminFound = await UserRepo.findOne({ ParentUser: employee.ParentUser, ApplicationRole: Messages.constants.EA_ID });
 
 

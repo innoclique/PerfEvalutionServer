@@ -181,6 +181,16 @@ exports.GetAllKpis = async (req, res, next) => {
 }
 
 
+exports.GetKpisByManager = async (req, res, next) => {
+    await EmployeeService.GetKpisByManager(req.body.managerId)
+        .then(Response => Response ? res.status(200).json(Response) : res.status(404).json("Kpi Not Found"))
+        .catch(err => next(err));
+
+      
+
+}
+
+
 
 exports.SubmitKpisForEvaluation = async (req, res, next) => {
     await EmployeeService.SubmitAllKpis(req.body.empId)

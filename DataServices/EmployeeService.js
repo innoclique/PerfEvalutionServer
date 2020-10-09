@@ -102,7 +102,9 @@ exports.GetAllStrengths= async (empId) => {
                    
         const KpiStatus =  Messages.constants.KPI_STATUS;
         const KpiScore =  Messages.constants.KPI_SCORE;
-       return {KpiStatus,KpiScore};   
+        const coachingRem =  Messages.constants.COACHING_REM_DAYS;
+
+       return {KpiStatus,KpiScore,coachingRem};   
    };
 
    exports.GetAllMeasurementCriterias= async (empId) => {
@@ -146,7 +148,7 @@ exports.AddKpi = async (kpi) => {
         //Updateing other kpis waiting 
         if (!kpi.IsDraft) {       
         let updatedKPIs = await KpiRepo.updateMany({
-            'CreatedBy': Mongoose.Types.ObjectId(kpi.CreatedBy),
+            'Owner': Mongoose.Types.ObjectId(kpi.CreatedBy),
             'IsDraft': false,
         },
             { $set: { 'Weighting': kpi.Weighting } });
@@ -178,19 +180,42 @@ exports.AddKpi = async (kpi) => {
       if (!evaluation || evaluation.length==0) {
       //  throw Error("KPI Setting Form Not Activeted");
       }
-            const Kpi = await KpiRepo.find({'CreatedBy':empId}).populate('MeasurementCriteria.measureId')
+            const Kpi = await KpiRepo.find({'Owner':empId}).populate('MeasurementCriteria.measureId')
             .sort({UpdatedOn:-1});    
             return Kpi;   
         };
 
 
 
+        exports.GetKpisByManager= async (managerId) => {
+        
+          
+                  var Kpis = await KpiRepo.find({'ManagerId':managerId}).populate('MeasurementCriteria.measureId Owner')
+                  .sort({UpdatedOn:-1});     
+
+
+//sgsgggjsr
+
+ const kpiGroup=  Kpis.reduce((acc, obj) => {
+    const key = obj.Owner.FirstName;
+    if (!acc[key]) {
+       acc[key] = [];
+    }
+    // Add object to list for given key's value
+    acc[key].push(obj);
+    return acc;
+ }, {});
+
+
+                  return kpiGroup;   
+              };
+
 
         exports.SubmitAllKpis = async (empId) => {
             try {
         
                 let submitedKPIs = await KpiRepo.updateMany({
-                    'CreatedBy': Mongoose.Types.ObjectId(empId),
+                    'Owner': Mongoose.Types.ObjectId(empId),
                     'IsDraft':false,
                     'IsSubmitedKPIs':false
                 },
@@ -218,6 +243,10 @@ exports.AddKpi = async (kpi) => {
         exports.UpdateKpi = async (kpi) => {
             try {
         
+                if (kpi.IsManaFTSubmited) {
+                   kpi.ManagerFTSubmitedOn=new Date()
+                    kpi.ManagerSignOff={SignOffBy:kpi.UpdatedBy,SignOffOn:new Date()}
+                }
               
                 kpi.UpdatedOn = new Date();
                await KpiRepo.findByIdAndUpdate(kpi.kpiId, kpi);

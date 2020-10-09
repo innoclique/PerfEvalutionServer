@@ -105,6 +105,7 @@ exports.ValidateCreateEmployeeModel = ( data)=>{
       IsActive:Joi.string(),
       IsSubmit:Joi.optional(),
       IgnoreEvalAdminCreated:Joi.optional(),
+      Organization:Joi.optional(),
       UpdatedBy:Joi.optional(),
       CreatedBy:Joi.string(),
       ParentUser:Joi.string(),
@@ -529,7 +530,33 @@ exports.ValidateAccomplishment = ( data)=>{
 
 
 exports.ValidateKpi = ( data)=>{
+if (data.Action=='Active' || data.Action=='DeActive') {
+   
 
+   const schema = Joi.object().keys({
+      kpiId: Joi.required(),
+      Action: Joi.string().required(),
+      UpdatedBy: Joi.string().required(),
+      IsActive: Joi.any().required()
+   });
+   return schema;
+
+}else if (data.Action=='Review') {
+   
+
+   const schema = Joi.object().keys({
+      kpiId: Joi.required(),
+      Action: Joi.string().required(),
+      ManagerScore: Joi.number().optional(),
+      YECommManager: Joi.string().optional(),
+      IsManaFTSubmited: Joi.any().optional(),
+      UpdatedBy: Joi.string().required(),
+      IsActive: Joi.any().required()
+   });
+   return schema;
+
+} else {
+   
    const schema = Joi.object().keys({
       Kpi: Joi.string().required(),
       MeasurementCriteria: Joi.required(),
@@ -549,8 +576,11 @@ exports.ValidateKpi = ( data)=>{
   
     UpdatedBy:Joi.string().required()
 
+
+
   });
   return schema;
+}
 }
 
 

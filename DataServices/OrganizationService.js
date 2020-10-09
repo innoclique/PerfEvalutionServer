@@ -51,6 +51,8 @@ try {
 
         const Organization = new OrganizationRepo(organization);
         await Organization.save();
+        const userObj = await UserRepo.findOneAndUpdate({ id: createdUser.id }, {  Organization:Organization.id});
+
         // If all queries are successfully executed then session commit the transactions and changes get refelected
         await session.commitTransaction();
         
@@ -251,6 +253,8 @@ exports.AddReseller = async (organization) => {
 
         const Organization = new OrganizationRepo(organization);
         await Organization.save();
+
+        const userObj = await UserRepo.findOneAndUpdate({ id: createdUser.id }, {  Organization:Organization.id});
 
 
 

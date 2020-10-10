@@ -4,7 +4,16 @@ const mongoose = require("mongoose");
 
 
 const Evalution = new mongoose.Schema({
-    Employees:[{_id:{ type: mongoose.Schema.Types.ObjectId, ref: 'User',default:null }}],
+    Employees:[{
+        _id:{ type: mongoose.Schema.Types.ObjectId, ref: 'User',default:null },
+        Peers:[],
+        PeersCompetencyMessage:{type:String,default:""},
+        PeersCompetencyList:[],
+        DirectReportees:[],
+        DirectReporteeComptencyMessage:{type:String,default:""},
+        DirectReporteeCompetencyList:[]
+    }
+],
     ActivateKPI:Boolean,
     ActivateActionPlan:Boolean,
     EvaluationForRole:String,

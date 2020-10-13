@@ -62,7 +62,7 @@ exports.GetAllDepartments = async (req, res, next) => {
 }
 
 exports.GetEmpSetupBasicData = async (req, res, next) => {
-    await EmployeeService.GetEmpSetupBasicData(req.body.empId)
+    await EmployeeService.GetEmpSetupBasicData(req.body.industry)
         .then(Response => Response ? res.status(200).json(Response) : res.status(404).json("Accomplishments Not Found"))
         .catch(err => next(err => { next(err) }));
 
@@ -70,7 +70,7 @@ exports.GetEmpSetupBasicData = async (req, res, next) => {
 
 
 exports.GetKpiSetupBasicData = async (req, res, next) => {
-    await EmployeeService.GetKpiSetupBasicData(req.body.empId)
+    await EmployeeService.GetKpiSetupBasicData(req.body.empId,req.body.orgId)
         .then(Response => Response ? res.status(200).json(Response) : res.status(404).json("Accomplishments Not Found"))
         .catch(err => next(err => { next(err) }));
 
@@ -172,7 +172,7 @@ exports.AddKpi = async (req, res, next) => {
     });
 }
 exports.GetAllKpis = async (req, res, next) => {
-    await EmployeeService.GetAllKpis(req.body.empId)
+    await EmployeeService.GetAllKpis(req.body)
         .then(Response => Response ? res.status(200).json(Response) : res.status(404).json("Kpi Not Found"))
         .catch(err => next(err));
 

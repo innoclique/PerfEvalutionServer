@@ -114,13 +114,15 @@ exports.ValidateCreateEmployeeModel = ( data)=>{
       JobLevel:Joi.string().required(),
       JobRole:Joi.string().required(),
       Department:Joi.string().required(),
-      ApplicationRole:Joi.string().required(),
+      ApplicationRole:Joi.required(),
 
       Role:Joi.string().optional(),
+      SelectedRoles:Joi.optional(),
       Title:Joi.string().required(),
       ThirdSignatory:Joi.optional(),
       CopiesTo:Joi.optional(),
       DirectReports:Joi.optional(),
+      Manager:Joi.optional(),
       Country:Joi.string().required(),
       State:Joi.string().required(),
       City:Joi.string().required(),
@@ -565,7 +567,7 @@ if (data.Action=='Active' || data.Action=='DeActive') {
       kpiId:Joi.optional(),
       YearEndComments:Joi.optional(),
       Weighting:Joi.required(),
-      Signoff:Joi.string().required(),
+      Signoff:Joi.string().optional(),
     Status:Joi.string().required(),
     YECommManager:Joi.optional(),
     IsSubmit:Joi.optional(),
@@ -573,6 +575,8 @@ if (data.Action=='Active' || data.Action=='DeActive') {
     IsDraft:Joi.boolean().required(),
  
     CreatedBy:Joi.string().required(),
+    Owner:Joi.string().required(),
+    EvaluationId:Joi.string().required(),
   
     UpdatedBy:Joi.string().required()
 

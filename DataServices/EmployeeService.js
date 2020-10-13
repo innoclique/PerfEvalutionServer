@@ -87,24 +87,29 @@ exports.GetAllStrengths= async (empId) => {
         return Departments;   
     };
 
-    exports.GetEmpSetupBasicData= async (indusId) => {
+    exports.GetEmpSetupBasicData= async (industry) => {
        
        
       
-         const Industries = await IndustriesRepo.findById('5f6b2acc7d83cd08b8a9ad46');    
+       //  const Industries = await IndustriesRepo.findById('5f6b2acc7d83cd08b8a9ad46');   
+         const Industries = await IndustriesRepo.find( { Name: industry});
+                  
         var AppRoles=await RoleRepo.find({RoleLevel:{$in: ['3','4','5','6' ] }})
         const JobLevels = await JobLevelRepo.find();    
         return {Industries,AppRoles,JobLevels};   
     };
 
 
-    exports.GetKpiSetupBasicData= async (id) => {
-                   
+    exports.GetKpiSetupBasicData= async (empId,orgId) => {
+             
         const KpiStatus =  Messages.constants.KPI_STATUS;
         const KpiScore =  Messages.constants.KPI_SCORE;
         const coachingRem =  Messages.constants.COACHING_REM_DAYS;
-
-       return {KpiStatus,KpiScore,coachingRem};   
+      var allEvaluation=await EvaluationRepo.find( { Employees: { $elemMatch:{_id: Mongoose.Types.ObjectId(empId)} },
+                                                      Company:orgId
+                                               }).sort({CreatedDate:-1}); 
+       let evaluation=  allEvaluation[0];
+       return {KpiStatus,KpiScore,coachingRem,evaluation };  
    };
 
    exports.GetAllMeasurementCriterias= async (empId) => {
@@ -173,16 +178,33 @@ exports.AddKpi = async (kpi) => {
     
     
     };
-    exports.GetAllKpis= async (empId) => {
+    exports.GetAllKpis= async (data) => {
         
        
-      let  evaluation=await EvaluationRepo.find( { Employees: { $elemMatch:{_id: Mongoose.Types.ObjectId(empId)} }}); 
-      if (!evaluation || evaluation.length==0) {
-      //  throw Error("KPI Setting Form Not Activeted");
+
+      var allEvaluation=await EvaluationRepo.find( { Employees: { $elemMatch:{_id: Mongoose.Types.ObjectId(data.empId)} },
+      Company:data.orgId
+      }).sort({CreatedDate:-1}); 
+      let currEvaluation=  allEvaluation[0];
+      let preEvaluation=  allEvaluation[1];
+
+      if (!currEvaluation || allEvaluation.length==0) {
+        throw Error("KPI Setting Form Not Activeted");
       }
-            const Kpi = await KpiRepo.find({'Owner':empId}).populate('MeasurementCriteria.measureId')
+      var preKpi=[];
+      if (preEvaluation && !data.currentOnly) {
+         preKpi = await KpiRepo.find({'Owner':data.empId, 'EvaluationId':preEvaluation._id})
+        .populate('MeasurementCriteria.measureId Owner')
+        .sort({UpdatedOn:-1});    
+      }
+  
+
+            const Kpi = await KpiRepo.find({'Owner':data.empId, 'EvaluationId':currEvaluation._id})
+            .populate('MeasurementCriteria.measureId Owner')
             .sort({UpdatedOn:-1});    
-            return Kpi;   
+
+
+            return [...Kpi,...preKpi];   
         };
 
 

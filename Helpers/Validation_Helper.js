@@ -551,13 +551,24 @@ if (data.Action=='Active' || data.Action=='DeActive') {
       Action: Joi.string().required(),
       ManagerScore: Joi.number().optional(),
       YECommManager: Joi.string().optional(),
+      CoachingReminder: Joi.string().optional(),
       IsManaFTSubmited: Joi.any().optional(),
       UpdatedBy: Joi.string().required(),
       IsActive: Joi.any().required()
    });
    return schema;
 
-} else {
+} else if (data.Action=='Draft') {
+   
+
+   const schema = Joi.object().keys({
+      Kpi: Joi.required(),
+      Action: Joi.string().required(),
+     
+   }).unknown(true);;
+   return schema;
+
+}  else {
    
    const schema = Joi.object().keys({
       Kpi: Joi.string().required(),
@@ -567,10 +578,10 @@ if (data.Action=='Active' || data.Action=='DeActive') {
       kpiId:Joi.optional(),
       YearEndComments:Joi.optional(),
       Weighting:Joi.required(),
-      Signoff:Joi.string().optional(),
+      Signoff:Joi.optional(),
     Status:Joi.string().required(),
     YECommManager:Joi.optional(),
-    IsSubmit:Joi.optional(),
+    
      ManagerId:Joi.optional(),
     IsDraft:Joi.boolean().required(),
  

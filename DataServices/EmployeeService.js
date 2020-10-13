@@ -16,6 +16,7 @@ const IndustriesRepo = require('../SchemaModels/Industry');
 const EvaluationRepo = require('../SchemaModels/Evalution');
 const AuthHelper = require('../Helpers/Auth_Helper');
 const Messages = require('../Helpers/Messages');
+const UserRepo = require('../SchemaModels/UserSchema');
 const SendMail = require("../Helpers/mail.js");
 var logger = require('../logger');
 
@@ -212,7 +213,9 @@ exports.AddKpi = async (kpi) => {
         exports.GetKpisByManager= async (managerId) => {
         
           
-                  var Kpis = await KpiRepo.find({'ManagerId':managerId}).populate('MeasurementCriteria.measureId Owner')
+                  var Kpis = await KpiRepo.find({'ManagerId':managerId, 
+                  'IsDraft':false ,'IsSubmitedKPIs':true   })
+                  .populate('MeasurementCriteria.measureId Owner')
                   .sort({UpdatedOn:-1});     
 
 
@@ -235,6 +238,9 @@ exports.AddKpi = async (kpi) => {
 
         exports.SubmitAllKpis = async (empId) => {
             try {
+
+                const User = await UserRepo.find({"_id":empId})
+                .populate('Manager');
         
                 let submitedKPIs = await KpiRepo.updateMany({
                     'Owner': Mongoose.Types.ObjectId(empId),
@@ -243,11 +249,38 @@ exports.AddKpi = async (kpi) => {
                 },
                     { $set: { 
                         'IsSubmitedKPIs': true,
-                        'EmpFTSubmitedOn': new Date()
+                        'EmpFTSubmitedOn': new Date(),
+                        'Signoff':{SignOffBy:User[0].FirstName,SignOffOn:new Date()}
                    } });
 
                     if (submitedKPIs) {
                         // send email to manager 
+                        if (User[0].Manager) {
+                        var mailObject = SendMail.GetMailObject(
+                            User[0].Manager.Email,
+                                  "Kpi Submited for review",
+                                  "Thank you",
+                                  null,
+                                  null
+                                );
+                
+                        SendMail.SendEmail(mailObject, function (res) {
+                            console.log(res);
+                        });
+                    }
+                        
+                        // send email to User 
+                        var mailObject = SendMail.GetMailObject(
+                            User[0].Email,
+                                  "Kpi Submited for review",
+                                  "Thank you",
+                                  null,
+                                  null
+                                );
+                
+                        SendMail.SendEmail(mailObject, function (res) {
+                            console.log(res);
+                        });
                     }
 
                     return true
@@ -266,8 +299,9 @@ exports.AddKpi = async (kpi) => {
             try {
         
                 if (kpi.IsManaFTSubmited) {
+                    const Manager = await UserRepo.findById(kpi.UpdatedBy);
                    kpi.ManagerFTSubmitedOn=new Date()
-                    kpi.ManagerSignOff={SignOffBy:kpi.UpdatedBy,SignOffOn:new Date()}
+                    kpi.ManagerSignOff={SignOffBy:Manager.FirstName,SignOffOn:new Date()}
                 }
               
                 kpi.UpdatedOn = new Date();

@@ -53,3 +53,34 @@ exports.GetEvaluations = async (req,res,next)=>{
         }
     });
 }
+exports.GetEvaluationFormById = async (req,res,next)=>{
+    
+    // Joi.validate(req.body, Validation.ValidateClientId(req.body), async (err, result) => {
+    //     if (err) { res.status(400).json({ message: err.details.map(i => i.message).join(" / ") }) }
+    //     else {
+            await EvaluationService.GetEvaluationFormById( req.body)
+            .then(Response => res.status(200).json(Response))
+            .catch(error =>{
+                logger.error(error)
+                 next(error)});
+    //     }
+    // });
+}
+
+exports.UpdateEvaluationForm = async (req, res, next) => {
+    
+    // Joi.validate(req.body, Validation.ValidateEvaluationForm(req.body), async (err, result) => {
+    //     if (err) { res.status(400).json({ message: err.details.map(i => i.message).join(" / ") }) }
+    //     else {
+            await EvaluationService.UpdateEvaluationForm( req.body)
+            .then(Response => res.status(200).json(Response))
+            .catch(error =>{
+                logger.error(error)
+                 next(error)});
+    //     }
+    // });
+
+    //const CurrentUserId = req.user.Id;
+    
+}
+

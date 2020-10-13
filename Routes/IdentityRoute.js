@@ -22,7 +22,7 @@ router.post("/Refresh_Token", IdentityRoute.RefreshToken);
 router.post("/ManageAccount/:id", AuthHelper.Authorization(), IdentityRoute.ManageAccount);
 router.post("/ManageProfile/:id", AuthHelper.Authorization(), IdentityRoute.ManageProfile);
 router.post("/ManageUserRole/:id", AuthHelper.Authorization(), IdentityRoute.ManageUserRole);
-router.post("/Log_Out", AuthHelper.Authorization(),  IdentityRoute.Log_Out);
+router.delete("/Log_Out", AuthHelper.Authorization(),  IdentityRoute.Log_Out);
 router.delete("/DeleteUser/:id", AuthHelper.Authorization(), IdentityRoute.DeleteUser);
 
 

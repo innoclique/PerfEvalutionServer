@@ -17,7 +17,9 @@ exports.AddEvaluation = async (evaluation) => {
 exports.GetEvaluations=async (clientId)=>{
     return await EvaluationRepo.find({Company: Mongoose.Types.ObjectId(clientId.clientId)}).sort({CreatedDate:-1});  ;
 }
-
+exports.GetEvaluationFormById=async (formId)=>{
+    return await EvaluationRepo.findById({_id: Mongoose.Types.ObjectId(formId.id)}).populate('Employees._id')
+}
 
 exports.DraftEvaluation = async (evaluation) => {
     const _evaluation = await EvaluationRepo(evaluation);
@@ -25,5 +27,12 @@ exports.DraftEvaluation = async (evaluation) => {
     return true;
 };
 
-
+exports.UpdateEvaluationForm = async (evaluation) => {
+    const toupdateForm = await EvaluationRepo.findOne({ _id: Mongoose.Types.ObjectId(evaluation._id) });
+    Object.assign(toupdateForm, evaluation);
+    var ff = await toupdateForm.save();
+    
+    
+    return true;
+};
 

@@ -87,3 +87,13 @@ exports.ValidateClientId=(data)=>{
     });
     return schema;   
 }
+
+exports.ValidateUpdateEvaluationForm = (data) => {
+    const schema = Joi.object().keys({
+        Employees:Joi.array().items(Joi.object().required()).min(1).required(),
+        
+        
+    });
+    return schema;
+
+}

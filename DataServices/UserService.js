@@ -332,6 +332,58 @@ exports.CreateEmployee = async (employee) => {
 
         const newemp = new UserRepo(employee);
         await newemp.save();
+
+        //send email to employee
+         //send email to  user
+         var mailObject = SendMail.GetMailObject(
+            newemp.Email,
+            "Employee account created",
+
+                  `Dear ${newemp.FirstName},
+
+                  Congratulations, Employee account has been created. Your login id is your email. You will receive a separate email for password. Please change your password when you login first time.
+                  
+                  Email: ${newemp.Email},
+                  
+                  Please click here to login.
+                  
+                  Thank you,
+                  Administrator
+                  `,
+                  null,
+                  null
+                );
+
+                //Password: ${_temppwd}
+
+        SendMail.SendEmail(mailObject, function (res) {
+            console.log(res);
+        });
+
+        var mailObject = SendMail.GetMailObject(
+            newemp.Email,
+                  "Employee account created",
+
+                  `Dear ${newemp.FirstName},
+
+                  Congratulations, Employee account has been created. Please change your password when you login first time.
+                  
+                  Password: ${_temppwd},
+                  
+                  Please click here to login.
+                  
+                  Thank you,
+                  Administrator
+                  `,
+                  null,
+                  null
+                );
+
+
+        SendMail.SendEmail(mailObject, function (res) {
+            console.log(res);
+        });
+        
         return true;
     }
     catch (err) {

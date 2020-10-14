@@ -214,7 +214,9 @@ exports.AddKpi = async (kpi) => {
         
           
                   var Kpis = await KpiRepo.find({'ManagerId':managerId, 
-                  'IsDraft':false ,'IsSubmitedKPIs':true   })
+                  'IsDraft':false 
+                 // ,'IsSubmitedKPIs':true  
+                 })
                   .populate('MeasurementCriteria.measureId Owner')
                   .sort({UpdatedOn:-1});     
 

@@ -26,8 +26,13 @@ exports.GetEvaluationCategories = async () => {
 
 exports.GetModelsByIndustry=async (industryId)=>{
     const indId=await IndustryRepo.findOne({Name:industryId.id});
-    const _models=await Models.find({Industry:indId.id});
-return _models;
+    if(indId){
+
+        const _models=await Models.find({Industry:indId.id});
+        return _models;
+    }else{
+        return null;
+    }
 }
 exports.GetCompetencyList=async (company)=>{
     const _comtencyList=await Competency.find({Company: Mongoose.Types.ObjectId(company.id)});    

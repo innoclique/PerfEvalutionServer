@@ -11,7 +11,8 @@ const logger = require('../logger');
 exports.CreateOrganization = async (organization) => {
     try {
         //save user account for this organization
-        const pwd = Bcrypt.hashSync(AuthHelper.GenerateRandomPassword(), 10);
+        const _temppwd=AuthHelper.GenerateRandomPassword();
+        const pwd = Bcrypt.hashSync(_temppwd, 10);
         const userRecord = {
             Email: organization.AdminEmail,
             ContactPhone: organization.AdminPhone,
@@ -73,7 +74,12 @@ try {
         var mailObject = SendMail.GetMailObject(
             userRecord.Email,
                   "Oraganization Added",
-                  "Thank you",
+                  `New Organization has been added. Your login details are given below.
+                  Email: ${userRecord.Email},
+                  Password: ${_temppwd}
+                  <br/>
+                  Note: You will be redirected to reset password page on first login
+                  `,
                   null,
                   null
                 );
@@ -215,7 +221,8 @@ exports.IsOrgExist = async (orgName) => {
 exports.AddReseller = async (organization) => {
     try {
         //save user account for this organization
-        const pwd = Bcrypt.hashSync(AuthHelper.GenerateRandomPassword(), 10);
+        const _temppwd=AuthHelper.GenerateRandomPassword();
+        const pwd = Bcrypt.hashSync(_temppwd, 10);
         const userRecord = {
             Email: organization.AdminEmail,
             ContactPhone: organization.AdminPhone,
@@ -259,6 +266,22 @@ exports.AddReseller = async (organization) => {
 
 
         //send email to admin user
+        var mailObject = SendMail.GetMailObject(
+            userRecord.Email,
+                  "Oraganization Added",
+                  `New Organization has been added. Your login details are given below.
+                  Email: ${userRecord.Email},
+                  Password: ${_temppwd}
+                  <br/>
+                  Note: You will be redirected to reset password page on first login
+                  `,
+                  null,
+                  null
+                );
+
+        SendMail.SendEmail(mailObject, function (res) {
+            console.log(res);
+        });
         return true;
     }
     catch (err) {

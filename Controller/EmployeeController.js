@@ -194,7 +194,7 @@ exports.GetKpisByManager = async (req, res, next) => {
 
 exports.SubmitKpisForEvaluation = async (req, res, next) => {
     await EmployeeService.SubmitAllKpis(req.body.empId)
-        .then(Response => Response ? res.status(200).json({message: " KPIs Submited For Evaluation"}) : res.status(404).json("Kpi Not Found"))
+        .then(Response => Response ? res.status(200).json({message: "The KPIs have been submitted successfully and your sign-off registered."}) : res.status(404).json("Kpi Not Found"))
         .catch(err => next(err));
 
       

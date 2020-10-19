@@ -19,6 +19,7 @@ const Messages = require('../Helpers/Messages');
 const UserRepo = require('../SchemaModels/UserSchema');
 const SendMail = require("../Helpers/mail.js");
 var logger = require('../logger');
+const { add } = require("../logger");
 
 exports.AddStrength = async (strength) => {
     try {        
@@ -144,21 +145,25 @@ exports.GetAllStrengths= async (empId) => {
      };
 
 
-exports.AddKpi = async (kpi) => {
+exports.AddKpi = async (kpiModel) => {
     try {
 
 
-        const Kpi = new KpiRepo(kpi);
-        await Kpi.save();
+        var Kpi = new KpiRepo(kpiModel);
+       Kpi=   await Kpi.save();
 
         //Updateing other kpis waiting 
-        if (!kpi.IsDraft) {       
+        if (!kpiModel.IsDraft) {       
         let updatedKPIs = await KpiRepo.updateMany({
-            'Owner': Mongoose.Types.ObjectId(kpi.CreatedBy),
+            'Owner': Mongoose.Types.ObjectId(kpiModel.CreatedBy),
             'IsDraft': false,
         },
-            { $set: { 'Weighting': kpi.Weighting } });
+            { $set: { 'Weighting': kpiModel.Weighting } });
        }
+
+       kpiModel.Action='Create';
+       kpiModel.kpiId=Kpi.id;
+       this.addKpiTrack(kpiModel);
 
         return true;
     }
@@ -173,7 +178,8 @@ exports.AddKpi = async (kpi) => {
 }
     exports.GetKpiDataById= async (Id) => {
     
-        const Kpi = await KpiRepo.findById(Id);
+        const Kpi = await KpiRepo.findById(Id)
+        .populate('MeasurementCriteria.measureId Owner');
     
         return Kpi;
     
@@ -200,7 +206,7 @@ exports.AddKpi = async (kpi) => {
       }
   
 
-            const Kpi = await KpiRepo.find({'Owner':data.empId, 'EvaluationId':currEvaluation._id})
+            const Kpi = await KpiRepo.find({'Owner':data.empId,'IsDraftByManager':false, 'EvaluationId':currEvaluation._id})
             .populate('MeasurementCriteria.measureId Owner')
             .sort({UpdatedOn:-1});    
 
@@ -212,29 +218,29 @@ exports.AddKpi = async (kpi) => {
 
         exports.GetKpisByManager= async (managerId) => {
         
+            var allKpis=[]
           
                   var Kpis = await KpiRepo.find({'ManagerId':managerId, 
-                  'IsDraft':false 
-                 // ,'IsSubmitedKPIs':true  
+                  'IsDraft':false ,
+                  'IsSubmitedKPIs':true
+
                  })
                   .populate('MeasurementCriteria.measureId Owner')
                   .sort({UpdatedOn:-1});     
 
-
+                  var managerDraftsKpis = await KpiRepo.find({'ManagerId':managerId, 
+                  'IsDraft':false ,
+                  'IsDraftByManager':true,                       
+                 })
+                  .populate('MeasurementCriteria.measureId Owner')
+                  .sort({UpdatedOn:-1});     
+                  
+                  allKpis=[...Kpis,...managerDraftsKpis]
 //sgsgggjsr
 
- const kpiGroup=  Kpis.reduce((acc, obj) => {
-    const key = obj.Owner.FirstName;
-    if (!acc[key]) {
-       acc[key] = [];
-    }
-    // Add object to list for given key's value
-    acc[key].push(obj);
-    return acc;
- }, {});
 
 
-                  return kpiGroup;   
+                  return allKpis;   
               };
 
 
@@ -260,8 +266,17 @@ exports.AddKpi = async (kpi) => {
                         if (User[0].Manager) {
                         var mailObject = SendMail.GetMailObject(
                             User[0].Manager.Email,
-                                  "Kpi Submited for review",
-                                  "Thank you",
+                                  "Kpi submited for review",
+                                  `Dear ${User[0].Manager.FirstName},
+
+                                  Your Direct Report, ${User[0].FirstName} has submitted the KPIs.
+
+                                    Please click here to login and review.
+
+                                  
+                                  Thank you,
+                                  <product name> Administrator
+                                  `,
                                   null,
                                   null
                                 );
@@ -274,8 +289,16 @@ exports.AddKpi = async (kpi) => {
                         // send email to User 
                         var mailObject = SendMail.GetMailObject(
                             User[0].Email,
-                                  "Kpi Submited for review",
-                                  "Thank you",
+                                  "Kpi submited for review",
+                                  `Dear ${User[0].FirstName},
+
+                                  Your KPIs have been successfully submitted to your manager.
+                                  
+                                  To view details, click here.
+                                  
+                                  Thank you,
+                                 Administrator
+                                  `,
                                   null,
                                   null
                                 );
@@ -304,10 +327,23 @@ exports.AddKpi = async (kpi) => {
                     const Manager = await UserRepo.findById(kpi.UpdatedBy);
                    kpi.ManagerFTSubmitedOn=new Date()
                     kpi.ManagerSignOff={SignOffBy:Manager.FirstName,SignOffOn:new Date()}
+
+                  const kpiOwnerInfo=  this.GetKpiDataById(kpi.kpiId)
+                      this.sendEmailOnManagerSignoff(Manager,kpiOwnerInfo);
+
+
+                }
+
+                if (kpi.ViewedByEmpOn) {
+                 
+                    kpi.ViewedByEmpOn= new Date();
                 }
               
                 kpi.UpdatedOn = new Date();
                await KpiRepo.findByIdAndUpdate(kpi.kpiId, kpi);
+
+                this.addKpiTrack(kpi);
+             
         
                 return true;
             }
@@ -319,6 +355,80 @@ exports.AddKpi = async (kpi) => {
             }
         
         
+        }
+
+
+        exports.addKpiTrack = async (kpi) => {
+                   
+                var reportOBJ = await KpiRepo.findOne({
+                    _id: Mongoose.Types.ObjectId(kpi.kpiId)
+                });
+                reportOBJ.tracks = reportOBJ.tracks || [];
+
+                const actor = await UserRepo.findOne({"_id":kpi.UpdatedBy})
+               
+                var track = {
+                    actorId: kpi.UpdatedBy,
+                    action: kpi.Action,
+                    comment : actor.FirstName + " " + "has "+kpi.Action+" at " + new Date().toLocaleDateString() 
+                }
+                reportOBJ.tracks.push(track);
+                return await reportOBJ.save();
+                        
+        }
+
+        exports.sendEmailOnManagerSignoff = async (manager,kpiOwnerInfo) => {
+
+
+            if (manager) {
+                // send email to manager 
+               
+                var mailObject = SendMail.GetMailObject(
+                    manager.Email,
+                          "Kpi signed-off",
+                          `Dear ${manager.FirstName},
+
+                          You have successfully signed-off the KPIs for ${kpiOwnerInfo.Owner.FirstName}.
+
+                        To view details, click here.
+
+
+                          
+                          Thank you,
+                          Administrator
+                          `,
+                          null,
+                          null
+                        );
+        
+                SendMail.SendEmail(mailObject, function (res) {
+                    console.log(res);
+                });
+            
+                
+                // send email to User 
+                var mailObject = SendMail.GetMailObject(
+                    kpiOwnerInfo.Owner.Email,
+                          "Kpi sign-off",
+                          `Dear ${kpiOwnerInfo.Owner.FirstName},
+
+                          Your manager, ${manager.FirstName} has <edited> and signed-off your KPIs.
+
+                          Please click here to login and review. You may want to discuss the updates, if any, with your manager.
+                          
+                          
+                          Thank you,
+                         Administrator
+                          `,
+                          null,
+                          null
+                        );
+        
+                SendMail.SendEmail(mailObject, function (res) {
+                    console.log(res);
+                });
+            }
+
         }
 
 

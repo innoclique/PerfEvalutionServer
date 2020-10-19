@@ -543,14 +543,27 @@ if (data.Action=='Active' || data.Action=='DeActive') {
    });
    return schema;
 
-}else if (data.Action=='Review') {
+}
+   else if (data.Action=='Viewed') {
+   
+
+   const schema = Joi.object().keys({
+      kpiId: Joi.required(),
+      ViewedByEmpOn: Joi.required(),
+      Action: Joi.string().required(),
+      });
+   return schema;
+
+}
+
+else if (data.Action=='Review') {
    
 
    const schema = Joi.object().keys({
       kpiId: Joi.required(),
       Action: Joi.string().required(),
       ManagerScore: Joi.number().optional(),
-      YECommManager: Joi.string().optional(),
+      YECommManager: Joi.optional(),
       CoachingReminder: Joi.string().optional(),
       IsManaFTSubmited: Joi.any().optional(),
       UpdatedBy: Joi.string().required(),
@@ -574,7 +587,7 @@ if (data.Action=='Active' || data.Action=='DeActive') {
       Kpi: Joi.string().required(),
       MeasurementCriteria: Joi.required(),
       TargetCompletionDate: Joi.string().required(),
-      Score: Joi.number().required(),
+      Score: Joi.optional(),
       kpiId:Joi.optional(),
       YearEndComments:Joi.optional(),
       Weighting:Joi.required(),
@@ -583,7 +596,9 @@ if (data.Action=='Active' || data.Action=='DeActive') {
     YECommManager:Joi.optional(),
     
      ManagerId:Joi.optional(),
+     ViewedByEmpOn:Joi.optional(),
     IsDraft:Joi.boolean().required(),
+    IsDraftByManager:Joi.optional(),
  
     CreatedBy:Joi.string().required(),
     Owner:Joi.string().required(),

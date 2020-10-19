@@ -11,7 +11,8 @@ const Evalution = new mongoose.Schema({
         PeersCompetencyList:[],
         DirectReportees:[],
         DirectReporteeComptencyMessage:{type:String,default:""},
-        DirectReporteeCompetencyList:[]
+        DirectReporteeCompetencyList:[],
+        Model:{ type: mongoose.Schema.Types.ObjectId, ref: 'models',default:null }
     }
 ],
     ActivateKPI:Boolean,
@@ -19,15 +20,6 @@ const Evalution = new mongoose.Schema({
     EvaluationForRole:String,
     EvaluationPeriod:String,
     EvaluationDuration:String,
-    Model:{ type: mongoose.Schema.Types.ObjectId, ref: 'models',default:null },
-    PeerRatingNeeded:{type:Boolean,default:false},
-    DirectReportRateNeeded:{type:Boolean,default:false},
-    Peers:[],
-    PeersCompetency:[],
-    PeersComptencyMessage:String,
-    DirectReports:[],
-    DirectReportCompetency:[],
-    DirectReportMessage:String,
     CreatedBy:{ type: mongoose.Schema.Types.ObjectId, ref: 'User',default:null },
     CreatedDate:{type:Date,default:Date()},
     UpdatedBy:{ type: mongoose.Schema.Types.ObjectId, ref: 'User',default:null },

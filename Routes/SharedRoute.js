@@ -11,6 +11,6 @@ router.post("/GetIndustries", SharedRoute.GetIndustries);
 router.post("/GetEvaluationCategories", SharedRoute.GetEvaluationCategories);
 router.post("/GetModelsByIndustry", SharedRoute.GetModelsByIndustry);
 router.post("/GetCompetencyList", SharedRoute.GetCompetencyList);
-
+router.post("/SearchEmployee",SharedRoute.SearchEmployee);
 
 module.exports = router;

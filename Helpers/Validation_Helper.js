@@ -323,7 +323,7 @@ exports.OrganizationSchema=(schema)=>{
       EvaluationPeriod:Joi.string().required().trim(),     
       
       EvaluationModels:Joi.array().items(Joi.string().required()).min(1).required(),
-      PhoneExt:Joi.string(),
+      PhoneExt:Joi.string().allow(['']),
       EvaluationMaximumDays:Joi.string(),
       EmployeeBufferCount:Joi.string().optional(),
       DownloadBufferDays:Joi.string().optional(),
@@ -383,7 +383,7 @@ exports.UpdateOrganizationSchema=(schema)=>{
       EvaluationPeriod:Joi.string().required().trim(),     
       
       EvaluationModels:Joi.array().items(Joi.string().required()).min(1).required(),
-      PhoneExt:Joi.string(),      
+      PhoneExt:Joi.string().allow(['']),
       EmployeeBufferCount:Joi.string().optional(),
       DownloadBufferDays:Joi.string().optional(),
       CoachingReminder:Joi.string().optional(),
@@ -441,7 +441,7 @@ exports.ValidateAddReseller=(schema)=>{
       
       
       
-      PhoneExt:Joi.string(),
+      PhoneExt:Joi.string().allow(['']),
       IsActive:Joi.optional(),
       CreatedBy:Joi.string().required().trim(),
       CreatedOn:Joi.optional(),
@@ -490,7 +490,7 @@ exports.ValidateUpdateReseller=(schema)=>{
          then:Joi.string().required().trim()
       }),
       ContactPersonMiddleName:Joi.optional(),
-      PhoneExt:Joi.string(),      
+      PhoneExt:Joi.string().allow(['']),
       IsActive:Joi.optional(),
       UpdatedBy:Joi.string().required().trim(),
       UpdatedOn:Joi.optional(),
@@ -625,13 +625,6 @@ exports.ValidateCommonModel = ( data)=>{
 
   return schema;
 }
-
-
-
-
-
-
-
 
 exports.ValidateNote = ( data)=>{
 

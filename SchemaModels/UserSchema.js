@@ -1,7 +1,7 @@
 const Express = require("express");
 require('dotenv').config();
 const mongoose = require("mongoose");
-const { boolean } = require("joi");
+const { boolean, string } = require("joi");
 
 const UserSchema = new mongoose.Schema({
     Email: { type: String, required: true, unique: true },
@@ -55,7 +55,8 @@ const UserSchema = new mongoose.Schema({
     ThirdSignatory:{ type: mongoose.Schema.Types.ObjectId,default:'5f60f96d08967f4688416a00', ref: 'User' },
     UpdatedOn:{type:Date,default: Date() },
     UpdatedBy:{ type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-    Permissions:[]
+    Permissions:[],
+    HasActiveEvaluation:{type:String,default:"No"}
 });
 
 UserSchema.set('toJSON', { versionKey: false });

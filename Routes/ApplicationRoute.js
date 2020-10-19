@@ -43,6 +43,9 @@ route.post('/CreateMeasurementCriteria',EmployeeController.CreateMeasurementCrit
 
 route.post('/AddReseller', ApplicationController.AddReseller);
 route.post('/UpdateReseller', ApplicationController.UpdateReseller);
+route.post('/GetUnlistedEmployees', EmployeeController.GetUnlistedEmployees);
+route.post('/GetDirectReporteesOfManager', EmployeeController.GetDirectReporteesOfManager);
+
 
 module.exports = route;
 

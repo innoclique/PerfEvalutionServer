@@ -327,8 +327,8 @@ exports.CreateEmployee = async (employee) => {
             throw Error("Evaluation Administrator Not Found");
         }
 
-           
-        employee.Password = Bcrypt.hashSync(AuthHelper.GenerateRandomPassword(), 10);
+        var _temppwd=AuthHelper.GenerateRandomPassword()
+        employee.Password = Bcrypt.hashSync(_temppwd, 10);
 
         const newemp = new UserRepo(employee);
         await newemp.save();
@@ -436,8 +436,7 @@ exports.GetEmployeeDataById = async (Id) => {
 
 
 };
-exports.GetAllEmployees = async (parentId) => {
-  
+exports.GetAllEmployees = async (parentId) => {  
      const Employees = await UserRepo.find({
          //Role:Messages.constants.EO_ROLE_CODE,
      ParentUser:Mongoose.Types.ObjectId(parentId)})     
@@ -446,3 +445,15 @@ exports.GetAllEmployees = async (parentId) => {
 
 };
 
+
+
+exports.SearchEmployee = async (search) => {  
+    
+    const Employees = await UserRepo.find(
+    {Company:Mongoose.Types.ObjectId(search.company)},
+    {$text:{$search:search.searchterm}},
+    {Password:-1}
+    )
+    return Employees;    
+
+};

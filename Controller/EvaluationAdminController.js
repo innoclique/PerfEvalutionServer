@@ -84,3 +84,23 @@ exports.UpdateEvaluationForm = async (req, res, next) => {
     
 }
 
+exports.UpdatePeers = async (req, res, next) => {
+    
+            await EvaluationService.UpdatePeers( req.body)
+            .then(Response => res.status(200).json(Response))
+            .catch(error =>{
+                logger.error(error)
+                 next(error)});
+    
+}
+
+exports.UpdateDirectReportees = async (req, res, next) => {
+    
+    await EvaluationService.UpdateDirectReportees( req.body)
+    .then(Response => res.status(200).json(Response))
+    .catch(error =>{
+        logger.error(error)
+         next(error)});
+
+}
+

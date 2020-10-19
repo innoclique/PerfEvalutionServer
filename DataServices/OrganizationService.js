@@ -16,8 +16,8 @@ exports.CreateOrganization = async (organization) => {
         const userRecord = {
             Email: organization.AdminEmail,
             ContactPhone: organization.AdminPhone,
-            Role: organization.ClientType,
-            Password: Bcrypt.hashSync(pwd, 10),
+            Role: organization.ClientType==='Client'?'CSA':'RSA',
+            Password: pwd,
             FirstName: organization.AdminFirstName,
             LastName: organization.AdminLastName,
             MiddleName: organization.AdminMiddleName,
@@ -26,7 +26,8 @@ exports.CreateOrganization = async (organization) => {
             Country: organization.Country,
             State: organization.State,
             ZipCode: organization.ZipCode,
-            City: organization.City
+            City: organization.City,
+            IsActive:true
         }
         // const UserNameUser = await UserRepo.findOne({ Email: UserModel.Username });
         const EmailUser = await UserRepo.findOne({ Email: userRecord.Email });
@@ -116,6 +117,7 @@ exports.UpdateOrganization = async (organization) => {
             State: organization.State,
             ZipCode: organization.ZipCode,
             City: organization.City
+            
         }
         const user = await UserRepo.findOneAndUpdate({ id: ff.Admin }, { userRecord });
         var mailObject = SendMail.GetMailObject(
@@ -227,7 +229,7 @@ exports.AddReseller = async (organization) => {
             Email: organization.AdminEmail,
             ContactPhone: organization.AdminPhone,
             Role: organization.ClientType,
-            Password: Bcrypt.hashSync(pwd, 10),
+            Password: pwd,
             FirstName: organization.AdminFirstName,
             LastName: organization.AdminLastName,
             MiddleName: organization.AdminMiddleName,
@@ -236,7 +238,8 @@ exports.AddReseller = async (organization) => {
             Country: organization.Country,
             State: organization.State,
             ZipCode: organization.ZipCode,
-            City: organization.City
+            City: organization.City,
+            IsActive:true
         }
         // const UserNameUser = await UserRepo.findOne({ Email: UserModel.Username });
         const EmailUser = await UserRepo.findOne({ Email: userRecord.Email });

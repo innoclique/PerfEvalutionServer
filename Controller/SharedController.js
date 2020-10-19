@@ -38,3 +38,8 @@ exports.GetCompetencyList=async (req, res, next) => {
     .then(Response => res.status(200).json(Response))
     .catch(err => next(err));
 }
+exports.SearchEmployee=async(req,res,next)=>{
+    await SharedService.SearchEmployee(req.body)
+    .then(Response => res.status(200).json(Response))
+    .catch(err => next(err));
+}

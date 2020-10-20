@@ -6,10 +6,10 @@ const mongoose = require("mongoose");
 const Evalution = new mongoose.Schema({
     Employees:[{
         _id:{ type: mongoose.Schema.Types.ObjectId, ref: 'User',default:null },
-        Peers:[],
+        Peers:[ {_id:{ type: mongoose.Schema.Types.ObjectId, ref: 'User',default:null },displayTemplate:String}],
         PeersCompetencyMessage:{type:String,default:""},
         PeersCompetencyList:[],
-        DirectReportees:[],
+        DirectReportees:[ {_id:{ type: mongoose.Schema.Types.ObjectId, ref: 'User',default:null },displayTemplate:String}],
         DirectReporteeComptencyMessage:{type:String,default:""},
         DirectReporteeCompetencyList:[],
         Model:{ type: mongoose.Schema.Types.ObjectId, ref: 'models',default:null }

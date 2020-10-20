@@ -329,6 +329,7 @@ exports.UpdateKpi = async (kpi) => {
 
 /**For getting employees who has not been added to evaluation */
 exports.GetUnlistedEmployees = async (search) => {  
+
     const Employees = await UserRepo.find(
     {Organization:Mongoose.Types.ObjectId(search.company),
         HasActiveEvaluation:{$ne:"Yes"},
@@ -345,3 +346,12 @@ exports.GetDirectReporteesOfManager=async (manager)=>{
         })
         return Employees;
 }
+exports.GetPeers = async (employee) => {  
+     const Employees = await UserRepo.find({         
+     ParentUser:Mongoose.Types.ObjectId(employee.parentId),
+    _id:{$ne:Mongoose.Types.ObjectId(employee.id)}}
+    )     
+     .populate('ThirdSignatory CopiesTo DirectReports Manager');        
+     return Employees;    
+
+};

@@ -246,3 +246,9 @@ exports.GetDirectReporteesOfManager=async (req,res,next)=>{
         .catch(err => next(err => { next(err) }));
 }
 
+exports.GetPeers=async (req,res,next)=>{
+    await EmployeeService.GetPeers(req.body)
+        .then(Response => Response ? res.status(200).json(Response) : res.status(404).json(""))
+        .catch(err => next(err => { next(err) }));
+}
+

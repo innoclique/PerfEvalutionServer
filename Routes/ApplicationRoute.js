@@ -45,6 +45,7 @@ route.post('/AddReseller', ApplicationController.AddReseller);
 route.post('/UpdateReseller', ApplicationController.UpdateReseller);
 route.post('/GetUnlistedEmployees', EmployeeController.GetUnlistedEmployees);
 route.post('/GetDirectReporteesOfManager', EmployeeController.GetDirectReporteesOfManager);
+route.post('/GetPeers', EmployeeController.GetPeers);
 
 
 module.exports = route;

@@ -17,7 +17,7 @@ exports.AddEvaluation = async (evaluation) => {
     var _deliveremails = [];
     var mailObject = SendMail.GetMailObject(
         _currentEvaluation.CreatedBy.Email,
-        element.Subject,
+        "Evaluation Rolledout Successfully",
         `Dear ${_currentEvaluation.CreatedBy.FirstName} 
         <br/>
         Congratulations, you have successfully setup the roll-out for the Evaluation for the year : ${new Date().getFullYear()}
@@ -32,7 +32,7 @@ exports.AddEvaluation = async (evaluation) => {
         null
     );
     console.log('mail',mailObject);
-    SendMail.sendEmail(mailObject, async function (res) {
+    SendMail.SendEmail(mailObject, async function (res) {
         console.log(res);       
     });
     _currentEvaluation.Employees.map(e => {
@@ -90,17 +90,17 @@ exports.AddEvaluation = async (evaluation) => {
     })
 
     var de = await DeliverEmailRepo.insertMany(_deliveremails);
-    var mailObject = SendMail.GetMailObject(
-        element.Email,
-        element.Subject,
-        element.Template,null,null
-    );
-    console.log('mail',mailObject);
-    SendMail.sendEmail(mailObject, async function (res) {
-        console.log(res);
-        await DeliverEmailRepo.update({_id:element._id},{IsDelivered:true})
-    });
-    SendMail.SendEmail
+    // var mailObject = SendMail.GetMailObject(
+    //     element.Email,
+    //     element.Subject,
+    //     element.Template,null,null
+    // );
+    // console.log('mail',mailObject);
+    // SendMail.sendEmail(mailObject, async function (res) {
+    //     console.log(res);
+    //     await DeliverEmailRepo.update({_id:element._id},{IsDelivered:true})
+    // });
+    
 
     return true;
 };

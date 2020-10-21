@@ -6,7 +6,8 @@ const UserRepo = require('../SchemaModels/UserSchema');
 const DeliverEmailRepo = require('../SchemaModels/DeliverEmail');
 const SendMail = require("../Helpers/mail.js");
 var logger = require('../logger');
-
+var env = process.env.NODE_ENV || "dev";
+var config = require(`../Config/${env}.config`);
 exports.AddEvaluation = async (evaluation) => {
     const _evaluation = await EvaluationRepo(evaluation);
     var savedEvauation = await _evaluation.save();
@@ -25,7 +26,7 @@ exports.AddEvaluation = async (evaluation) => {
 
         Thank you
         Admin,
-        OP Assess
+        ${config.ProductName}
         `,
         null,
         null
@@ -46,7 +47,7 @@ exports.AddEvaluation = async (evaluation) => {
         <br/>
         <br/>
         Thank you
-        OPAssess Admin
+        ${config.ProductName}
         `,
             Company: _currentEvaluation.Company,
             Subject: 'New Evaluation Rolledout'

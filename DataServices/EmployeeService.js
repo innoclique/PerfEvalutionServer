@@ -150,17 +150,17 @@ exports.AddKpi = async (kpiModel) => {
        Kpi=   await Kpi.save();
 
         //Updateing other kpis waiting 
-        if (!kpi.IsDraft) {
+        if (!Kpi.IsDraft) {
             let updatedKPIs = await KpiRepo.updateMany({
-                'Owner': Mongoose.Types.ObjectId(kpi.CreatedBy),
+                'Owner': Mongoose.Types.ObjectId(Kpi.CreatedBy),
                 'IsDraft': false,
             },
-                { $set: { 'Weighting': kpi.Weighting } });
+                { $set: { 'Weighting': Kpi.Weighting } });
         }
 
        kpiModel.Action='Create';
        kpiModel.kpiId=Kpi.id;
-       this.addKpiTrack(kpiModel);
+      // this.addKpiTrack(kpiModel);
 
         return true;
     }

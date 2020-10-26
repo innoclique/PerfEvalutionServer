@@ -432,6 +432,28 @@ exports.AddKpi = async (kpiModel) => {
         }
 
 
+
+
+        
+exports.GetManagers=async (data)=>{
+    const managers = await UserRepo.find(
+        {
+            ParentUser:Mongoose.Types.ObjectId(data.parentId),
+            SelectedRoles:{$in:["EM"]}
+        })
+        return managers;
+}
+
+
+        
+exports.GetThirdSignatorys=async (data)=>{
+    const managers = await UserRepo.find(
+        {
+            ParentUser:Mongoose.Types.ObjectId(data.parentId),
+            SelectedRoles:{$in:["TS"]}
+        })
+        return managers;
+}
        
 
 /**For getting employees who has not been added to evaluation */

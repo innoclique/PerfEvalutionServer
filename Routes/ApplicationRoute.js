@@ -2,6 +2,7 @@ const Express = require('express');
 const route = Express.Router();
 const ApplicationController = require('../Controller/ApplicationController');
 const EmployeeController = require('../Controller/EmployeeController');
+const DevGoalsController = require('../Controller/DevGoalsController');
 const AuthHelper = require('../Helpers/Auth_Helper');
 
 
@@ -44,8 +45,15 @@ route.post('/CreateMeasurementCriteria',EmployeeController.CreateMeasurementCrit
 route.post('/AddReseller', ApplicationController.AddReseller);
 route.post('/UpdateReseller', ApplicationController.UpdateReseller);
 route.post('/GetUnlistedEmployees', EmployeeController.GetUnlistedEmployees);
+route.post('/GetManagers', EmployeeController.GetManagers);
+route.post('/GetThirdSignatorys', EmployeeController.GetThirdSignatorys);
 route.post('/GetDirectReporteesOfManager', EmployeeController.GetDirectReporteesOfManager);
 route.post('/GetPeers', EmployeeController.GetPeers);
+
+
+route.post('/GetKpisForDevGoals',AuthHelper.Authorization(), DevGoalsController.GetKpisForDevGoals);
+route.post('/AddDevGoal', AuthHelper.Authorization(), DevGoalsController.AddDevGoal);
+route.post('/GetAllDevGoals', AuthHelper.Authorization(), DevGoalsController.GetAllDevGoals);
 
 
 module.exports = route;

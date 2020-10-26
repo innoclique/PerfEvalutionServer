@@ -439,7 +439,7 @@ exports.GetEmployeeDataById = async (Id) => {
 exports.GetAllEmployees = async (parentId) => {  
      const Employees = await UserRepo.find({
          //Role:Messages.constants.EO_ROLE_CODE,
-         Organization:Mongoose.Types.ObjectId(parentId)})     
+         ParentUser:Mongoose.Types.ObjectId(parentId)})     
      .populate('ThirdSignatory CopiesTo DirectReports Manager');        
      return Employees;    
 

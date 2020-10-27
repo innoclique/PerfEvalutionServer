@@ -252,3 +252,12 @@ exports.GetPeers=async (req,res,next)=>{
         .catch(err => next(err => { next(err) }));
 }
 
+
+exports.GetKpisForTS = async (req, res, next) => {
+    await EmployeeService.GetKpisForTS(req.body.TsId)
+        .then(Response => Response ? res.status(200).json(Response) : res.status(404).json("Kpi Not Found"))
+        .catch(err => next(err));
+
+      
+
+}

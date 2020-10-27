@@ -240,6 +240,19 @@ exports.GetUnlistedEmployees=async (req,res,next)=>{
         .catch(err => next(err => { next(err) }));
 }
 
+
+exports.GetManagers=async (req,res,next)=>{
+    await EmployeeService.GetManagers(req.body)
+        .then(Response => Response ? res.status(200).json(Response) : res.status(404).json(""))
+        .catch(err => next(err => { next(err) }));
+}
+
+exports.GetThirdSignatorys=async (req,res,next)=>{
+    await EmployeeService.GetThirdSignatorys(req.body)
+        .then(Response => Response ? res.status(200).json(Response) : res.status(404).json(""))
+        .catch(err => next(err => { next(err) }));
+}
+
 exports.GetDirectReporteesOfManager=async (req,res,next)=>{
     await EmployeeService.GetDirectReporteesOfManager(req.body)
         .then(Response => Response ? res.status(200).json(Response) : res.status(404).json(""))

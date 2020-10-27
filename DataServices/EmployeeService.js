@@ -440,6 +440,30 @@ exports.sendEmailOnManagerSignoff = async (manager, kpiOwnerInfo) => {
 
 
 
+
+        
+exports.GetManagers=async (data)=>{
+    const managers = await UserRepo.find(
+        {
+            ParentUser:Mongoose.Types.ObjectId(data.parentId),
+            SelectedRoles:{$in:["EM"]}
+        })
+        return managers;
+}
+
+
+        
+exports.GetThirdSignatorys=async (data)=>{
+    const managers = await UserRepo.find(
+        {
+            ParentUser:Mongoose.Types.ObjectId(data.parentId),
+            SelectedRoles:{$in:["TS"]}
+        })
+        return managers;
+}
+       
+
+
 /**For getting employees who has not been added to evaluation */
 exports.GetUnlistedEmployees = async (search) => {
 

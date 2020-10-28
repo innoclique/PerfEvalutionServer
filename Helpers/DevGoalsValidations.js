@@ -56,17 +56,17 @@ exports.ValidateDevGoal = ( data)=>{
       
       const schema = Joi.object().keys({
          DevGoal: Joi.string().required(),
-         MeasurementCriteria: Joi.required(),
-         TargetCompletionDate: Joi.string().required(),
-         Score: Joi.optional(),
-         kpiId:Joi.optional(),
+         DesiredOutcomes: Joi.string().required(),
+         GoalActionItems: Joi.any().required(),
+         Kpi: Joi.optional(),
+         MakePrivate: Joi.optional(),
+        
          devGoalId:Joi.optional(),
          ManagerComments:Joi.optional(),
 
 
 
          Signoff:Joi.optional(),
-       Status:Joi.string().required(),
        YECommManager:Joi.optional(),
        
         ManagerId:Joi.optional(),
@@ -74,9 +74,9 @@ exports.ValidateDevGoal = ( data)=>{
        IsDraft:Joi.boolean().required(),
        IsDraftByManager:Joi.optional(),
     
-       CreatedBy:Joi.string().required(),
-       Owner:Joi.string().required(),
-       EvaluationId:Joi.string().required(),
+       CreatedBy:Joi.string().optional(),
+       Owner:Joi.string().optional(),
+       EvaluationId:Joi.string().optional(),
      
        UpdatedBy:Joi.string().required()
    

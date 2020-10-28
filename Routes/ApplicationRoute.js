@@ -53,6 +53,7 @@ route.post('/GetPeers', EmployeeController.GetPeers);
 
 route.post('/GetKpisForDevGoals',AuthHelper.Authorization(), DevGoalsController.GetKpisForDevGoals);
 route.post('/AddDevGoal', AuthHelper.Authorization(), DevGoalsController.AddDevGoal);
+route.post('/UpdateDevGoalById', AuthHelper.Authorization(), DevGoalsController.UpdateDevGoalById);
 route.post('/GetAllDevGoals', AuthHelper.Authorization(), DevGoalsController.GetAllDevGoals);
 
 

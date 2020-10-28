@@ -9,7 +9,7 @@ const DevGoalSchema = new mongoose.Schema({
     DevGoal: { type: String, required: true },
     Kpi: { type: mongoose.Schema.Types.ObjectId, ref: 'Kpi' },
     DesiredOutcomes:String,
-    MakePrivate:String,
+    MakePrivate:{ type: Boolean,default:false },
     GoalActionItems: [{
         ActionStep:String,
         ProgressIndicators:String,
@@ -32,6 +32,7 @@ const DevGoalSchema = new mongoose.Schema({
     IsActive: { type: Boolean, default: true },
     IsGoalSubmited:{ type: Boolean, default:false },
     ViewedByEmpOn:{ type: String },
+    CreatedYear:{ type: String },
     CreatedOn:  { type: Date,default:Date() },
     EmpFTSubmitedOn:  { type: Date },
     EmpFTViewOn:  { type: Date },

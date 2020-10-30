@@ -185,7 +185,7 @@ exports.GetCompetencyValues = async (evaluation) => {
                     Questions.push(f)
                 }
             }
-            list.push({ Competency: element, Questions })
+            list.push({ _id:new ObjectId(),Competency: element, Questions })
         }
 
         evaluationForm.Employees[0].Competencies = list;
@@ -208,8 +208,7 @@ exports.GetEmpCurrentEvaluation = async (emp) => {
             'Owner': emp.empId,
             'IsDraftByManager': false,
             'EvaluationId': evaluationForm._id.toString()
-        })
-            .populate('MeasurementCriteria.measureId Owner')
+        })  .populate('MeasurementCriteria.measureId Owner')
             .sort({ UpdatedOn: -1 });
 
         returnObject.KpiList = Kpi;

@@ -20,7 +20,7 @@ const UserRepo = require('../SchemaModels/UserSchema');
 const SendMail = require("../Helpers/mail.js");
 var logger = require('../logger');
 const { add } = require("../logger");
-
+const ObjectId = Mongoose.Types.ObjectId;
 exports.AddStrength = async (strength) => {
     try {
         // const organizationName = await strengthRepo.findOne({ Name: organization.Name });
@@ -441,27 +441,27 @@ exports.sendEmailOnManagerSignoff = async (manager, kpiOwnerInfo) => {
 
 
 
-        
-exports.GetManagers=async (data)=>{
+
+exports.GetManagers = async (data) => {
     const managers = await UserRepo.find(
         {
-            ParentUser:Mongoose.Types.ObjectId(data.parentId),
-            SelectedRoles:{$in:["EM"]}
+            ParentUser: Mongoose.Types.ObjectId(data.parentId),
+            SelectedRoles: { $in: ["EM"] }
         })
-        return managers;
+    return managers;
 }
 
 
-        
-exports.GetThirdSignatorys=async (data)=>{
+
+exports.GetThirdSignatorys = async (data) => {
     const managers = await UserRepo.find(
         {
-            ParentUser:Mongoose.Types.ObjectId(data.parentId),
-            SelectedRoles:{$in:["TS"]}
+            ParentUser: Mongoose.Types.ObjectId(data.parentId),
+            SelectedRoles: { $in: ["TS"] }
         })
-        return managers;
+    return managers;
 }
-       
+
 
 
 /**For getting employees who has not been added to evaluation */
@@ -472,7 +472,7 @@ exports.GetUnlistedEmployees = async (search) => {
             Organization: Mongoose.Types.ObjectId(search.company),
             HasActiveEvaluation: { $ne: "Yes" },
             Role: 'EO'
-        }).populate("Manager").sort({CreatedOn:-1})
+        }).populate("Manager").sort({ CreatedOn: -1 })
     return Employees;
 };
 
@@ -510,5 +510,63 @@ exports.GetKpisForTS = async (ThirdSignatory) => {
 
     allKpis = [...Kpis]
     return allKpis;
+};
+
+
+exports.SaveCompetencyQnA = async (qna) => {
+    // var q= await EvaluationRepo.findOne({ _id: Mongoose.Types.ObjectId(qna.EvaluationId), "Employees._id": Mongoose.Types.ObjectId(qna.EmployeeId) });
+    for (let index = 0; index < qna.QnA.length; index++) {
+        const element = qna.QnA[index];
+        // for (let j = 0; j < q.Competencies.length; j++) {
+        //   const c = q.Competencies[j];
+
+        var fg = await EvaluationRepo.updateOne({
+            _id: Mongoose.Types.ObjectId(qna.EvaluationId),
+            "Employees._id": Mongoose.Types.ObjectId(qna.EmployeeId),
+           // "Employees.Competencies.Competency._id": Mongoose.Types.ObjectId(element.CompetencyId),
+            "Employees.Competencies.Questions": { $elemMatch: { _id: Mongoose.Types.ObjectId(element.QuestionId) } }
+            //"Employees.Competencies.$[].Questions.$[]._id":
+        },
+            {
+                $set: {
+                    "Employees.$[e].Competencies.$[c].Questions.$[q].SelectedRating": element.Answer
+                }
+
+            },
+            {
+                "arrayFilters": [
+                    { "e._id": ObjectId(qna.EmployeeId) },
+                    { "c._id": ObjectId(element.CompetencyRowId) },
+                    { "q._id": ObjectId(element.QuestionId) }]
+            }
+        )
+
+        console.log(fg)
+        //}
+    }
+
+    var updateCompetencyList = await EvaluationRepo.updateOne({
+        _id: Mongoose.Types.ObjectId(qna.EvaluationId),
+        "Employees._id": Mongoose.Types.ObjectId(qna.EmployeeId)
+       
+    },
+        {
+            $set: {
+                "Employees.$[e].CompetencyComments": qna.Comments,
+                "Employees.$[e].CompetencyOverallRating": qna.OverallRating,
+                "Employees.$[e].CompetencySubmitted":!qna.IsDraft,
+                "Employees.$[e].CompetencySubmittedOn":qna.IsDraft?null:new Date()
+            }
+
+        },
+        {
+            "arrayFilters": [
+                { "e._id": ObjectId(qna.EmployeeId) },
+                ]
+        }
+    )
+   
+console.log(updateCompetencyList)
+
 };
 

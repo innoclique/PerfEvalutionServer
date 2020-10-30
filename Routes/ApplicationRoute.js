@@ -56,6 +56,7 @@ route.post('/GetKpisForDevGoals',AuthHelper.Authorization(), DevGoalsController.
 route.post('/AddDevGoal', AuthHelper.Authorization(), DevGoalsController.AddDevGoal);
 route.post('/GetAllDevGoals', AuthHelper.Authorization(), DevGoalsController.GetAllDevGoals);
 
+route.post('/SaveCompetencyQnA', AuthHelper.Authorization(), EmployeeController.SaveCompetencyQnA);
 
 module.exports = route;
 

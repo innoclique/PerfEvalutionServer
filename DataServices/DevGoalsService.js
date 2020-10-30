@@ -56,14 +56,15 @@ try{
     // if (preEvaluation && !data.currentOnly) {
     if(!data.currentOnly) {
         //    preDevGoals = await DevGoalsRepo.find({'Owner':data.empId, 'EvaluationId':preEvaluation._id})
-        preDevGoals = await DevGoalsRepo.find({ 'Owner': data.empId ,'CreatedYear': ""+new Date().getFullYear()-1})
+        preDevGoals = await DevGoalsRepo.find({ 'Owner': data.empId ,  'MakePrivate': data.fetchAll||false, 'CreatedYear': ""+new Date().getFullYear()-1})
              //  .populate('Kpi')
             .sort({ UpdatedOn: -1 });
     }
 
 
     //   const Kpi = await KpiRepo.find({'Owner':data.empId,'IsDraftByManager':false, 'EvaluationId':currEvaluation._id})
-    const devGoals = await DevGoalsRepo.find({ 'Owner': data.empId, 'IsDraftByManager': false ,'CreatedYear': ""+new Date().getFullYear() })
+    const devGoals = await DevGoalsRepo.find({ 'Owner': data.empId, 
+            'MakePrivate': {$in: [false,data.fetchAll ] },   'IsDraftByManager': false ,'CreatedYear': ""+new Date().getFullYear() })
            .populate('Kpi')
         .sort({ UpdatedOn: -1 });
 

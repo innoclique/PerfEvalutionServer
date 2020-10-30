@@ -88,7 +88,7 @@ exports.Authenticate = async (LoginModel) => {
     Password = LoginModel.Password;
     console.log('came into login metho')
     try {        
-        const User = await  UserRepo.findOne({ 'Email': Email }) .populate('ThirdSignatory CopiesTo DirectReports Manager Organization');
+        const User = await  UserRepo.findOne({ 'Email': Email }) .populate('ThirdSignatory CopiesTo DirectReports Manager Organization JobLevel');
         if (User && Bcrypt.compareSync(Password, User.Password)) {
             var AccesToken = AuthHelper.CreateShortAccesstoken(User);
             if (User.IsLoggedIn) {

@@ -180,7 +180,13 @@ exports.AddKpi = async (kpiModel) => {
 exports.GetKpiDataById = async (Id) => {
 
     const Kpi = await KpiRepo.findById(Id)
-        .populate('MeasurementCriteria.measureId Owner');
+    .populate({
+        path: 'MeasurementCriteria.measureId Owner',
+        populate: {
+            path: 'JobLevel', 
+            model: 'JobLevels',
+        }
+    })
 
     return Kpi;
 
@@ -203,13 +209,25 @@ exports.GetAllKpis = async (data) => {
     var preKpi = [];
     if (preEvaluation && !data.currentOnly) {
         preKpi = await KpiRepo.find({ 'Owner': data.empId, 'EvaluationId': preEvaluation._id })
-            .populate('MeasurementCriteria.measureId Owner')
+             .populate({
+                    path: 'MeasurementCriteria.measureId Owner',
+                    populate: {
+                        path: 'JobLevel', 
+                        model: 'JobLevels',
+                    }
+                })
             .sort({ UpdatedOn: -1 });
     }
 
 
     const Kpi = await KpiRepo.find({ 'Owner': data.empId, 'IsDraftByManager': false, 'EvaluationId': currEvaluation._id })
-        .populate('MeasurementCriteria.measureId Owner')
+         .populate({
+                    path: 'MeasurementCriteria.measureId Owner',
+                    populate: {
+                        path: 'JobLevel', 
+                        model: 'JobLevels',
+                    }
+                })
         .sort({ UpdatedOn: -1 });
 
 
@@ -228,7 +246,13 @@ exports.GetKpisByManager = async (managerId) => {
         'IsSubmitedKPIs': true
 
     })
-        .populate('MeasurementCriteria.measureId Owner')
+         .populate({
+                    path: 'MeasurementCriteria.measureId Owner',
+                    populate: {
+                        path: 'JobLevel', 
+                        model: 'JobLevels',
+                    }
+                })
         .sort({ UpdatedOn: -1 });
 
     var managerDraftsKpis = await KpiRepo.find({
@@ -236,7 +260,13 @@ exports.GetKpisByManager = async (managerId) => {
         'IsDraft': false,
         'IsDraftByManager': true,
     })
-        .populate('MeasurementCriteria.measureId Owner')
+         .populate({
+                    path: 'MeasurementCriteria.measureId Owner',
+                    populate: {
+                        path: 'JobLevel', 
+                        model: 'JobLevels',
+                    }
+                })
         .sort({ UpdatedOn: -1 });
 
     allKpis = [...Kpis, ...managerDraftsKpis]
@@ -505,7 +535,13 @@ exports.GetKpisForTS = async (ThirdSignatory) => {
         Owner: { $in: tsusers.map(x => x._id) },
         IsSubmitedKPIs: true,
         ManagerSignOff: { $ne: null }
-    }).populate('MeasurementCriteria.measureId Owner')
+    }) .populate({
+                    path: 'MeasurementCriteria.measureId Owner',
+                    populate: {
+                        path: 'JobLevel', 
+                        model: 'JobLevels',
+                    }
+                })
         .sort({ UpdatedOn: -1 });
 
     allKpis = [...Kpis]

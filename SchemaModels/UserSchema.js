@@ -42,7 +42,7 @@ const UserSchema = new mongoose.Schema({
     IsSubmit: { type: Boolean, default: false },
     ParentUser:{ type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     JobRole:{type: String },
-    JobLevel:{ type: mongoose.Schema.Types.ObjectId, ref: 'joblevel' },
+    JobLevel:{ type: mongoose.Schema.Types.ObjectId, ref: 'JobLevels' },
     Department:{type: String },
     TnCAccepted:{type:Boolean},
     TnCAcceptedOn:{type:Date,default: Date() },

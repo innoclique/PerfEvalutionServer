@@ -12,7 +12,7 @@ const logger = require('../logger');
 
 const Questions=require('../SchemaModels/Questions');
 const Competency=require('../SchemaModels/Competency');
-const Models=require('../SchemaModels/Model');
+const ModelsRepo=require('../SchemaModels/Model');
 
 exports.GetIndustries = async () => {      
     const industries = await IndustryRepo.find({}).sort({Name:1});
@@ -28,14 +28,29 @@ exports.GetModelsByIndustry=async (industryId)=>{
     const indId=await IndustryRepo.findOne({Name:industryId.id});
     if(indId){
 
-        const _models=await Models.find({Industry:indId.id});
+        const _models=await ModelsRepo.find({Industry:indId.id});
         return _models;
     }else{
         return null;
     }
 }
 exports.GetCompetencyList=async (company)=>{
-    const _comtencyList=await Competency.find({Company: Mongoose.Types.ObjectId(company.id)});    
-return _comtencyList;
+
+var modelAggregation= await ModelsRepo.aggregate([
+    {$match:{_id:Mongoose.Types.ObjectId(company.modelId)}},  
+{
+    $lookup:
+       {
+         from: "competencies",
+         localField: "Competencies",
+         foreignField: "_id",
+         
+         as: "competenciesList"
+       }
+},
+//{$match:{_id:company.modelId}}
+])
+   // const _comtencyList=await Competency.findById({_id:{$in:comps.Competencies.map(x=>Mongoose.Types.ObjectId(x))}});    
+return modelAggregation.find(x=>x._id.toString()===company.modelId).competenciesList;
 }
 

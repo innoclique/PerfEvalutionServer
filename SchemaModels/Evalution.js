@@ -6,13 +6,28 @@ const mongoose = require("mongoose");
 const Evalution = new mongoose.Schema({
     Employees:[{
         _id:{ type: mongoose.Schema.Types.ObjectId, ref: 'User',default:null },
-        Peers:[ {_id:{ type: mongoose.Schema.Types.ObjectId, ref: 'User',default:null },displayTemplate:String}],
+        Peers:[ 
+            {_id:{ type: mongoose.Schema.Types.ObjectId, ref: 'User',default:null },
+            displayTemplate:String,
+            PeersCompetencyList:[],
+            PeersCompetencyMessage:String
+
+        }],
         PeersCompetencyMessage:{type:String,default:""},
         PeersCompetencyList:[],
-        DirectReportees:[ {_id:{ type: mongoose.Schema.Types.ObjectId, ref: 'User',default:null },displayTemplate:String}],
-        DirectReporteeComptencyMessage:{type:String,default:""},
-        DirectReporteeCompetencyList:[],
-        Model:{ type: mongoose.Schema.Types.ObjectId, ref: 'models',default:null }
+        DirectReportees:[ 
+            {_id:{ type: mongoose.Schema.Types.ObjectId, ref: 'User',default:null },
+            displayTemplate:String,
+            DirectReporteeComptencyMessage:{type:String,default:""},
+            DirectReporteeCompetencyList:[]}
+        ],        
+        Model:{ type: mongoose.Schema.Types.ObjectId, ref: 'models',default:null },
+        Competencies:[],
+        CompetencyComments:{type:String,default:""},
+        CompetencyOverallRating:{type:String,default:""},
+        CompetencySubmitted:Boolean,
+        CompetencySubmittedOn:{type:Date,default:Date()}
+
     }
 ],
     ActivateKPI:Boolean,

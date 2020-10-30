@@ -49,6 +49,7 @@ route.post('/GetManagers', EmployeeController.GetManagers);
 route.post('/GetThirdSignatorys', EmployeeController.GetThirdSignatorys);
 route.post('/GetDirectReporteesOfManager', EmployeeController.GetDirectReporteesOfManager);
 route.post('/GetPeers', EmployeeController.GetPeers);
+route.post('/GetKpisForTS', EmployeeController.GetKpisForTS);
 
 
 route.post('/GetKpisForDevGoals',AuthHelper.Authorization(), DevGoalsController.GetKpisForDevGoals);
@@ -56,6 +57,7 @@ route.post('/AddDevGoal', AuthHelper.Authorization(), DevGoalsController.AddDevG
 route.post('/UpdateDevGoalById', AuthHelper.Authorization(), DevGoalsController.UpdateDevGoalById);
 route.post('/GetAllDevGoals', AuthHelper.Authorization(), DevGoalsController.GetAllDevGoals);
 
+route.post('/SaveCompetencyQnA', AuthHelper.Authorization(), EmployeeController.SaveCompetencyQnA);
 
 module.exports = route;
 

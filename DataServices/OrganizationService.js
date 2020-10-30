@@ -75,11 +75,10 @@ try {
         var mailObject = SendMail.GetMailObject(
             userRecord.Email,
                   "Oraganization Added",
-                  `New Organization has been added. Your login details are given below.
-                  Email: ${userRecord.Email},
-                  Password: ${_temppwd}
+                  `Your Organization has been added successfully.
+                  Email: ${userRecord.Email}                  
                   <br/>
-                  Note: You will be redirected to reset password page on first login
+                  You will receive another email having temporary password to login.
                   `,
                   null,
                   null
@@ -88,6 +87,32 @@ try {
         SendMail.SendEmail(mailObject, function (res) {
             console.log(res);
         });
+        var mailObject = SendMail.GetMailObject(
+            userRecord.Email,
+                  "Organization Created-Temporary Password",
+
+                  `Dear ${userRecord.FirstName},
+
+                  Please use below temporary password to login into portal. 
+                  Password: ${_temppwd}
+                  <br/>
+                  You will be redirected to change password upon your First Login.
+
+                  
+                  Please click here to login.
+                  
+                  Thank you,
+                  Administrator
+                  `,
+                  null,
+                  null
+                );
+
+
+        SendMail.SendEmail(mailObject, function (res) {
+            console.log(res);
+        });
+        
         //send email to admin user
         return true;
     }

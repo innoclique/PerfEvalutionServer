@@ -13,7 +13,8 @@ const ModelSchema = new mongoose.Schema({
     CreatedBy:{ type: mongoose.Schema.Types.ObjectId, ref: 'User',default:null },
     UpdatedOn:{type:Date,default: Date() },
     UpdatedBy:{ type: mongoose.Schema.Types.ObjectId, ref: 'User',default:null },    
-    IsDraft:Boolean
+    IsDraft:Boolean,
+    Competencies:[ {type: mongoose.Schema.Types.ObjectId, ref: 'competencies',default:null} ]
 });
 
 ModelSchema.set('toJSON', { versionKey: false });

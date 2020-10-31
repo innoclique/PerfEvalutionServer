@@ -277,3 +277,20 @@ exports.SaveCompetencyQnA= async (req, res, next) => {
         .then(Response => Response ? res.status(200).json(Response) : res.status(404).json("Kpi Not Found"))
         .catch(err => next(err));
 }
+exports.GetPendingPeerReviewsList= async (req, res, next) => {
+    await EmployeeService.GetPendingPeerReviewsList(req.body)
+        .then(Response => Response ? res.status(200).json(Response) : res.status(404).json("No Peer Review found"))
+        .catch(err => next(err));
+}
+exports.GetPendingPeerReviewsToSubmit= async (req, res, next) => {
+    await EmployeeService.GetPendingPeerReviewsToSubmit(req.body)
+        .then(Response => Response ? res.status(200).json(Response) : res.status(404).json("No Peer Review found"))
+        .catch(err => next(err));
+}
+
+exports.SavePeerReview= async (req, res, next) => {
+    await EmployeeService.SavePeerReview(req.body)
+        .then(Response => Response ? res.status(200).json(Response) : res.status(404).json("No Peer Review found"))
+        .catch(err => next(err));
+}
+

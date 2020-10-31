@@ -7,16 +7,21 @@ const Evalution = new mongoose.Schema({
     Employees:[{
         _id:{ type: mongoose.Schema.Types.ObjectId, ref: 'User',default:null },
         Peers:[ 
-            {_id:{ type: mongoose.Schema.Types.ObjectId, ref: 'User',default:null },
+            {
+            EmployeeId:{ type: mongoose.Schema.Types.ObjectId, ref: 'User',default:null },
             displayTemplate:String,
             PeersCompetencyList:[],
-            PeersCompetencyMessage:String
-
+            PeersCompetencyMessage:String,
+QnA:[],
+CompetencyComments:{type:String,default:""},
+        CompetencyOverallRating:{type:String,default:""},
+        CompetencySubmitted:Boolean,
+        CompetencySubmittedOn:{type:Date,default:Date()}
         }],
         PeersCompetencyMessage:{type:String,default:""},
         PeersCompetencyList:[],
         DirectReportees:[ 
-            {_id:{ type: mongoose.Schema.Types.ObjectId, ref: 'User',default:null },
+            {EmployeeId:{ type: mongoose.Schema.Types.ObjectId, ref: 'User',default:null },
             displayTemplate:String,
             DirectReporteeComptencyMessage:{type:String,default:""},
             DirectReporteeCompetencyList:[]}

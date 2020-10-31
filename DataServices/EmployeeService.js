@@ -559,7 +559,7 @@ exports.SaveCompetencyQnA = async (qna) => {
         var fg = await EvaluationRepo.updateOne({
             _id: Mongoose.Types.ObjectId(qna.EvaluationId),
             "Employees._id": Mongoose.Types.ObjectId(qna.EmployeeId),
-           // "Employees.Competencies.Competency._id": Mongoose.Types.ObjectId(element.CompetencyId),
+            // "Employees.Competencies.Competency._id": Mongoose.Types.ObjectId(element.CompetencyId),
             "Employees.Competencies.Questions": { $elemMatch: { _id: Mongoose.Types.ObjectId(element.QuestionId) } }
             //"Employees.Competencies.$[].Questions.$[]._id":
         },
@@ -584,25 +584,194 @@ exports.SaveCompetencyQnA = async (qna) => {
     var updateCompetencyList = await EvaluationRepo.updateOne({
         _id: Mongoose.Types.ObjectId(qna.EvaluationId),
         "Employees._id": Mongoose.Types.ObjectId(qna.EmployeeId)
-       
+
     },
         {
             $set: {
                 "Employees.$[e].CompetencyComments": qna.Comments,
                 "Employees.$[e].CompetencyOverallRating": qna.OverallRating,
-                "Employees.$[e].CompetencySubmitted":!qna.IsDraft,
-                "Employees.$[e].CompetencySubmittedOn":qna.IsDraft?null:new Date()
+                "Employees.$[e].CompetencySubmitted": !qna.IsDraft,
+                "Employees.$[e].CompetencySubmittedOn": qna.IsDraft ? null : new Date()
             }
 
         },
         {
             "arrayFilters": [
                 { "e._id": ObjectId(qna.EmployeeId) },
-                ]
+            ]
         }
     )
-   
-console.log(updateCompetencyList)
+
+    console.log(updateCompetencyList)
 
 };
 
+exports.GetPendingPeerReviewsList = async (emp) => {
+    try {
+        var list = await EvaluationRepo.aggregate([
+            { $match: { _id: ObjectId(emp.EvaluationId) } },
+            {
+                $addFields: {
+                    EvaluationId: "$_id"
+                }
+            },
+            { $unwind: '$Employees' },
+
+            {
+                $project: {
+                    _id: 0,
+                    "EvaluationId": 1,
+                    "Employees._id": 1,
+                    "EvaluationPeriod": 1,
+                    "EvaluationDuration": 1,
+                    'Peer': {
+                        $filter: {
+                            input: "$Employees.Peers",
+                            as: "self",
+                            cond: { $eq: ['$$self.EmployeeId', ObjectId(emp.EmployeeId)] }
+                        },
+
+                    }
+                }
+
+            },
+            {
+                $lookup:
+                {
+                    from: "users",
+                    localField: "Employees._id",
+                    foreignField: "_id",
+                    as: "ForEmployee"
+                    //,
+                    // "let":{"ManagerId":"ForEmployee.Manager"},
+                    // pipeline:[
+                    //     {$match:{ "$expr": { "$eq": ["$_id", "$$ManagerId"] }}},
+                    //    {$lookup:{
+                    //     from: "users",
+                    //     as: "Manager",
+                    //   //  localField: "Employees._id",
+                    // //foreignField: "_id",
+                    //    }}
+                    // ]
+                }
+            },
+            {
+                $lookup:
+                {
+                    from: "users",
+                    localField: "ForEmployee.Manager",
+                    foreignField: "_id",
+                    as: "Manager"
+
+                }
+            },
+            {
+                $project: {
+                    "ForEmployee._id": 1,
+                    "ForEmployee.FirstName": 1,
+                    "ForEmployee.LastName": 1,
+                    "ForEmployee.Email": 1,
+                    "ForEmployee.Manager": 1,
+                    "EvaluationPeriod": 1,
+                    "EvaluationDuration": 1,
+                    "Manager._id": 1,
+                    "Manager.FirstName": 1,
+                    "Manager.LastName": 1,
+                    "Manager.Email": 1,
+                    "Manager.Manager": 1,
+                    "EvaluationId": 1,
+
+                }
+            }
+        ]
+
+        )
+
+        return list;
+    } catch (error) {
+        logger.error('Error Occurred while getting data for Peer Review list:', error)
+        return Error(error.message)
+    }
+
+}
+
+exports.GetPendingPeerReviewsToSubmit = async (emp) => {
+    try {
+        var list = await EvaluationRepo.aggregate([
+            { $match: { _id: ObjectId(emp.EvaluationId) } },
+            { $unwind: '$Employees' },
+            { $match: { "Employees._id": ObjectId(emp.ForEmployeeId) } },
+            {
+                $project: {
+                    _id: 0,
+                    "Employees._id": 1,
+                    'Peer': {
+                        $filter: {
+                            input: "$Employees.Peers",
+                            as: "self",
+                            cond: { $eq: ['$$self.EmployeeId', ObjectId(emp.PeerId)] }
+                        },
+                    }
+                }
+            },
+            {
+                $lookup:
+                {
+                    from: "competencies",
+                    localField: "Peer.PeersCompetencyList._id",
+                    foreignField: "_id",
+                    as: "Competencies"
+                }
+            },
+            {
+                $lookup:
+                {
+                    from: "questions",
+                    localField: "Competencies.Questions",
+                    foreignField: "_id",
+                    as: "Questions"
+                }
+            }
+
+        ])
+        return list[0];
+    } catch (error) {
+        logger.error('error occurred while getting emp peer competencies for review:', error)
+        throw error;
+    }
+
+}
+
+exports.SavePeerReview = async (qna) => {
+    try {
+        var _update = await EvaluationRepo.updateOne({
+            _id: Mongoose.Types.ObjectId(qna.EvaluationId),
+            "Employees._id": Mongoose.Types.ObjectId(qna.ForEmployeeId),
+            "Employees.Peers": { $elemMatch: { EmployeeId: Mongoose.Types.ObjectId(qna.PeerId) } }
+        },
+            {
+                $set: {
+                    "Employees.$[e].Peers.$[p].QnA": qna.QnA,
+                    "Employees.$[e].Peers.$[p].CompetencyComments": qna.CompetencyComments,
+                    "Employees.$[e].Peers.$[p].CompetencyOverallRating": qna.OverallRating,
+                    "Employees.$[e].Peers.$[p].CompetencySubmitted": !qna.IsDraft,
+                    "Employees.$[e].Peers.$[p].CompetencySubmittedOn": qna.IsDraft ? null : new Date()
+                }
+            },
+            {
+                "arrayFilters": [
+                    { "e._id": ObjectId(qna.ForEmployeeId) },
+                    { "p.EmployeeId": ObjectId(qna.PeerId) },
+                ]
+            }
+        )
+        return { IsSuccess: true }
+
+    } catch (error) {
+        logger.error('error occurred while saving peer review:', error)
+        throw error;
+    }
+
+
+
+}

@@ -58,6 +58,9 @@ route.post('/UpdateDevGoalById', AuthHelper.Authorization(), DevGoalsController.
 route.post('/GetAllDevGoals', AuthHelper.Authorization(), DevGoalsController.GetAllDevGoals);
 
 route.post('/SaveCompetencyQnA', AuthHelper.Authorization(), EmployeeController.SaveCompetencyQnA);
+route.post('/GetPendingPeerReviewsList', EmployeeController.GetPendingPeerReviewsList);
+route.post('/GetPendingPeerReviewsToSubmit', EmployeeController.GetPendingPeerReviewsToSubmit);
+route.post('/SavePeerReview', EmployeeController.SavePeerReview);
 
 module.exports = route;
 

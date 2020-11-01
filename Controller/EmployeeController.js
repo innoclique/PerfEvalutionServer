@@ -4,7 +4,6 @@ const UserService = require('../DataServices/UserService');
 const EmployeeService = require('../DataServices/EmployeeService')
 
 
-
 exports.CreateEmployee = async (req, res, next) => {
     Joi.validate(req.body, Validation_Helper.ValidateCreateEmployeeModel(req.body), async (err, result) => {
         if (err) { res.status(400).json({ message: err.details.map(i => i.message).join(" / ") }) }
@@ -293,4 +292,14 @@ exports.SavePeerReview= async (req, res, next) => {
         .then(Response => Response ? res.status(200).json(Response) : res.status(404).json("No Peer Review found"))
         .catch(err => next(err));
 }
+exports.SaveEmployeeFinalRating= async (req, res, next) => {
+    await EmployeeService.SaveEmployeeFinalRating(req.body)
+        .then(Response => Response ? res.status(200).json(Response) : res.status(404).json("No Peer Review found"))
+        .catch(err => next(err));
+}
 
+exports.GetPeerAvgRating= async (req, res, next) => {
+    await EmployeeService.GetPeerAvgRating(req.body)
+        .then(Response => Response ? res.status(200).json(Response) : res.status(404).json("No Peer Review found"))
+        .catch(err => next(err));
+}

@@ -15,6 +15,7 @@ const KpiRepo = require('../SchemaModels/KPI');
 const MeasureCriteriaRepo = require('../SchemaModels/MeasurementCriteria');
 
 const EmployeeService = require('./EmployeeService');
+const { GetPeerAvgRating } = require("../Controller/EmployeeController");
 
 exports.AddEvaluation = async (evaluation) => {
     const _evaluation = await EvaluationRepo(evaluation);
@@ -185,7 +186,7 @@ exports.GetCompetencyValues = async (evaluation) => {
                     Questions.push(f)
                 }
             }
-            list.push({ _id:new ObjectId(),Competency: element, Questions })
+            list.push({ _id: new ObjectId(), Competency: element, Questions })
         }
 
         evaluationForm.Employees[0].Competencies = list;
@@ -200,25 +201,35 @@ exports.GetCompetencyValues = async (evaluation) => {
 }
 
 exports.GetEmpCurrentEvaluation = async (emp) => {
-    const evaluationForm = await EvaluationRepo.findOne({ "Employees._id": ObjectId(emp.empId) }).populate("Employees.PeersCompetencyList._id");
-    var employee = await evaluationForm.Employees.find(x => x._id.toString() === emp.empId);
-    var returnObject = {};
-    if (employee) {
-        const Kpi = await KpiRepo.find({
-            'Owner': emp.empId,
-            'IsDraftByManager': false,
-            'EvaluationId': evaluationForm._id.toString()
-        })  .populate('MeasurementCriteria.measureId Owner')
-            .sort({ UpdatedOn: -1 });
+    try {
+        const evaluationForm = await EvaluationRepo.findOne({ "Employees._id": ObjectId(emp.EmployeeId) }).populate("Employees.PeersCompetencyList._id").select({"Employees.Peers":0});
+        if (!evaluationForm) {
+            throw "No Evaluation Found";
+        }
+        var employee = await evaluationForm.Employees.find(x => x._id.toString() === emp.EmployeeId);
+        if (!employee) {
+            throw "No Emploee Found";
+        }
+        var returnObject = {};
+        if (employee) {
+            const Kpi = await KpiRepo.find({
+                'Owner': emp.EmployeeId,
+                'IsDraftByManager': false,
+                'EvaluationId': evaluationForm._id.toString()
+            }).populate('MeasurementCriteria.measureId Owner')
+                .sort({ UpdatedOn: -1 });
 
-        returnObject.KpiList = Kpi;
-        returnObject.Competencies = await this.GetCompetencyValues({ EvaluationId: evaluationForm._id, employeeId: employee._id.toString() });
-
-        return returnObject;
+            returnObject.KpiList = Kpi;
+            returnObject.Competencies = await this.GetCompetencyValues({ EvaluationId: evaluationForm._id, employeeId: employee._id.toString() });
+            returnObject.FinalRating = employee.FinalRating;
+            returnObject.PeerScoreCard=await this.GetPeerAvgRating({ EvaluationId: evaluationForm._id.toString(), EmployeeId: employee._id.toString()})
+            return returnObject;
+        }
+    } catch (error) {
+        logger.error('error occurred ', error)
+        throw error;
     }
 
-}
-exports.SavePeerReview = async (review) => {
 
 }
 exports.GetEmployeePeersCompetencies = async (peer) => {
@@ -269,4 +280,77 @@ exports.GetEmployeePeersCompetencies = async (peer) => {
     }
     return returnObject;
 
+}
+
+exports.GetPeersRatingForEmployee=async (emp)=>{
+    try {
+        var list = await EvaluationRepo.findOne({ _id: ObjectId(emp.EvaluationId),"Employees._id": ObjectId(emp.EmployeeId) } ).populate("Peers.EmployeeId")
+            
+        
+
+        return list;
+    } catch (error) {
+        logger.error('Error Occurred while getting data for Peer Review list:', error)
+        return Error(error.message)
+    }
+}
+
+exports.GetPeerAvgRating = async (emp) => {
+
+    try {
+        var list = await EvaluationRepo.aggregate([
+            { $match: { _id: ObjectId(emp.EvaluationId), "Employees._id": Mongoose.Types.ObjectId(emp.EmployeeId) } },
+            {$unwind: "$Employees"},  
+            {
+                $project: {
+                    _id: 0,
+                    "EvaluationId": 1,
+                    "Employees._id": 1,
+                    "EvaluationPeriod": 1,
+                    "EvaluationDuration": 1,
+                    "Employees.Peers.EmployeeId": 1,
+                    "Employees.Peers.CompetencyOverallRating": 1
+                }
+
+            },
+            {
+                $lookup:
+                {
+                    from: "users",
+                    localField: "Employees.Peers.EmployeeId",
+                    foreignField: "_id",
+                    as: "PeerList"
+
+                }
+            }
+            ,
+            {
+                $addFields: {
+                    averageScore:{ $avg: "$Employees.Peers.CompetencyOverallRating" }
+                   
+                }
+            },
+            
+            {
+                $project: {
+                    "PeerList._id": 1,
+                    "PeerList.FirstName": 1,              
+                    "PeerList.LastName": 1,
+                    "PeerList.Email": 1,
+                    "PeerList.Manager": 1,
+                    "EvaluationPeriod": 1,
+                    "EvaluationDuration": 1,
+                    "EvaluationId": 1,
+                    "averageScore":1
+                    
+                }
+            }
+        ]
+
+        )
+        return list[0];
+    } catch (error) {
+        logger.error('Error Occurred while getting data for Peer Review list:', error)
+        return Error(error.message)
+    }
 }

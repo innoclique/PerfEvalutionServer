@@ -180,13 +180,13 @@ exports.AddKpi = async (kpiModel) => {
 exports.GetKpiDataById = async (Id) => {
 
     const Kpi = await KpiRepo.findById(Id)
-    .populate({
-        path: 'MeasurementCriteria.measureId Owner',
-        populate: {
-            path: 'JobLevel', 
-            model: 'JobLevels',
-        }
-    })
+        .populate({
+            path: 'MeasurementCriteria.measureId Owner',
+            populate: {
+                path: 'JobLevel',
+                model: 'JobLevels',
+            }
+        })
 
     return Kpi;
 
@@ -209,25 +209,25 @@ exports.GetAllKpis = async (data) => {
     var preKpi = [];
     if (preEvaluation && !data.currentOnly) {
         preKpi = await KpiRepo.find({ 'Owner': data.empId, 'EvaluationId': preEvaluation._id })
-             .populate({
-                    path: 'MeasurementCriteria.measureId Owner',
-                    populate: {
-                        path: 'JobLevel', 
-                        model: 'JobLevels',
-                    }
-                })
+            .populate({
+                path: 'MeasurementCriteria.measureId Owner',
+                populate: {
+                    path: 'JobLevel',
+                    model: 'JobLevels',
+                }
+            })
             .sort({ UpdatedOn: -1 });
     }
 
 
     const Kpi = await KpiRepo.find({ 'Owner': data.empId, 'IsDraftByManager': false, 'EvaluationId': currEvaluation._id })
-         .populate({
-                    path: 'MeasurementCriteria.measureId Owner',
-                    populate: {
-                        path: 'JobLevel', 
-                        model: 'JobLevels',
-                    }
-                })
+        .populate({
+            path: 'MeasurementCriteria.measureId Owner',
+            populate: {
+                path: 'JobLevel',
+                model: 'JobLevels',
+            }
+        })
         .sort({ UpdatedOn: -1 });
 
 
@@ -246,13 +246,13 @@ exports.GetKpisByManager = async (managerId) => {
         'IsSubmitedKPIs': true
 
     })
-         .populate({
-                    path: 'MeasurementCriteria.measureId Owner',
-                    populate: {
-                        path: 'JobLevel', 
-                        model: 'JobLevels',
-                    }
-                })
+        .populate({
+            path: 'MeasurementCriteria.measureId Owner',
+            populate: {
+                path: 'JobLevel',
+                model: 'JobLevels',
+            }
+        })
         .sort({ UpdatedOn: -1 });
 
     var managerDraftsKpis = await KpiRepo.find({
@@ -260,13 +260,13 @@ exports.GetKpisByManager = async (managerId) => {
         'IsDraft': false,
         'IsDraftByManager': true,
     })
-         .populate({
-                    path: 'MeasurementCriteria.measureId Owner',
-                    populate: {
-                        path: 'JobLevel', 
-                        model: 'JobLevels',
-                    }
-                })
+        .populate({
+            path: 'MeasurementCriteria.measureId Owner',
+            populate: {
+                path: 'JobLevel',
+                model: 'JobLevels',
+            }
+        })
         .sort({ UpdatedOn: -1 });
 
     allKpis = [...Kpis, ...managerDraftsKpis]
@@ -535,13 +535,13 @@ exports.GetKpisForTS = async (ThirdSignatory) => {
         Owner: { $in: tsusers.map(x => x._id) },
         IsSubmitedKPIs: true,
         ManagerSignOff: { $ne: null }
-    }) .populate({
-                    path: 'MeasurementCriteria.measureId Owner',
-                    populate: {
-                        path: 'JobLevel', 
-                        model: 'JobLevels',
-                    }
-                })
+    }).populate({
+        path: 'MeasurementCriteria.measureId Owner',
+        populate: {
+            path: 'JobLevel',
+            model: 'JobLevels',
+        }
+    })
         .sort({ UpdatedOn: -1 });
 
     allKpis = [...Kpis]
@@ -774,4 +774,97 @@ exports.SavePeerReview = async (qna) => {
 
 
 
+}
+
+exports.SaveEmployeeFinalRating = async (finalRating) => {
+    try {
+        var _update = await EvaluationRepo.updateOne({
+            _id: Mongoose.Types.ObjectId(finalRating.EvaluationId),
+            "Employees._id": Mongoose.Types.ObjectId(finalRating.EmployeeId)
+        },
+            {
+                $set: {
+                    "Employees.$[e].FinalRating.Self.YearEndComments": finalRating.YearEndComments,
+                    "Employees.$[e].FinalRating.Self.YearEndRating": finalRating.OverallRating,
+                    "Employees.$[e].FinalRating.Self.IsSubmitted": !finalRating.IsDraft,
+                    "Employees.$[e].FinalRating.Self.SubmittedOn": finalRating.IsDraft ? null : new Date(),
+                    "Employees.$[e].FinalRating.Self.SignOff": finalRating.SignOff,
+
+                }
+            },
+            {
+                "arrayFilters": [
+                    { "e._id": ObjectId(finalRating.EmployeeId) }
+                ]
+            }
+        )
+        if (_update.nModified)
+            return { IsSuccess: true }
+        else
+            return { IsSuccess: false, Message: 'No Reocrd got updated' }
+    } catch (error) {
+        logger.error('error occurred while saving peer review:', error)
+        throw error;
+    }
+
+}
+
+exports.GetPeerAvgRating = async (emp) => {
+
+    try {
+        var list = await EvaluationRepo.aggregate([
+            { $match: { _id: ObjectId(emp.EvaluationId), "Employees._id": Mongoose.Types.ObjectId(emp.EmployeeId) } },
+            {$unwind: "$Employees"},  
+            {
+                $project: {
+                    _id: 0,
+                    "EvaluationId": 1,
+                    "Employees._id": 1,
+                    "EvaluationPeriod": 1,
+                    "EvaluationDuration": 1,
+                    "Employees.Peers.EmployeeId": 1,
+                    "Employees.Peers.CompetencyOverallRating": 1
+                }
+
+            },
+            {
+                $lookup:
+                {
+                    from: "users",
+                    localField: "Employees.Peers.EmployeeId",
+                    foreignField: "_id",
+                    as: "PeerList"
+
+                }
+            }
+            ,
+            {
+                $addFields: {
+                    averageScore:{ $avg: "$Employees.Peers.CompetencyOverallRating" }
+                   
+                }
+            },
+            
+            {
+                $project: {
+                    "PeerList._id": 1,
+                    "PeerList.FirstName": 1,              
+                    "PeerList.LastName": 1,
+                    "PeerList.Email": 1,
+                    "PeerList.Manager": 1,
+                    "EvaluationPeriod": 1,
+                    "EvaluationDuration": 1,
+                    "EvaluationId": 1,
+                    "averageScore":1
+                    
+                }
+            }
+        ]
+
+        )
+        return list;
+    } catch (error) {
+        logger.error('Error Occurred while getting data for Peer Review list:', error)
+        return Error(error.message)
+    }
 }

@@ -61,6 +61,8 @@ route.post('/SaveCompetencyQnA', AuthHelper.Authorization(), EmployeeController.
 route.post('/GetPendingPeerReviewsList', EmployeeController.GetPendingPeerReviewsList);
 route.post('/GetPendingPeerReviewsToSubmit', EmployeeController.GetPendingPeerReviewsToSubmit);
 route.post('/SavePeerReview', EmployeeController.SavePeerReview);
+route.post('/SaveEmployeeFinalRating', EmployeeController.SaveEmployeeFinalRating);
+route.post('/GetPeerAvgRating', EmployeeController.GetPeerAvgRating);
 
 module.exports = route;
 

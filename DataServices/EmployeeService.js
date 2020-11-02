@@ -20,7 +20,12 @@ const UserRepo = require('../SchemaModels/UserSchema');
 const SendMail = require("../Helpers/mail.js");
 var logger = require('../logger');
 const { add } = require("../logger");
+
+const moment = require("moment");
+
+
 const ObjectId = Mongoose.Types.ObjectId;
+
 exports.AddStrength = async (strength) => {
     try {
         // const organizationName = await strengthRepo.findOne({ Name: organization.Name });
@@ -515,16 +520,35 @@ exports.GetDirectReporteesOfManager = async (manager) => {
         })
     return Employees;
 }
-exports.GetPeers = async (employee) => {
-    const Employees = await UserRepo.find({
-        Organization: Mongoose.Types.ObjectId(employee.company),
-        _id: { $ne: Mongoose.Types.ObjectId(employee.id) }
-    }
-    )
-        .populate('ThirdSignatory CopiesTo DirectReports Manager');
-    return Employees;
+
+exports.GetPeers = async (employee) => {  
+     const Employees = await UserRepo.find({         
+     ParentUser:Mongoose.Types.ObjectId(employee.parentId),
+    _id:{$ne:Mongoose.Types.ObjectId(employee.id)}}
+    )     
+     .populate('ThirdSignatory CopiesTo DirectReports Manager');        
+     return Employees;    
 
 };
+exports.DashboardData = async (employee) => {
+    const response = {};
+    let {userId} = employee;
+    console.log(`userId: ${userId}`);
+    const evaluationRepo = await EvaluationRepo
+    .find({"Employees.Peers": { $elemMatch: 
+        { "EmployeeId": Mongoose.Types.ObjectId(userId)} }}).populate("Employees._id");
+    response['peer_review']={};
+    let momentNextEvlDate = moment().add(1,'years').startOf('year');
+    response['peer_review']['date']=momentNextEvlDate.format("MMM Do YYYY");
+    response['peer_review']['days']=momentNextEvlDate.diff(moment(),'days');
+    response['peer_review']['rating_for']="N/A";
+    if(evaluationRepo && evaluationRepo.length>0 &&  evaluationRepo[0].Employees){
+        let {_id} = evaluationRepo[0].Employees[0];
+        response['peer_review']['rating_for']=_id.FirstName +" "+_id.LastName;
+    }
+    return response;
+}
+
 
 exports.GetKpisForTS = async (ThirdSignatory) => {
     var allKpis = []
@@ -868,3 +892,4 @@ exports.GetPeerAvgRating = async (emp) => {
         return Error(error.message)
     }
 }
+

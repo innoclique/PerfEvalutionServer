@@ -6,7 +6,8 @@
   "scripts": {
     "watch": "node index.js",
     "start": "node index.js",
-    "build": "node index.js"
+    "build": "node index.js",
+    "dev":"nodemon index.js"
   },
   "author": "",
   "license": "ISC",
@@ -20,11 +21,13 @@
     "express-jwt": "^5.3.3",
     "joi": "^14.3.1",
     "jsonwebtoken": "^8.5.1",
+    "moment": "^2.29.1",
+    "mongoose": "^5.9.16",
     "nodemailer": "^4.1.0",
     "nodemailer-smtp-transport": "^2.7.4",
-    "mongoose": "^5.9.16",
-    "nodemon": "^2.0.4",
     "winston": "^3.3.3"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "nodemon": "^2.0.6"
+  }
 }

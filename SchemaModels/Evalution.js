@@ -92,11 +92,13 @@ const Evalution = new mongoose.Schema({
     //         default: Date.now
     //     }
     // }],
-    KPIFor: String,
-    Department: String,
-    IsDraft: { type: Boolean, default: false }
 
-
+KPIFor:String,
+Department:String,
+IsDraft:{type:Boolean,default:false},
+status:String
+    
+    
 });
 
 Evalution.set('toJSON', { versionKey: false });

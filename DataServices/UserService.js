@@ -414,7 +414,7 @@ exports.UpdateEmployee = async (employee) => {
 
         delete employee._id;
         employee.UpdatedOn = new Date();
-        const emp = await UserRepo.findByIdAndUpdate(empId, employee);
+        const emp = await UserRepo.update(empId, employee);
 
         return true;
     }
@@ -436,10 +436,9 @@ exports.GetEmployeeDataById = async (Id) => {
 
 
 };
-exports.GetAllEmployees = async (parentId) => {  
-     const Employees = await UserRepo.find({
-         //Role:Messages.constants.EO_ROLE_CODE,
-         ParentUser:Mongoose.Types.ObjectId(parentId)})     
+exports.GetAllEmployees = async (employee) => {  
+     const Employees = await UserRepo.find({        
+         Organization:Mongoose.Types.ObjectId(employee.companyId)})     
      .populate('ThirdSignatory CopiesTo DirectReports Manager');        
      return Employees;    
 

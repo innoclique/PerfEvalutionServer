@@ -96,7 +96,7 @@ const Evalution = new mongoose.Schema({
 KPIFor:String,
 Department:String,
 IsDraft:{type:Boolean,default:false},
-status:String
+status:{type:String,default:"Active"},
     
     
 });

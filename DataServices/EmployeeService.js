@@ -2,7 +2,7 @@ const DbConnection = require("../Config/DbConfig");
 require('dotenv').config();
 const Mongoose = require("mongoose");
 const Bcrypt = require('bcrypt');
-const OrganizationRepo = require('..');
+const OrganizationRepo = require('../SchemaModels/OrganizationSchema');
 const StrengthRepo = require('../SchemaModels/Strengths');
 const AccomplishmentRepo = require('../SchemaModels/Accomplishments');
 const DepartmentRepo = require('../SchemaModels/DepartmentSchema');
@@ -19,7 +19,7 @@ const Messages = require('../Helpers/Messages');
 const UserRepo = require('../SchemaModels/UserSchema');
 const SendMail = require("../Helpers/mail.js");
 var logger = require('../logger');
-const { add } = require("../logger");
+
 
 const moment = require("moment");
 
@@ -501,50 +501,111 @@ exports.GetThirdSignatorys = async (data) => {
 
 /**For getting employees who has not been added to evaluation */
 exports.GetUnlistedEmployees = async (search) => {
+    try {
+        let orgData = await OrganizationRepo.findOne({ _id: search.company });
+        if (!orgData) {
+            return { IsSuccess: true, Message: "No Organization details found", Data: null }
+        }
+        //let currentUsersCount=await UserRepo.find({Organization:ObjectId(search.company),IsActive:true}).count()
+        const checkpoint = await UserRepo.aggregate([
+            { $match: { Organization: ObjectId(search.company) } },
+            { $group: { _id: "$HasActiveEvaluation", Count: { $sum: 1 } } }
+        ])
+        
+        if (checkpoint && checkpoint.length > 0) {        
+            let activeEvaluationCount = checkpoint.find(x => x._id === 'Yes')
+            if (parseInt(orgData.UsageCount) === activeEvaluationCount.Count) {
+                return { IsSuccess: true, Message: "Reached Maximum limit", Data: null }
+            }
+        }
 
-    const Employees = await UserRepo.find(
-        {
-            Organization: Mongoose.Types.ObjectId(search.company),
-            HasActiveEvaluation: { $ne: "Yes" },
-            Role: 'EO'
-        }).populate("Manager").sort({ CreatedOn: -1 })
-    return Employees;
+        const Employees = await UserRepo.find(
+            {
+                Organization: Mongoose.Types.ObjectId(search.company),
+                HasActiveEvaluation: { $ne: "Yes" }
+                
+            }).populate("Manager").sort({ CreatedOn: -1 })
+        return { IsSuccess: true, Message: "", Data: Employees }
+
+
+
+    } catch (error) {
+        logger.error('Error occurred while checking employee count', error)
+        throw error;
+    }
+
 };
 
 exports.GetDirectReporteesOfManager = async (manager) => {
-    const Employees = await UserRepo.find(
+    let managers = await UserRepo.aggregate([
         {
-            Manager: Mongoose.Types.ObjectId(manager.id),
+            $match: {
+                Manager: Mongoose.Types.ObjectId(manager.id),
+                Role: 'EO'
+            }
+        },
+        { $addFields: { "EmployeeId": "$_id" } },
+        {
+            $project: {
+                "EmployeeId": 1,
+                FirstName: 1,
+                LastName: 1,
+                Email: 1
+            }
+        }
 
-            Role: 'EO'
-        })
-    return Employees;
+
+    ]);
+
+    return managers;
 }
 
-exports.GetPeers = async (employee) => {  
-     const Employees = await UserRepo.find({         
-     ParentUser:Mongoose.Types.ObjectId(employee.parentId),
-    _id:{$ne:Mongoose.Types.ObjectId(employee.id)}}
-    )     
-     .populate('ThirdSignatory CopiesTo DirectReports Manager');        
-     return Employees;    
+exports.GetPeers = async (employee) => {
+    var peers = await UserRepo.aggregate([
+        {
+            $match: {
+                Organization: Mongoose.Types.ObjectId(employee.company),
+                _id: { $ne: Mongoose.Types.ObjectId(employee.id) }
+            }
+        },
+        { $addFields: { "EmployeeId": "$_id" } },
+        {
+            $project: {
+                "EmployeeId": 1,
+                FirstName: 1,
+                LastName: 1,
+                Email: 1
+            }
+        }
+
+
+    ]);
+    // const Employees = await UserRepo.find({
+    //     Organization: Mongoose.Types.ObjectId(employee.company),
+    //     _id: { $ne: Mongoose.Types.ObjectId(employee.id) }
+    // })
+    return peers;
 
 };
 exports.DashboardData = async (employee) => {
     const response = {};
-    let {userId} = employee;
+    let { userId } = employee;
     console.log(`userId: ${userId}`);
     const evaluationRepo = await EvaluationRepo
-    .find({"Employees.Peers": { $elemMatch: 
-        { "EmployeeId": Mongoose.Types.ObjectId(userId)} }}).populate("Employees._id");
-    response['peer_review']={};
-    let momentNextEvlDate = moment().add(1,'years').startOf('year');
-    response['peer_review']['date']=momentNextEvlDate.format("MMM Do YYYY");
-    response['peer_review']['days']=momentNextEvlDate.diff(moment(),'days');
-    response['peer_review']['rating_for']="N/A";
-    if(evaluationRepo && evaluationRepo.length>0 &&  evaluationRepo[0].Employees){
-        let {_id} = evaluationRepo[0].Employees[0];
-        response['peer_review']['rating_for']=_id.FirstName +" "+_id.LastName;
+        .find({
+            "Employees.Peers": {
+                $elemMatch:
+                    { "EmployeeId": Mongoose.Types.ObjectId(userId) }
+            }
+        }).populate("Employees._id");
+    response['peer_review'] = {};
+    let momentNextEvlDate = moment().add(1, 'years').startOf('year');
+    response['peer_review']['date'] = momentNextEvlDate.format("MMM Do YYYY");
+    response['peer_review']['days'] = momentNextEvlDate.diff(moment(), 'days');
+    response['peer_review']['rating_for'] = "N/A";
+    if (evaluationRepo && evaluationRepo.length > 0 && evaluationRepo[0].Employees) {
+        let { _id } = evaluationRepo[0].Employees[0];
+        response['peer_review']['rating_for'] = _id.FirstName + " " + _id.LastName;
     }
     return response;
 }
@@ -633,7 +694,7 @@ exports.SaveCompetencyQnA = async (qna) => {
 exports.GetPendingPeerReviewsList = async (emp) => {
     try {
         var list = await EvaluationRepo.aggregate([
-            { $match: { _id: ObjectId(emp.EvaluationId) } },
+            { $match: { "Employee._id": ObjectId(emp.EmployeeId), status: "Active" } },
             {
                 $addFields: {
                     EvaluationId: "$_id"
@@ -822,8 +883,90 @@ exports.SaveEmployeeFinalRating = async (finalRating) => {
                 ]
             }
         )
-        if (_update.nModified)
+        if (_update.nModified) {
+            var c = await EvaluationRepo.aggregate([
+                { $match: { _id: ObjectId(finalRating.EvaluationId) } },
+                { $unwind: '$Employees' },
+                { $match: { "Employees._id": ObjectId(finalRating.EmployeeId) } },
+                {
+                    $lookup:
+                    {
+                        from: "users",
+                        localField: "Employees._id",
+                        foreignField: "_id",
+                        as: "CurrentEmployee"
+
+                    }
+                },
+                {
+                    $lookup:
+                    {
+                        from: "users",
+                        localField: "CurrentEmployee.Manager",
+                        foreignField: "_id",
+                        as: "CurrentEmployeeManager"
+
+                    }
+                },
+                {
+                    $project: {
+                        "CurrentEmployee.FirstName": 1,
+                        "CurrentEmployee.LastName": 1,
+                        "CurrentEmployee.Email": 1,
+                        "CurrentEmployeeManager.FirstName": 1,
+                        "CurrentEmployeeManager.LastName": 1,
+                        "CurrentEmployeeManager.Email": 1
+
+                    }
+
+                }
+            ])
+            console.log('ccc', c);
+            if (c && c[0] && c[0].CurrentEmployee[0]) {
+                var empoyee = c[0].CurrentEmployee[0];
+                var manager = c[0].CurrentEmployeeManager[0];
+                if (empoyee) {
+
+                    var mailObject = SendMail.GetMailObject(
+                        empoyee.Email,
+                        "Final Rating Submitted",
+                        `Dear ${empoyee.FirstName},
+
+                          You have successfully submitted your year-end review
+                          
+                          Thank you,
+                          Administrator
+                          `,
+                        null,
+                        null
+                    );
+
+                    SendMail.SendEmail(mailObject, function (res) {
+                        console.log(res);
+                    });
+                }
+                if (manager) {
+                    var mailObject = SendMail.GetMailObject(
+                        manager.Email,
+                        "Final Rating Submitted",
+                        `Dear ${manager.FirstName},
+
+                          Your reportee ${employee.FirstName} has successfully submitted  year-end review.
+                          Kindly access portal to review the year-end review.
+                          Thank you,
+                          Administrator
+                          `,
+                        null,
+                        null
+                    );
+
+                    SendMail.SendEmail(mailObject, function (res) {
+                        console.log(res);
+                    });
+                }
+            }
             return { IsSuccess: true }
+        }
         else
             return { IsSuccess: false, Message: 'No Reocrd got updated' }
     } catch (error) {
@@ -838,7 +981,7 @@ exports.GetPeerAvgRating = async (emp) => {
     try {
         var list = await EvaluationRepo.aggregate([
             { $match: { _id: ObjectId(emp.EvaluationId), "Employees._id": Mongoose.Types.ObjectId(emp.EmployeeId) } },
-            {$unwind: "$Employees"},  
+            { $unwind: "$Employees" },
             {
                 $project: {
                     _id: 0,
@@ -864,23 +1007,23 @@ exports.GetPeerAvgRating = async (emp) => {
             ,
             {
                 $addFields: {
-                    averageScore:{ $avg: "$Employees.Peers.CompetencyOverallRating" }
-                   
+                    averageScore: { $avg: "$Employees.Peers.CompetencyOverallRating" }
+
                 }
             },
-            
+
             {
                 $project: {
                     "PeerList._id": 1,
-                    "PeerList.FirstName": 1,              
+                    "PeerList.FirstName": 1,
                     "PeerList.LastName": 1,
                     "PeerList.Email": 1,
                     "PeerList.Manager": 1,
                     "EvaluationPeriod": 1,
                     "EvaluationDuration": 1,
                     "EvaluationId": 1,
-                    "averageScore":1
-                    
+                    "averageScore": 1
+
                 }
             }
         ]

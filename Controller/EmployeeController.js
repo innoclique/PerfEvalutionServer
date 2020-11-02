@@ -44,7 +44,7 @@ exports.GetEmployeeDataById = async (req, res, next) => {
     });
 }
 exports.GetAllEmployees = async (req, res, next) => {
-    await UserService.GetAllEmployees(req.body.parentId)
+    await UserService.GetAllEmployees(req.body)
         .then(Response => Response ? res.status(200).json(Response) : res.status(404).json("Employees Not Found"))
         .catch(err => next(err => { next(err) }));
 

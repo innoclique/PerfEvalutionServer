@@ -23,116 +23,121 @@ const EmployeeService = require('./EmployeeService');
 
 
 exports.AddEvaluation = async (evaluation) => {
-    const _evaluation = await EvaluationRepo(evaluation);
-    var savedEvauation = await _evaluation.save();
-    var _emps = evaluation.Employees.map(x => x._id);
-
-    await UserRepo.updateMany({ _id: { $in: _emps } }, { $set: { HasActiveEvaluation: "Yes" } });
-
-    const _currentEvaluation = await EvaluationRepo.findOne({ _id: Mongoose.Types.ObjectId(savedEvauation._id) }).populate('Employees._id Employees.Peers._id Employees.DirectReportees._id CreatedBy').sort({ CreatedDate: -1 })
-    var _deliveremails = [];
-    var mailObject = SendMail.GetMailObject(
-        _currentEvaluation.CreatedBy.Email,
-        "Evaluation Rolledout Successfully",
-        `Dear ${_currentEvaluation.CreatedBy.FirstName} 
-        <br/>
-        Congratulations, you have successfully setup the roll-out for the Evaluation for the year : ${new Date().getFullYear()}
-        <br/>
-        <br/>
-
-        Thank you
-        Admin,
-        ${config.ProductName}
-        `,
-        null,
-        null
-    );
-    console.log('mail', mailObject);
-    SendMail.SendEmail(mailObject, async function (res) {
-        console.log(res);
-    });
-    _currentEvaluation.Employees.map(e => {
-        debugger
-        _deliveremails.push({
-            User: e._id._id,
-            Type: 'Employee Evaluation',
-            IsDelivered: false,
-            Email: e._id.Email,
-            Template: `<h1>Dear ${e._id.FirstName} <br/>
-        New Evaluation form has been rolledout. Please access Portal to submit the review.
-        <br/>
-        <br/>
-        Thank you
-        ${config.ProductName}
-        `,
-            Company: _currentEvaluation.Company,
-            Subject: 'New Evaluation Rolledout'
-        })
-
-        e.Peers.map(p => {
+    try {
+        const _evaluation = await EvaluationRepo(evaluation);
+        var savedEvauation = await _evaluation.save();
+        var _emps = evaluation.Employees.map(x => x._id);
+    
+        await UserRepo.updateMany({ _id: { $in: _emps } }, { $set: { HasActiveEvaluation: "Yes" } });
+    
+        const _currentEvaluation = await EvaluationRepo.findOne({ _id: Mongoose.Types.ObjectId(savedEvauation._id) })
+            .populate('Employees._id Employees.Peers.EmployeeId Employees.DirectReportees.EmployeeId CreatedBy').sort({ CreatedDate: -1 })
+        var _deliveremails = [];
+        var mailObject = SendMail.GetMailObject(
+            _currentEvaluation.CreatedBy.Email,
+            "Evaluation Rolledout Successfully",
+            `Dear ${_currentEvaluation.CreatedBy.FirstName} 
+            <br/>
+            Congratulations, you have successfully setup the roll-out for the Evaluation for the year : ${new Date().getFullYear()}
+            <br/>
+            <br/>
+    
+            Thank you
+            Admin,
+            ${config.ProductName}
+            `,
+            null,
+            null
+        );
+        console.log('mail', mailObject);
+        SendMail.SendEmail(mailObject, async function (res) {
+            console.log(res);
+        });
+        _currentEvaluation.Employees.map(e => {
+            debugger
             _deliveremails.push({
-                User: p._id,
-                Type: 'Peer Review',
+                User: e._id._id,
+                Type: 'Employee Evaluation',
                 IsDelivered: false,
-                Email: p._id.Email,
-                Template: `<h1>Dear ${p._id.FirstName} <br/>
-        New Evaluation form has been rolledout. Please access Portal to submit the review.
-        <br/>
-        <br/>
-        Thank you
-        OPAssess Admin
-        `,
+                Email: e._id.Email,
+                Template: `<h1>Dear ${e._id.FirstName} <br/>
+            New Evaluation form has been rolledout. Please access Portal to submit the review.
+            <br/>
+            <br/>
+            Thank you
+            ${config.ProductName}
+            `,
                 Company: _currentEvaluation.Company,
-                Subject: 'New Peer Review Requested'
+                Subject: 'New Evaluation Rolledout'
+            })
+    
+            e.Peers.map(p => {
+                _deliveremails.push({
+                    User: p.EmployeeId._id,
+                    Type: 'Peer Review',
+                    IsDelivered: false,
+                    Email: p.EmployeeId.Email,
+                    Template: `<h1>Dear ${p.EmployeeId.FirstName} <br/>
+            New Evaluation form has been rolledout. Please access Portal to submit the review.
+            <br/>
+            <br/>
+            Thank you
+            OPAssess Admin
+            `,
+                    Company: _currentEvaluation.Company,
+                    Subject: 'New Peer Review Requested'
+                })
+            })
+            e.DirectReportees.map(d => {
+                _deliveremails.push({
+                    User: d.EmployeeId._id,
+                    Type: 'Direct Reportee Review',
+                    IsDelivered: false,
+                    Email: d.EmployeeId.Email,
+                    Template: `<h1>Dear ${d.EmployeeId.FirstName} <br/>
+            New Evaluation form has been rolledout. Please access Portal to submit the review.
+            <br/>
+            <br/>
+            Thank you
+            OPAssess Admin
+            `,
+                    Company: _currentEvaluation.Company,
+                    Subject: 'Your Reportee Evaluation Rolledout'
+                })
             })
         })
-        e.DirectReportees.map(d => {
-            _deliveremails.push({
-                User: d._id,
-                Type: 'Peer Review',
-                IsDelivered: false,
-                Email: d._id.Email,
-                Template: `<h1>Dear ${d._id.FirstName} <br/>
-        New Evaluation form has been rolledout. Please access Portal to submit the review.
-        <br/>
-        <br/>
-        Thank you
-        OPAssess Admin
-        `,
-                Company: _currentEvaluation.Company,
-                Subject: 'Your Reportee Evaluation Rolledout'
-            })
-        })
-    })
-
-    var de = await DeliverEmailRepo.insertMany(_deliveremails);
-    // var mailObject = SendMail.GetMailObject(
-    //     element.Email,
-    //     element.Subject,
-    //     element.Template,null,null
-    // );
-    // console.log('mail',mailObject);
-    // SendMail.sendEmail(mailObject, async function (res) {
-    //     console.log(res);
-    //     await DeliverEmailRepo.update({_id:element._id},{IsDelivered:true})
-    // });
-
-
-    return true;
+    
+        var de = await DeliverEmailRepo.insertMany(_deliveremails);        
+        return true;    
+    } catch (error) {
+        logger.error('error while Adding a Evaluation Form:', error)
+        throw error;
+    }
+    
 };
 exports.GetEvaluations = async (clientId) => {
-
+try {
     var o = await EvaluationRepo.find({
         Company: Mongoose.Types.ObjectId(clientId.clientId)
     })
         .populate("Employees.Model")
         .populate({ path: 'Employees._id', populate: { path: 'Manager' } })
         .sort({ CreatedDate: -1 })
-    return o;
+    return o;  
+} catch (error) {
+    logger.error('error while GetEvaluations :', error)
+        throw error;
+}
+  
 
 }
 exports.GetEvaluationFormById = async (formId) => {
-    return await EvaluationRepo.findById({ _id: Mongoose.Types.ObjectId(formId.id) }).populate('Employees._id')
+    try {
+        return await EvaluationRepo.findById({ _id: Mongoose.Types.ObjectId(formId.id) }).populate('Employees._id')     
+    } catch (error) {
+        
+    }
+   
 }
 
 exports.DraftEvaluation = async (evaluation) => {
@@ -142,23 +147,73 @@ exports.DraftEvaluation = async (evaluation) => {
 };
 
 exports.UpdateDirectReportees = async (evaluation) => {
-    const toupdateForm = await EvaluationRepo.findOne({ _id: Mongoose.Types.ObjectId(evaluation.EvaluationId) });
-    toupdateForm.Employees.find(x => x._id.toString() === evaluation.EmployeeId).DirectReportees = evaluation.DirectReportees;
-    toupdateForm.Employees.find(x => x._id.toString() === evaluation.EmployeeId).DirectReporteeComptencyMessage = evaluation.DirectReporteeCompetencyMessage;
-    toupdateForm.Employees.find(x => x._id.toString() === evaluation.EmployeeId).DirectReporteeCompetencyList = evaluation.DirectReporteeCompetencyList;
-    //Object.assign(toupdateForm, evaluation);
-    var ff = await toupdateForm.save();
-    return true;
+    try {
+        const toupdateForm = await EvaluationRepo.findOne({ _id: Mongoose.Types.ObjectId(evaluation.EvaluationId) });
+        toupdateForm.Employees.find(x => x._id.toString() === evaluation.EmployeeId).DirectReportees = evaluation.DirectReportees;
+        toupdateForm.Employees.find(x => x._id.toString() === evaluation.EmployeeId).DirectReporteeComptencyMessage = evaluation.DirectReporteeCompetencyMessage;
+        toupdateForm.Employees.find(x => x._id.toString() === evaluation.EmployeeId).DirectReporteeCompetencyList = evaluation.DirectReporteeCompetencyList;
+        //Object.assign(toupdateForm, evaluation);
+        var ff = await toupdateForm.save();
+        var _deliveremails = [];
+        toupdateForm.Employees.find(x => x._id.toString() === evaluation.EmployeeId).DirectReportees.map(p => {
+            _deliveremails.push({
+                User: p.EmployeeId._id,
+                Type: 'Direct Reportee Review',
+                IsDelivered: false,
+                Email: p.EmployeeId.Email,
+                Template: `<h1>Dear ${p.EmployeeId.FirstName} <br/>
+        New Evaluation form has been rolledout. Please access Portal to submit the review.
+        <br/>
+        <br/>
+        Thank you
+        OPAssess Admin
+        `,
+                Company: "",
+                Subject: 'New Direct Reportee Review Requested'
+            })
+        })
+        var de = await DeliverEmailRepo.insertMany(_deliveremails);
+        return true;
+    } catch (error) {
+        logger.error('error while updating Direct Reportee Review:', error)
+        throw error;
+    }
+
 };
 
 exports.UpdatePeers = async (evaluation) => {
-    const toupdateForm = await EvaluationRepo.findOne({ _id: Mongoose.Types.ObjectId(evaluation.EvaluationId) });
-    toupdateForm.Employees.find(x => x._id.toString() === evaluation.EmployeeId).Peers = evaluation.Peers;
-    toupdateForm.Employees.find(x => x._id.toString() === evaluation.EmployeeId).PeersCompetencyMessage = evaluation.PeersCompetencyMessage;
-    toupdateForm.Employees.find(x => x._id.toString() === evaluation.EmployeeId).PeersCompetencyList = evaluation.PeersCompetencyList;
-    //Object.assign(toupdateForm, evaluation);
-    var ff = await toupdateForm.save();
-    return true;
+    try {
+        const toupdateForm = await EvaluationRepo.findOne({ _id: Mongoose.Types.ObjectId(evaluation.EvaluationId) });
+        toupdateForm.Employees.find(x => x._id.toString() === evaluation.EmployeeId).Peers = evaluation.Peers;
+        toupdateForm.Employees.find(x => x._id.toString() === evaluation.EmployeeId).PeersCompetencyMessage = evaluation.PeersCompetencyMessage;
+        toupdateForm.Employees.find(x => x._id.toString() === evaluation.EmployeeId).PeersCompetencyList = evaluation.PeersCompetencyList;
+        //Object.assign(toupdateForm, evaluation);
+        var ff = await toupdateForm.save();
+        var _deliveremails = [];
+        toupdateForm.Employees.find(x => x._id.toString() === evaluation.EmployeeId).Peers.map(p => {
+            _deliveremails.push({
+                User: p.EmployeeId._id,
+                Type: 'Peer Review',
+                IsDelivered: false,
+                Email: p.EmployeeId.Email,
+                Template: `<h1>Dear ${p.EmployeeId.FirstName} <br/>
+        New Evaluation form has been rolledout. Please access Portal to submit the review.
+        <br/>
+        <br/>
+        Thank you
+        OPAssess Admin
+        `,
+                Company: "",
+                Subject: 'New Peer Review Requested'
+            })
+        })
+        var de = await DeliverEmailRepo.insertMany(_deliveremails);
+        return true;
+    } catch (error) {
+        logger.error('error while updating Direct Reportee Review:', error)
+        throw error;
+    }
+
 };
 exports.GetCompetencyValues = async (evaluation) => {
     const evaluationForm = await EvaluationRepo.findOne({ _id: Mongoose.Types.ObjectId(evaluation.EvaluationId), "Employees._id": ObjectId(evaluation.employeeId) });
@@ -207,92 +262,94 @@ exports.GetCompetencyValues = async (evaluation) => {
 
 
 exports.GetEvaluationDashboardData = async (request) => {
-    let evalDashboardResponse={};
+    let evalDashboardResponse = {};
     let aggregateArray = [];
-    let {userId} = request;
-    let organization = await OrganizationSchema.findOne({"Admin":userId});
-    let {EvaluationPeriod} = organization;
+    let { userId } = request;
+    let organization = await OrganizationSchema.findOne({ "Admin": userId });
+    let { EvaluationPeriod } = organization;
     /**
      * Start->Charts
      */
-    let matchObject={};
-    matchObject['$match']={};
-    matchObject['$match']["Company"]=organization._id;
-    matchObject['$match']["CreatedDate"]={};
-    matchObject['$match']["CreatedDate"]={
-        "$gte":moment().startOf('year').toDate(),
-        "$lt":moment().endOf('year').toDate()
+    let matchObject = {};
+    matchObject['$match'] = {};
+    matchObject['$match']["Company"] = organization._id;
+    matchObject['$match']["CreatedDate"] = {};
+    matchObject['$match']["CreatedDate"] = {
+        "$gte": moment().startOf('year').toDate(),
+        "$lt": moment().endOf('year').toDate()
     };
-    aggregateArray[0]=matchObject;
-    let groupObj={};
-    groupObj['$group']={};
-    groupObj['$group']['_id']="$status";
-    groupObj['$group']['count']={};
-    groupObj['$group']['count']['$sum']=1;
-    aggregateArray[1]=groupObj;
-    evalDashboardResponse['chart']=await EvaluationRepo.aggregate(aggregateArray);
+    aggregateArray[0] = matchObject;
+    let groupObj = {};
+    groupObj['$group'] = {};
+    groupObj['$group']['_id'] = "$status";
+    groupObj['$group']['count'] = {};
+    groupObj['$group']['count']['$sum'] = 1;
+    aggregateArray[1] = groupObj;
+    evalDashboardResponse['chart'] = await EvaluationRepo.aggregate(aggregateArray);
     /**
      * End->Chart
      */
 
-     /**
-      * Start->Next Evaluation
-      */
-     
-     evalDashboardResponse['next_evaluation']={};
-     if(EvaluationPeriod && EvaluationPeriod==='CalendarYear'){
-         let momentNextEvlDate = moment().add(1,'years').startOf('year');
-         evalDashboardResponse['next_evaluation']['date']=momentNextEvlDate.format("MMM Do YYYY");
-         evalDashboardResponse['next_evaluation']['days']=momentNextEvlDate.diff(moment(),'days');
+    /**
+     * Start->Next Evaluation
+     */
+
+    evalDashboardResponse['next_evaluation'] = {};
+    if (EvaluationPeriod && EvaluationPeriod === 'CalendarYear') {
+        let momentNextEvlDate = moment().add(1, 'years').startOf('year');
+        evalDashboardResponse['next_evaluation']['date'] = momentNextEvlDate.format("MMM Do YYYY");
+        evalDashboardResponse['next_evaluation']['days'] = momentNextEvlDate.diff(moment(), 'days');
     }
-    let totalEmployees=await UserRepo.countDocuments({"Organization":organization._id});
-    evalDashboardResponse['next_evaluation']['total_employees']=totalEmployees
-    
-    let currentEvlEmployees=await EvaluationRepo.aggregate([
+    let totalEmployees = await UserRepo.countDocuments({ "Organization": organization._id });
+    evalDashboardResponse['next_evaluation']['total_employees'] = totalEmployees
+
+    let currentEvlEmployees = await EvaluationRepo.aggregate([
         matchObject,
-        {$unwind:'$Employees'},
-        {$match:{"Employees.status":{"$exists":true,"$ne":"completed"}}},
-        {$group:{_id:'$_id',count:{$sum:1}}}
-        ]);
-    let currPendingEval =  currentEvlEmployees.map(item => item.count).reduce((prev, next) => prev + next);
+        { $unwind: '$Employees' },
+        { $match: { "Employees.status": { "$exists": true, "$ne": "completed" } } },
+        { $group: { _id: '$_id', count: { $sum: 1 } } }
+    ]);
+    let currPendingEval = currentEvlEmployees.map(item => item.count).reduce((prev, next) => prev + next);
     evalDashboardResponse['next_evaluation']['current_pending_evealuations'] = currPendingEval;
     /**
      * Start->Overdue Evaluations
      */
     let evalDate;
-    if(EvaluationPeriod && EvaluationPeriod==='CalendarYear'){
+    if (EvaluationPeriod && EvaluationPeriod === 'CalendarYear') {
         evalDate = moment().startOf('year');
     }
     let overDueCondition = [
         {
-            "$match":{"Company":organization._id,
-            "CreatedDate":{"$lt":evalDate.toDate()},
-            "Employees.status":{"$ne":"completed"}
-        }},
-        { $lookup: {from: 'users', localField: 'Employees._id', foreignField: '_id', as: 'users'} }
+            "$match": {
+                "Company": organization._id,
+                "CreatedDate": { "$lt": evalDate.toDate() },
+                "Employees.status": { "$ne": "completed" }
+            }
+        },
+        { $lookup: { from: 'users', localField: 'Employees._id', foreignField: '_id', as: 'users' } }
     ];
     let overDueEvaluations = await EvaluationRepo.aggregate(overDueCondition);
     let overDueEvaluationEmps = [];
-    overDueEvaluations.forEach(overDueObj=>{
-        let {CreatedDate,users} = overDueObj;
-        for(var i=0;i<users.length;i++){
+    overDueEvaluations.forEach(overDueObj => {
+        let { CreatedDate, users } = overDueObj;
+        for (var i = 0; i < users.length; i++) {
             let userObj = users[i];
-            let overDueEvaluationEmp={
-                name:userObj.FirstName,
-                designation:userObj.Role,
-                noOfDays:evalDate.diff(CreatedDate,'days')
+            let overDueEvaluationEmp = {
+                name: userObj.FirstName,
+                designation: userObj.Role,
+                noOfDays: evalDate.diff(CreatedDate, 'days')
             }
             overDueEvaluationEmps.push(overDueEvaluationEmp);
         }
     });
-    evalDashboardResponse['overdue_evaluation']=overDueEvaluationEmps;
+    evalDashboardResponse['overdue_evaluation'] = overDueEvaluationEmps;
     return evalDashboardResponse;
 }
 
 
 exports.GetEmpCurrentEvaluation = async (emp) => {
     try {
-        const evaluationForm = await EvaluationRepo.findOne({ "Employees._id": ObjectId(emp.EmployeeId) }).populate("Employees.PeersCompetencyList._id").select({"Employees.Peers":0});
+        const evaluationForm = await EvaluationRepo.findOne({ "Employees._id": ObjectId(emp.EmployeeId) }).populate("Employees.PeersCompetencyList._id").select({ "Employees.Peers": 0 });
         if (!evaluationForm) {
             throw "No Evaluation Found";
         }
@@ -312,7 +369,7 @@ exports.GetEmpCurrentEvaluation = async (emp) => {
             returnObject.KpiList = Kpi;
             returnObject.Competencies = await this.GetCompetencyValues({ EvaluationId: evaluationForm._id, employeeId: employee._id.toString() });
             returnObject.FinalRating = employee.FinalRating;
-            returnObject.PeerScoreCard=await this.GetPeerAvgRating({ EvaluationId: evaluationForm._id.toString(), EmployeeId: employee._id.toString()})
+            returnObject.PeerScoreCard = await this.GetPeerAvgRating({ EvaluationId: evaluationForm._id.toString(), EmployeeId: employee._id.toString() })
             return returnObject;
         }
     } catch (error) {
@@ -372,11 +429,11 @@ exports.GetEmployeePeersCompetencies = async (peer) => {
 
 }
 
-exports.GetPeersRatingForEmployee=async (emp)=>{
+exports.GetPeersRatingForEmployee = async (emp) => {
     try {
-        var list = await EvaluationRepo.findOne({ _id: ObjectId(emp.EvaluationId),"Employees._id": ObjectId(emp.EmployeeId) } ).populate("Peers.EmployeeId")
-            
-        
+        var list = await EvaluationRepo.findOne({ _id: ObjectId(emp.EvaluationId), "Employees._id": ObjectId(emp.EmployeeId) }).populate("Peers.EmployeeId")
+
+
 
         return list;
     } catch (error) {
@@ -390,7 +447,7 @@ exports.GetPeerAvgRating = async (emp) => {
     try {
         var list = await EvaluationRepo.aggregate([
             { $match: { _id: ObjectId(emp.EvaluationId), "Employees._id": Mongoose.Types.ObjectId(emp.EmployeeId) } },
-            {$unwind: "$Employees"},  
+            { $unwind: "$Employees" },
             {
                 $project: {
                     _id: 0,
@@ -416,23 +473,23 @@ exports.GetPeerAvgRating = async (emp) => {
             ,
             {
                 $addFields: {
-                    averageScore:{ $avg: "$Employees.Peers.CompetencyOverallRating" }
-                   
+                    averageScore: { $avg: "$Employees.Peers.CompetencyOverallRating" }
+
                 }
             },
-            
+
             {
                 $project: {
                     "PeerList._id": 1,
-                    "PeerList.FirstName": 1,              
+                    "PeerList.FirstName": 1,
                     "PeerList.LastName": 1,
                     "PeerList.Email": 1,
                     "PeerList.Manager": 1,
                     "EvaluationPeriod": 1,
                     "EvaluationDuration": 1,
                     "EvaluationId": 1,
-                    "averageScore":1
-                    
+                    "averageScore": 1
+
                 }
             }
         ]

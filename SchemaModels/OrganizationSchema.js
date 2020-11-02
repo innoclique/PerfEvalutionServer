@@ -43,7 +43,8 @@ const OrganizationSchema = new mongoose.Schema({
     UpdatedBy:{ type: mongoose.Schema.Types.ObjectId, ref: 'User',default:null },
     StartMonth:{type:String},
     EndMonth:{type:String},
-    IsDraft:Boolean
+    IsDraft:Boolean,
+    Competencies:[]
 });
 
 OrganizationSchema.set('toJSON', { versionKey: false });

@@ -2,6 +2,7 @@ const Express = require('express');
 const route = Express.Router();
 const ApplicationController = require('../Controller/ApplicationController');
 const EmployeeController = require('../Controller/EmployeeController');
+const DevGoalsController = require('../Controller/DevGoalsController');
 const AuthHelper = require('../Helpers/Auth_Helper');
 
 
@@ -45,9 +46,24 @@ route.post('/CreateMeasurementCriteria',EmployeeController.CreateMeasurementCrit
 route.post('/AddReseller', ApplicationController.AddReseller);
 route.post('/UpdateReseller', ApplicationController.UpdateReseller);
 route.post('/GetUnlistedEmployees', EmployeeController.GetUnlistedEmployees);
+route.post('/GetManagers', EmployeeController.GetManagers);
+route.post('/GetThirdSignatorys', EmployeeController.GetThirdSignatorys);
 route.post('/GetDirectReporteesOfManager', EmployeeController.GetDirectReporteesOfManager);
 route.post('/GetPeers', EmployeeController.GetPeers);
+route.post('/GetKpisForTS', EmployeeController.GetKpisForTS);
 
+
+route.post('/GetKpisForDevGoals',AuthHelper.Authorization(), DevGoalsController.GetKpisForDevGoals);
+route.post('/AddDevGoal', AuthHelper.Authorization(), DevGoalsController.AddDevGoal);
+route.post('/UpdateDevGoalById', AuthHelper.Authorization(), DevGoalsController.UpdateDevGoalById);
+route.post('/GetAllDevGoals', AuthHelper.Authorization(), DevGoalsController.GetAllDevGoals);
+
+route.post('/SaveCompetencyQnA', AuthHelper.Authorization(), EmployeeController.SaveCompetencyQnA);
+route.post('/GetPendingPeerReviewsList', EmployeeController.GetPendingPeerReviewsList);
+route.post('/GetPendingPeerReviewsToSubmit', EmployeeController.GetPendingPeerReviewsToSubmit);
+route.post('/SavePeerReview', EmployeeController.SavePeerReview);
+route.post('/SaveEmployeeFinalRating', EmployeeController.SaveEmployeeFinalRating);
+route.post('/GetPeerAvgRating', EmployeeController.GetPeerAvgRating);
 
 module.exports = route;
 

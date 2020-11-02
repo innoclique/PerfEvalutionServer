@@ -104,11 +104,37 @@ exports.UpdateDirectReportees = async (req, res, next) => {
 
 }
 
+
 exports.GetEvaluationDashboard = async (req,res,next)=>{
          await EvaluationService.GetEvaluationDashboardData(req.body)
             .then(Response => res.status(200).json(Response))
             .catch(error =>{
                 logger.error(error)
                  next(error)});
+}
+
+
+exports.GetCompetencyValues = async (req, res, next) => {    
+    await EvaluationService.GetCompetencyValues( req.body)
+    .then(Response => res.status(200).json(Response))
+    .catch(error =>{
+        logger.error(error)
+         next(error)});
+
+}
+exports.GetEmpCurrentEvaluation=async (req,res,next)=>{
+    await EvaluationService.GetEmpCurrentEvaluation( req.body)
+    .then(Response => res.status(200).json(Response))
+    .catch(error =>{
+        logger.error(error)
+         next(error)});
+}
+
+exports.GetEmployeePeersCompetencies=async (req,res,next)=>{
+    await EvaluationService.GetEmployeePeersCompetencies( req.body)
+    .then(Response => res.status(200).json(Response))
+    .catch(error =>{
+        logger.error(error)
+         next(error)});
 }
 

@@ -20,6 +20,7 @@ const UserRepo = require('../SchemaModels/UserSchema');
 const SendMail = require("../Helpers/mail.js");
 var logger = require('../logger');
 const { add } = require("../logger");
+const moment = require("moment");
 
 exports.AddStrength = async (strength) => {
     try {
@@ -355,3 +356,21 @@ exports.GetPeers = async (employee) => {
      return Employees;    
 
 };
+exports.DashboardData = async (employee) => {
+    const response = {};
+    let {userId} = employee;
+    console.log(`userId: ${userId}`);
+    const evaluationRepo = await EvaluationRepo
+    .find({"Employees.Peers": { $elemMatch: 
+        { "EmployeeId": Mongoose.Types.ObjectId(userId)} }}).populate("Employees._id");
+    response['peer_review']={};
+    let momentNextEvlDate = moment().add(1,'years').startOf('year');
+    response['peer_review']['date']=momentNextEvlDate.format("MMM Do YYYY");
+    response['peer_review']['days']=momentNextEvlDate.diff(moment(),'days');
+    response['peer_review']['rating_for']="N/A";
+    if(evaluationRepo && evaluationRepo.length>0 &&  evaluationRepo[0].Employees){
+        let {_id} = evaluationRepo[0].Employees[0];
+        response['peer_review']['rating_for']=_id.FirstName +" "+_id.LastName;
+    }
+    return response;
+}

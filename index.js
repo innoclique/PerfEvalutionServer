@@ -15,6 +15,8 @@ const AuthHelper = require("./Helpers/Auth_Helper");
 const SharedRoute=require('./Routes/SharedRoute');
 const ApplicationRoute=require('./Routes/ApplicationRoute');
 const EvaluationRoute=require('./Routes/EvaluationAdminRoute');
+const psaRoute=require('./Routes/PSARoute');
+const rsaARoute=require('./Routes/RSARoute');
 /////////////////////////////////////////////////////
 var logger=require('./logger');
 App.use(Cors());
@@ -28,6 +30,8 @@ App.use("/api/identity", IdentityRoute );
 App.use("/api/shared", SharedRoute );
 App.use("/api/app", ApplicationRoute );
 App.use("/api/evaluation", EvaluationRoute );
+App.use("/api/psa", psaRoute );
+App.use("/api/rsa", rsaARoute );
 App.use(Cookieparser());
 ////////////////////global error handler-------
 App.use(AuthHelper.ErrorHandler);  

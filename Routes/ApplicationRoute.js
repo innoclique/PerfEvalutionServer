@@ -30,6 +30,7 @@ route.post('/GetAllKpis',EmployeeController.GetAllKpis);
 route.post('/GetKpisByManager',EmployeeController.GetKpisByManager);
 route.post('/SubmitKpisForEvaluation',EmployeeController.SubmitKpisForEvaluation);
 route.post('/UpdateKpiDataById',EmployeeController.UpdateKpiDataById);
+route.post('/dashboard',EmployeeController.Dashboard);
 
 route.post('/AddNote', ApplicationController.AddNote);
 route.post('/GetNoteDataById',ApplicationController.GetNoteDataById);

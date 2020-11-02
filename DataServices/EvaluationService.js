@@ -2,12 +2,15 @@ const DbConnection = require("../Config/DbConfig");
 require('dotenv').config();
 const Mongoose = require("mongoose");
 const EvaluationRepo = require('../SchemaModels/Evalution');
+const OrganizationSchema = require('../SchemaModels/OrganizationSchema');
 const UserRepo = require('../SchemaModels/UserSchema');
 const DeliverEmailRepo = require('../SchemaModels/DeliverEmail');
 const SendMail = require("../Helpers/mail.js");
 var logger = require('../logger');
 var env = process.env.NODE_ENV || "dev";
 var config = require(`../Config/${env}.config`);
+const moment = require('moment');
+
 exports.AddEvaluation = async (evaluation) => {
     const _evaluation = await EvaluationRepo(evaluation);
     var savedEvauation = await _evaluation.save();
@@ -136,4 +139,87 @@ exports.UpdatePeers = async (evaluation) => {
     var ff = await toupdateForm.save();
     return true;
 };
+
+exports.GetEvaluationDashboardData = async (request) => {
+    let evalDashboardResponse={};
+    let aggregateArray = [];
+    let {userId} = request;
+    let organization = await OrganizationSchema.findOne({"Admin":userId});
+    let {EvaluationPeriod} = organization;
+    /**
+     * Start->Charts
+     */
+    let matchObject={};
+    matchObject['$match']={};
+    matchObject['$match']["Company"]=organization._id;
+    matchObject['$match']["CreatedDate"]={};
+    matchObject['$match']["CreatedDate"]={
+        "$gte":moment().startOf('year').toDate(),
+        "$lt":moment().endOf('year').toDate()
+    };
+    aggregateArray[0]=matchObject;
+    let groupObj={};
+    groupObj['$group']={};
+    groupObj['$group']['_id']="$status";
+    groupObj['$group']['count']={};
+    groupObj['$group']['count']['$sum']=1;
+    aggregateArray[1]=groupObj;
+    evalDashboardResponse['chart']=await EvaluationRepo.aggregate(aggregateArray);
+    /**
+     * End->Chart
+     */
+
+     /**
+      * Start->Next Evaluation
+      */
+     
+     evalDashboardResponse['next_evaluation']={};
+     if(EvaluationPeriod && EvaluationPeriod==='CalendarYear'){
+         let momentNextEvlDate = moment().add(1,'years').startOf('year');
+         evalDashboardResponse['next_evaluation']['date']=momentNextEvlDate.format("MMM Do YYYY");
+         evalDashboardResponse['next_evaluation']['days']=momentNextEvlDate.diff(moment(),'days');
+    }
+    let totalEmployees=await UserRepo.countDocuments({"Organization":organization._id});
+    evalDashboardResponse['next_evaluation']['total_employees']=totalEmployees
+    
+    let currentEvlEmployees=await EvaluationRepo.aggregate([
+        matchObject,
+        {$unwind:'$Employees'},
+        {$match:{"Employees.status":{"$exists":true,"$ne":"completed"}}},
+        {$group:{_id:'$_id',count:{$sum:1}}}
+        ]);
+    let currPendingEval =  currentEvlEmployees.map(item => item.count).reduce((prev, next) => prev + next);
+    evalDashboardResponse['next_evaluation']['current_pending_evealuations'] = currPendingEval;
+    /**
+     * Start->Overdue Evaluations
+     */
+    let evalDate;
+    if(EvaluationPeriod && EvaluationPeriod==='CalendarYear'){
+        evalDate = moment().startOf('year');
+    }
+    let overDueCondition = [
+        {
+            "$match":{"Company":organization._id,
+            "CreatedDate":{"$lt":evalDate.toDate()},
+            "Employees.status":{"$ne":"completed"}
+        }},
+        { $lookup: {from: 'users', localField: 'Employees._id', foreignField: '_id', as: 'users'} }
+    ];
+    let overDueEvaluations = await EvaluationRepo.aggregate(overDueCondition);
+    let overDueEvaluationEmps = [];
+    overDueEvaluations.forEach(overDueObj=>{
+        let {CreatedDate,users} = overDueObj;
+        for(var i=0;i<users.length;i++){
+            let userObj = users[i];
+            let overDueEvaluationEmp={
+                name:userObj.FirstName,
+                designation:userObj.Role,
+                noOfDays:evalDate.diff(CreatedDate,'days')
+            }
+            overDueEvaluationEmps.push(overDueEvaluationEmp);
+        }
+    });
+    evalDashboardResponse['overdue_evaluation']=overDueEvaluationEmps;
+    return evalDashboardResponse;
+}
 

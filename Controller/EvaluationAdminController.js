@@ -104,3 +104,11 @@ exports.UpdateDirectReportees = async (req, res, next) => {
 
 }
 
+exports.GetEvaluationDashboard = async (req,res,next)=>{
+         await EvaluationService.GetEvaluationDashboardData(req.body)
+            .then(Response => res.status(200).json(Response))
+            .catch(error =>{
+                logger.error(error)
+                 next(error)});
+}
+

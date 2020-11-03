@@ -52,6 +52,13 @@ exports.GetAllOrganizations = async (req, res, next) => {
 
 }
 
+exports.GetAllOrganizationsForReseller = async (req, res, next) => {
+    await OrganizaionService.GetAllOrganizationsForReseller(req.body)
+        .then(Response => Response ? res.status(200).json(Response) : res.status(404).json("Organizations Not Found"))
+        .catch(err => next(err => { next(err) }));
+
+}
+
 exports.SuspendOrg = async (req, res, next) => {    
             await OrganizaionService.SuspendOrg(req.body)
                 .then(Response => Response ? res.status(200).json(Response) :

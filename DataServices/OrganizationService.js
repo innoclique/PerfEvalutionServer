@@ -7,7 +7,7 @@ const UserRepo = require('../SchemaModels/UserSchema');
 const AuthHelper = require('../Helpers/Auth_Helper');
 const SendMail = require("../Helpers/mail.js");
 const logger = require('../logger');
-
+const ObjectId=Mongoose.Types.ObjectId;
 exports.CreateOrganization = async (organization) => {
     try {
         //save user account for this organization
@@ -172,32 +172,36 @@ exports.GetAllOrganizations = async () => {
     const Organizations = await OrganizationRepo.find().sort({ CreatedOn: -1 });
     return Organizations;
 };
+exports.GetAllOrganizationsForReseller = async (parent) => {
+    const Organizations = await OrganizationRepo.find({ParentOrganization:ObjectId(parent.companyId)}).sort({ CreatedOn: -1 });
+    return Organizations;
+};
 exports.SuspendOrg = async (client) => {
-    const Organizations = await OrganizationRepo.findByIdAndUpdate({_id: Mongoose.Types.ObjectId(client.id)},{IsActive:false})
+    const Organization = await OrganizationRepo.findByIdAndUpdate({_id: Mongoose.Types.ObjectId(client.id)},{IsActive:false})
     var mailObject = SendMail.GetMailObject(
-        userRecord.Email,
+        Organization.Email,
               "Oraganization Suspended",
               "Thank you",
               null,
               null
             );
 
-    SendMail.sendEmail(mailObject, function (res) {
+    SendMail.SendEmail(mailObject, function (res) {
         console.log(res);
     });
     return {Success:true};
 };
 exports.ActivateOrg = async (client) => {
-    const Organizations = await OrganizationRepo.findByIdAndUpdate({_id:Mongoose.Types.ObjectId(client.id)},{IsActive:true})
+    const Organization = await OrganizationRepo.findByIdAndUpdate({_id:Mongoose.Types.ObjectId(client.id)},{IsActive:true})
     var mailObject = SendMail.GetMailObject(
-        userRecord.Email,
+        Organization.Email,
               "Oraganization Activated",
               "Thank you",
               null,
               null
             );
 
-    SendMail.sendEmail(mailObject, function (res) {
+    SendMail.SendEmail(mailObject, function (res) {
         console.log(res);
     });
     return {Success:true};

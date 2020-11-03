@@ -514,9 +514,12 @@ exports.GetUnlistedEmployees = async (search) => {
         
         if (checkpoint && checkpoint.length > 0) {        
             let activeEvaluationCount = checkpoint.find(x => x._id === 'Yes')
-            if (parseInt(orgData.UsageCount) === activeEvaluationCount.Count) {
-                return { IsSuccess: true, Message: "Reached Maximum limit", Data: null }
+            if(activeEvaluationCount){
+                if (parseInt(orgData.UsageCount) === activeEvaluationCount.Count) {
+                    return { IsSuccess: true, Message: "Reached Maximum limit", Data: null }
+                }
             }
+            
         }
 
         const Employees = await UserRepo.find(

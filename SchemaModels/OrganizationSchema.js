@@ -44,7 +44,8 @@ const OrganizationSchema = new mongoose.Schema({
     StartMonth:{type:String},
     EndMonth:{type:String},
     IsDraft:Boolean,
-    Competencies:[]
+    Competencies:[],
+    ParentOrganization:{ type: mongoose.Schema.Types.ObjectId, ref: 'Organization',default:null },
 });
 
 OrganizationSchema.set('toJSON', { versionKey: false });

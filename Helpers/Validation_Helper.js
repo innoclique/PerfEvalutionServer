@@ -336,7 +336,8 @@ exports.OrganizationSchema=(schema)=>{
          then:Joi.string().required().trim()
       }),
       EndMonth:Joi.optional(),
-      IsDraft:Joi.optional()
+      IsDraft:Joi.optional(),
+      ParentOrganization:Joi.string().required()
  });
 
  return organization;

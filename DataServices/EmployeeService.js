@@ -638,59 +638,57 @@ exports.GetKpisForTS = async (ThirdSignatory) => {
 
 
 exports.SaveCompetencyQnA = async (qna) => {
-    // var q= await EvaluationRepo.findOne({ _id: Mongoose.Types.ObjectId(qna.EvaluationId), "Employees._id": Mongoose.Types.ObjectId(qna.EmployeeId) });
-    for (let index = 0; index < qna.QnA.length; index++) {
-        const element = qna.QnA[index];
-        // for (let j = 0; j < q.Competencies.length; j++) {
-        //   const c = q.Competencies[j];
-
-        var fg = await EvaluationRepo.updateOne({
-            _id: Mongoose.Types.ObjectId(qna.EvaluationId),
-            "Employees._id": Mongoose.Types.ObjectId(qna.EmployeeId),
-            // "Employees.Competencies.Competency._id": Mongoose.Types.ObjectId(element.CompetencyId),
-            "Employees.Competencies.Questions": { $elemMatch: { _id: Mongoose.Types.ObjectId(element.QuestionId) } }
-            //"Employees.Competencies.$[].Questions.$[]._id":
-        },
-            {
-                $set: {
-                    "Employees.$[e].Competencies.$[c].Questions.$[q].SelectedRating": element.Answer
+    try {
+        for (let index = 0; index < qna.QnA.length; index++) {
+            const element = qna.QnA[index];    
+            var fg = await EvaluationRepo.updateOne({
+                _id: Mongoose.Types.ObjectId(qna.EvaluationId),
+                "Employees._id": Mongoose.Types.ObjectId(qna.EmployeeId),                
+                "Employees.Competencies.Questions": { $elemMatch: { _id: Mongoose.Types.ObjectId(element.QuestionId) } }                
+            },{
+               $set: {
+                        "Employees.$[e].Competencies.$[c].Questions.$[q].SelectedRating": element.Answer
+                    }
+    
+                },
+                {
+                    "arrayFilters": [
+                        { "e._id": ObjectId(qna.EmployeeId) },
+                        { "c._id": ObjectId(element.CompetencyRowId) },
+                        { "q._id": ObjectId(element.QuestionId) }]
                 }
-
+            )
+        }    
+        var updateCompetencyList = await EvaluationRepo.updateOne({
+            _id: Mongoose.Types.ObjectId(qna.EvaluationId),
+            "Employees._id": Mongoose.Types.ObjectId(qna.EmployeeId)    
+        },{
+            $set: {
+                    "Employees.$[e].CompetencyComments": qna.Comments,
+                    "Employees.$[e].CompetencyOverallRating": qna.OverallRating,
+                    "Employees.$[e].CompetencySubmitted": !qna.IsDraft,
+                    "Employees.$[e].CompetencySubmittedOn": qna.IsDraft ? null : new Date()
+                }
+    
             },
             {
                 "arrayFilters": [
-                    { "e._id": ObjectId(qna.EmployeeId) },
-                    { "c._id": ObjectId(element.CompetencyRowId) },
-                    { "q._id": ObjectId(element.QuestionId) }]
+                    { "e._id": ObjectId(qna.EmployeeId) }
+                ]
             }
         )
-
-        console.log(fg)
-        //}
+    if(updateCompetencyList){
+        return {IsSuccess:true}
+    }else{
+        return {IsSuccess:false}
     }
-
-    var updateCompetencyList = await EvaluationRepo.updateOne({
-        _id: Mongoose.Types.ObjectId(qna.EvaluationId),
-        "Employees._id": Mongoose.Types.ObjectId(qna.EmployeeId)
-
-    },
-        {
-            $set: {
-                "Employees.$[e].CompetencyComments": qna.Comments,
-                "Employees.$[e].CompetencyOverallRating": qna.OverallRating,
-                "Employees.$[e].CompetencySubmitted": !qna.IsDraft,
-                "Employees.$[e].CompetencySubmittedOn": qna.IsDraft ? null : new Date()
-            }
-
-        },
-        {
-            "arrayFilters": [
-                { "e._id": ObjectId(qna.EmployeeId) },
-            ]
-        }
-    )
-
-    console.log(updateCompetencyList)
+        
+            
+    } catch (error) {
+        logger.error('Error Occurred while saving Competency',error);
+        throw error;
+    }
+    
 
 };
 

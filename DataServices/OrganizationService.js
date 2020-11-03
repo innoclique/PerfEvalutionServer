@@ -132,7 +132,7 @@ exports.UpdateOrganization = async (organization) => {
         const userRecord = {
             Email: organization.AdminEmail,
             ContactPhone: organization.AdminPhone,
-            Role: 'Client',
+            Role: organization.ClientType==='Client'?'CSA':'RSA',
             FirstName: organization.AdminFirstName,
             LastName: organization.AdminLastName,
             MiddleName: organization.AdminMiddleName,
@@ -253,7 +253,7 @@ exports.AddReseller = async (organization) => {
         const userRecord = {
             Email: organization.AdminEmail,
             ContactPhone: organization.AdminPhone,
-            Role: organization.ClientType,
+            Role: organization.ClientType==='Client'?'CSA':'RSA',
             Password: pwd,
             FirstName: organization.AdminFirstName,
             LastName: organization.AdminLastName,
@@ -289,19 +289,19 @@ exports.AddReseller = async (organization) => {
         const Organization = new OrganizationRepo(organization);
         await Organization.save();
 
-        const userObj = await UserRepo.findByIdAndUpdate( createdUser.id , {  'Organization':Organization._id});
+        const userObj = await UserRepo.update( {_id:createdUser.id} ,{$set: {  'Organization':Organization._id}});
 
 
 
         //send email to admin user
+        
         var mailObject = SendMail.GetMailObject(
             userRecord.Email,
                   "Oraganization Added",
-                  `New Organization has been added. Your login details are given below.
-                  Email: ${userRecord.Email},
-                  Password: ${_temppwd}
+                  `Your Organization has been added successfully.
+                  Email: ${userRecord.Email}                  
                   <br/>
-                  Note: You will be redirected to reset password page on first login
+                  You will receive another email having temporary password to login.
                   `,
                   null,
                   null
@@ -310,7 +310,32 @@ exports.AddReseller = async (organization) => {
         SendMail.SendEmail(mailObject, function (res) {
             console.log(res);
         });
-        return true;
+        var mailObject = SendMail.GetMailObject(
+            userRecord.Email,
+                  "Organization Created-Temporary Password",
+
+                  `Dear ${userRecord.FirstName},
+
+                  Please use below temporary password to login into portal. 
+                  Password: ${_temppwd}
+                  <br/>
+                  You will be redirected to change password upon your First Login.
+
+                  
+                  Please click here to login.
+                  
+                  Thank you,
+                  Administrator
+                  `,
+                  null,
+                  null
+                );
+
+
+        SendMail.SendEmail(mailObject, function (res) {
+            console.log(res);
+        });
+
     }
     catch (err) {
         logger.error(err)
@@ -328,7 +353,7 @@ exports.UpdateReseller = async (organization) => {
         const userRecord = {
             Email: organization.AdminEmail,
             ContactPhone: organization.AdminPhone,
-            Role: 'Client',
+            Role: organization.ClientType==='Client'?'CSA':'RSA',
             FirstName: organization.AdminFirstName,
             LastName: organization.AdminLastName,
             MiddleName: organization.AdminMiddleName,

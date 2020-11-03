@@ -119,9 +119,9 @@ exports.Authenticate = async (LoginModel) => {
                 UserName: User.UserName, AccessToken: AccesToken,
                 RefreshToken: User.RefreshToken, IsPswChangedOnFirstLogin: User.IsPswChangedOnFirstLogin,
                 User: User,
-                Permissions:permissions.Permissions,
-                NavigationMenu:permissions.NavigationMenu,
-OrganizationData:OrganizationData
+                Permissions:permissions.Permissions||[],
+                NavigationMenu:permissions.NavigationMenu||[],
+                OrganizationData:OrganizationData
             };
         } else {
             console.log('not found')

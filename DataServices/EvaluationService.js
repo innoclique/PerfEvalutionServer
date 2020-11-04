@@ -348,6 +348,12 @@ exports.GetEvaluationDashboardData = async (request) => {
 
 
 exports.GetEmpCurrentEvaluation = async (emp) => {
+    var returnObject = {};
+    returnObject["Competencies"]={}
+    returnObject["FinalRating"]={}
+    returnObject["KpiList"]=[]
+    returnObject["PeerScoreCard"]={}
+    returnObject["DirectReporteeScoreCard"]={}
     try {
         const evaluationForm = await EvaluationRepo.findOne({ "Employees._id": ObjectId(emp.EmployeeId) }).populate("Employees.PeersCompetencyList._id").select({ "Employees.Peers": 0 });
         if (!evaluationForm) {
@@ -370,6 +376,8 @@ exports.GetEmpCurrentEvaluation = async (emp) => {
             returnObject.Competencies = await this.GetCompetencyValues({ EvaluationId: evaluationForm._id, employeeId: employee._id.toString() });
             returnObject.FinalRating = employee.FinalRating;
             returnObject.PeerScoreCard = await this.GetPeerAvgRating({ EvaluationId: evaluationForm._id.toString(), EmployeeId: employee._id.toString() })
+            returnObject.DirectReporteeScoreCard = await this.GetDirectReporteeAvgRating({ EvaluationId: evaluationForm._id.toString(), EmployeeId: employee._id.toString() })
+            
             return returnObject;
         }
     } catch (error) {
@@ -502,3 +510,61 @@ exports.GetPeerAvgRating = async (emp) => {
     }
 }
 
+exports.GetDirectReporteeAvgRating = async (emp) => {
+
+    try {
+        var list = await EvaluationRepo.aggregate([
+            { $match: { _id: ObjectId(emp.EvaluationId), "Employees._id": Mongoose.Types.ObjectId(emp.EmployeeId) } },
+            { $unwind: "$Employees" },
+            {
+                $project: {
+                    _id: 0,
+                    "EvaluationId": 1,
+                    "Employees._id": 1,
+                    "EvaluationPeriod": 1,
+                    "EvaluationDuration": 1,
+                    "Employees.DirectReportees.EmployeeId": 1,
+                    "Employees.DirectReportees.CompetencyOverallRating": 1
+                }
+
+            },
+            {$match: { "Employees._id": Mongoose.Types.ObjectId(emp.EmployeeId) } },
+            {
+                $lookup:
+                {
+                    from: "users",
+                    localField: "Employees.DirectReportees.EmployeeId",
+                    foreignField: "_id",
+                    as: "DirectReporteesList"
+                }
+            },
+            {
+                $addFields: {
+                    averageScore: { $avg: "$Employees.DirectReportees.CompetencyOverallRating" }
+
+                }
+            },
+
+            {
+                $project: {
+                    "DirectReporteesList._id": 1,
+                    "DirectReporteesList.FirstName": 1,
+                    "DirectReporteesList.LastName": 1,
+                    "DirectReporteesList.Email": 1,
+                    "DirectReporteesList.Manager": 1,
+                    "EvaluationPeriod": 1,
+                    "EvaluationDuration": 1,
+                    "EvaluationId": 1,
+                    "averageScore": 1
+
+                }
+            }
+        ]
+
+        )
+        return list[0];
+    } catch (error) {
+        logger.error('Error Occurred while getting data for Peer Review list:', error)
+        return Error(error.message)
+    }
+}

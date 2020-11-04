@@ -439,7 +439,8 @@ exports.GetEmployeeDataById = async (Id) => {
 exports.GetAllEmployees = async (employee) => {  
      const Employees = await UserRepo.find({        
          Organization:Mongoose.Types.ObjectId(employee.companyId)})     
-     .populate('ThirdSignatory CopiesTo DirectReports Manager');        
+     .populate('ThirdSignatory CopiesTo DirectReports Manager')
+     .sort({ UpdatedOn: -1 })  
      return Employees;    
 
 };

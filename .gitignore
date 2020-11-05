@@ -1,3 +1,5 @@
 node_modules
 /node_modules
 /Config
+logs/allLogs.log
+logs/error.log

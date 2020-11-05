@@ -414,7 +414,7 @@ exports.UpdateEmployee = async (employee) => {
 
         delete employee._id;
         employee.UpdatedOn = new Date();
-        const emp = await UserRepo.update(empId, employee);
+        const emp = await UserRepo.update({_id:empId}, employee);
 
         return true;
     }
@@ -429,7 +429,7 @@ exports.UpdateEmployee = async (employee) => {
 }
 
 exports.GetEmployeeDataById = async (Id) => {
-    debugger
+    
     const GetEmployee = await UserRepo.findById(Id);
 
     return GetEmployee;
@@ -437,7 +437,8 @@ exports.GetEmployeeDataById = async (Id) => {
 
 };
 exports.GetAllEmployees = async (employee) => {  
-     const Employees = await UserRepo.find({        
+     const Employees = await UserRepo.find({ 
+        Role:'EO',
          Organization:Mongoose.Types.ObjectId(employee.companyId)})     
      .populate('ThirdSignatory CopiesTo DirectReports Manager')
      .sort({ UpdatedOn: -1 })  

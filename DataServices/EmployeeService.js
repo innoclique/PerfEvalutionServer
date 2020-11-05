@@ -648,8 +648,7 @@ exports.SaveCompetencyQnA = async (qna) => {
             },{
                $set: {
                         "Employees.$[e].Competencies.$[c].Questions.$[q].SelectedRating": element.Answer
-                    }
-    
+                    }    
                 },
                 {
                     "arrayFilters": [
@@ -668,8 +667,7 @@ exports.SaveCompetencyQnA = async (qna) => {
                     "Employees.$[e].CompetencyOverallRating": qna.OverallRating,
                     "Employees.$[e].CompetencySubmitted": !qna.IsDraft,
                     "Employees.$[e].CompetencySubmittedOn": qna.IsDraft ? null : new Date()
-                }
-    
+                }    
             },
             {
                 "arrayFilters": [
@@ -681,9 +679,7 @@ exports.SaveCompetencyQnA = async (qna) => {
         return {IsSuccess:true}
     }else{
         return {IsSuccess:false}
-    }
-        
-            
+    }       
     } catch (error) {
         logger.error('Error Occurred while saving Competency',error);
         throw error;
@@ -924,14 +920,14 @@ exports.SaveEmployeeFinalRating = async (finalRating) => {
             ])
             console.log('ccc', c);
             if (c && c[0] && c[0].CurrentEmployee[0]) {
-                var empoyee = c[0].CurrentEmployee[0];
+                var employee = c[0].CurrentEmployee[0];
                 var manager = c[0].CurrentEmployeeManager[0];
-                if (empoyee) {
+                if (employee) {
 
                     var mailObject = SendMail.GetMailObject(
-                        empoyee.Email,
+                        employee.Email,
                         "Final Rating Submitted",
-                        `Dear ${empoyee.FirstName},
+                        `Dear ${employee.FirstName},
 
                           You have successfully submitted your year-end review
                           

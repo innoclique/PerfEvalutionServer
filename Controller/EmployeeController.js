@@ -2,7 +2,7 @@ const Validation_Helper = require('../Helpers/Validation_Helper');
 const Joi = require('joi');
 const UserService = require('../DataServices/UserService');
 const EmployeeService = require('../DataServices/EmployeeService')
-
+const EvaluationService=require('../DataServices/EvaluationService');
 
 exports.CreateEmployee = async (req, res, next) => {
     Joi.validate(req.body, Validation_Helper.ValidateCreateEmployeeModel(req.body), async (err, result) => {
@@ -305,6 +305,16 @@ exports.SaveEmployeeFinalRating= async (req, res, next) => {
 
 exports.GetPeerAvgRating= async (req, res, next) => {
     await EmployeeService.GetPeerAvgRating(req.body)
+        .then(Response => Response ? res.status(200).json(Response) : res.status(404).json("No Peer Review found"))
+        .catch(err => next(err));
+}
+exports.GetReporteeEvaluations= async (req, res, next) => {
+    await EvaluationService.GetReporteeEvaluations(req.body)
+        .then(Response => Response ? res.status(200).json(Response) : res.status(404).json("No Peer Review found"))
+        .catch(err => next(err));
+}
+exports.GetTSReporteeEvaluations= async (req, res, next) => {
+    await EvaluationService.GetTSReporteeEvaluations(req.body)
         .then(Response => Response ? res.status(200).json(Response) : res.status(404).json("No Peer Review found"))
         .catch(err => next(err));
 }

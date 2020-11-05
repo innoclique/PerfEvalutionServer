@@ -53,8 +53,7 @@ exports.AddEvaluation = async (evaluation) => {
         SendMail.SendEmail(mailObject, async function (res) {
             console.log(res);
         });
-        _currentEvaluation.Employees.map(e => {
-            debugger
+        _currentEvaluation.Employees.map(e => {            
             _deliveremails.push({
                 User: e._id._id,
                 Type: 'Employee Evaluation',
@@ -231,24 +230,33 @@ exports.GetCompetencyValues = async (evaluation) => {
                     foreignField: "_id",
                     as: "competenciesList"
                 }
+            },
+            {
+                $lookup:
+                {
+                    from: "questions",
+                    localField: "competenciesList.Questions",
+                    foreignField: "_id",
+                    as: "Questions"
+                }
             }
         ])
         var list = [];
-        for (let index = 0; index < modelAggregation[0].competenciesList.length; index++) {
-            const c = {};
-            const element = modelAggregation[0].competenciesList[index];
-            const Questions = [];
-            for (let k = 0; k < element.Questions.length; k++) {
-                const q = element.Questions[k];
-                var f = await questionsRepo.findById(ObjectId(q))
-                if (f) {
-                    f.SelectedRating = -1
-                    Questions.push(f)
-                }
-            }
+        for (let index = 0; index < modelAggregation[0].Questions.length; index++) {
+            
+            f.SelectedRating = -1
+            // const element = modelAggregation[0].competenciesList[index];
+            // const Questions = [];
+            // for (let k = 0; k < element.Questions.length; k++) {
+            //     const q = element.Questions[k];
+            //     var f = await questionsRepo.findById(ObjectId(q))
+            //     if (f) {
+            //         f.SelectedRating = -1
+            //         Questions.push(f)
+            //     }
+            // }
             list.push({ _id: new ObjectId(), Competency: element, Questions })
         }
-
         evaluationForm.Employees[0].Competencies = list;
         var t = await evaluationForm.save()
         return t;
@@ -371,7 +379,7 @@ exports.GetEmpCurrentEvaluation = async (emp) => {
                 'EvaluationId': evaluationForm._id.toString()
             }).populate('MeasurementCriteria.measureId Owner')
                 .sort({ UpdatedOn: -1 });
-
+                //this.GetCompetencyFormRatings({ EvaluationId: evaluationForm._id.toString(), EmployeeId: employee._id.toString() })// 
             returnObject.KpiList = Kpi;
             returnObject.Competencies = await this.GetCompetencyValues({ EvaluationId: evaluationForm._id, employeeId: employee._id.toString() });
             returnObject.FinalRating = employee.FinalRating;
@@ -568,3 +576,220 @@ exports.GetDirectReporteeAvgRating = async (emp) => {
         return Error(error.message)
     }
 }
+
+exports.GetCompetencyFormRatings = async (evaluation) => {
+    var currentEvaluationForm=await EvaluationRepo.aggregate([
+        { $match: { _id: ObjectId(evaluation.EvaluationId)} },
+        { $unwind: "$Employees" },
+        { $match: { "Employees._id": Mongoose.Types.ObjectId(evaluation.EmployeeId) } },
+        {
+            $project: {
+                _id: 0,
+                "EvaluationId": 1,               
+                "EvaluationPeriod": 1,
+                "EvaluationDuration": 1,               
+                "Employees":1                
+            }
+        }
+    ])
+    if(currentEvaluationForm && currentEvaluationForm.length>0){
+        const currentEmployee=currentEvaluationForm[0].Employees;
+        if(currentEmployee && currentEmployee.Competencies && currentEmployee.Competencies.length>0){
+            return currentEmployee;
+        }else{
+        var modelAggregation = await ModelsRepo.aggregate([
+            { $match: { _id: currentEmployee.Model} },
+            {
+                $lookup:
+                {
+                    from: "competencies",
+                    localField: "Competencies",
+                    foreignField: "_id",
+                    as: "competenciesList"
+                }
+            },
+            {
+                $lookup:
+                {
+                    from: "questions",
+                    localField: "competenciesList.Questions",
+                    foreignField: "_id",
+                    as: "Questions"
+                }
+            }
+        ])
+        var list = [];
+        for (let index = 0; index < modelAggregation[0].Questions.length; index++) {
+            const q = modelAggregation[0].Questions[index];
+                q.SelectedRating = -1
+        }
+        for (let index = 0; index < modelAggregation[0].competenciesList.length; index++) {
+            const c = {};
+            const element = modelAggregation[0].competenciesList[index];
+            const Questions = [];
+            for (let k = 0; k < element.Questions.length; k++) {
+                const q = element.Questions[k];
+                var f = await questionsRepo.findById(ObjectId(q))
+                if (f) {
+                    f.SelectedRating = -1
+                    Questions.push(f)
+                }
+            }
+            list.push({ _id: new ObjectId(), Competency: element, Questions })
+        }
+        currentEmployee.Competencies = list;
+        currentEvaluationForm[0].Employees.Competencies=list;
+        var t = await currentEvaluationForm.save()
+        return currentEmployee;
+    }
+
+        }
+    
+    
+   
+}
+
+
+//#region Manager's Reportees Start
+exports.GetReporteeEvaluations=async(manager)=>{
+try {
+    const reportees=await UserRepo.aggregate([
+        {$match:{Manager:ObjectId(manager.id)}},
+        {$addFields:{EmployeeId:"$_id"}},
+        {
+            $project:{
+                FirstName:1,
+                LastName:1,
+                Email:1,
+                EmployeeId:1              
+            }
+        },
+        {
+            $lookup:{
+                from: "evalutions",
+                    localField: "EmployeeId",
+                    foreignField: "Employees._id",
+                    as: "EvaluationList"
+            }
+        }
+        ,
+        {
+            $match:{
+                "EvaluationList.EvaluationYear":new Date().getFullYear().toString()
+            }
+        },
+        
+        {
+            $lookup:{
+                from: "devgoals",
+                    localField: "EmployeeId",
+                    foreignField: "Owner",                    
+                    as: "GoalList",
+            }
+        },
+        {
+            $lookup:{
+                from: "kpis",
+                    localField: "EmployeeId",
+                    foreignField: "Owner",
+                    as: "KpiList"
+            }
+            
+        },
+        {$addFields:{Evaluation:"$EvaluationList.Employees"}},
+        
+        {
+            $project:{
+                KpiList:1,
+                GoalList:1,
+                Email:1,
+                FirstName:1,
+                LastName:1,
+                EmployeeId:1,
+                Evaluation:1
+        
+
+            }
+        }
+        // ,
+        // {$unwind:{"EvaluationList.Employees":1}}
+    ])
+    return reportees;
+    
+} catch (error) {
+console.log('error',error)    
+logger.error(error);
+}
+}
+//#endregion
+
+exports.GetTSReporteeEvaluations=async(ts)=>{
+    try {
+        const reportees=await UserRepo.aggregate([
+            {$match:{ThirdSignatory:ObjectId(ts.id)}},
+            {$addFields:{EmployeeId:"$_id"}},
+            {
+                $project:{
+                    FirstName:1,
+                    LastName:1,
+                    Email:1,
+                    EmployeeId:1              
+                }
+            },
+            {
+                $lookup:{
+                    from: "evalutions",
+                        localField: "EmployeeId",
+                        foreignField: "Employees._id",
+                        as: "EvaluationList"
+                }
+            }
+            ,
+            {
+                $match:{
+                    "EvaluationList.EvaluationYear":new Date().getFullYear().toString()
+                }
+            },
+            
+            {
+                $lookup:{
+                    from: "devgoals",
+                        localField: "EmployeeId",
+                        foreignField: "Owner",                    
+                        as: "GoalList",
+                }
+            },
+            {
+                $lookup:{
+                    from: "kpis",
+                        localField: "EmployeeId",
+                        foreignField: "Owner",
+                        as: "KpiList"
+                }
+                
+            },
+            {$addFields:{Evaluation:"$EvaluationList.Employees"}},
+            
+            {
+                $project:{
+                    KpiList:1,
+                    GoalList:1,
+                    Email:1,
+                    FirstName:1,
+                    LastName:1,
+                    EmployeeId:1,
+                    Evaluation:1
+            
+    
+                }
+            }
+            // ,
+            // {$unwind:{"EvaluationList.Employees":1}}
+        ])
+        return reportees;
+        
+    } catch (error) {
+    console.log('error',error)    
+    logger.error(error);
+    }
+    }

@@ -65,6 +65,8 @@ route.post('/SavePeerReview', EmployeeController.SavePeerReview);
 route.post('/SaveEmployeeFinalRating', EmployeeController.SaveEmployeeFinalRating);
 route.post('/GetPeerAvgRating', EmployeeController.GetPeerAvgRating);
 route.post('/GetAllOrganizationsForReseller', ApplicationController.GetAllOrganizationsForReseller);
+route.post('/GetReporteeEvaluations', EmployeeController.GetReporteeEvaluations);
+route.post('/GetTSReporteeEvaluations', EmployeeController.GetTSReporteeEvaluations);
 
 module.exports = route;
 

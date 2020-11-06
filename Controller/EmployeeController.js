@@ -303,6 +303,13 @@ exports.SaveEmployeeFinalRating= async (req, res, next) => {
         .catch(err => next(err));
 }
 
+
+exports.SaveManagerFinalRating= async (req, res, next) => {
+    await EmployeeService.SaveManagerFinalRating(req.body)
+        .then(Response => Response ? res.status(200).json(Response) : res.status(404).json("No Peer Review found"))
+        .catch(err => next(err));
+}
+
 exports.GetPeerAvgRating= async (req, res, next) => {
     await EmployeeService.GetPeerAvgRating(req.body)
         .then(Response => Response ? res.status(200).json(Response) : res.status(404).json("No Peer Review found"))

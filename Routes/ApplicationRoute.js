@@ -63,6 +63,7 @@ route.post('/GetPendingPeerReviewsList', EmployeeController.GetPendingPeerReview
 route.post('/GetPendingPeerReviewsToSubmit', EmployeeController.GetPendingPeerReviewsToSubmit);
 route.post('/SavePeerReview', EmployeeController.SavePeerReview);
 route.post('/SaveEmployeeFinalRating', EmployeeController.SaveEmployeeFinalRating);
+route.post('/SaveManagerFinalRating', EmployeeController.SaveManagerFinalRating);
 route.post('/GetPeerAvgRating', EmployeeController.GetPeerAvgRating);
 route.post('/GetAllOrganizationsForReseller', ApplicationController.GetAllOrganizationsForReseller);
 route.post('/GetReporteeEvaluations', EmployeeController.GetReporteeEvaluations);

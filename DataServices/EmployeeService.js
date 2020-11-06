@@ -880,6 +880,7 @@ exports.SaveManagerFinalRating = async (finalRating) => {
                     "Employees.$[e].FinalRating.Manager.IsSubmitted": !finalRating.IsDraft,
                     "Employees.$[e].FinalRating.Manager.SubmittedOn": finalRating.IsDraft ? null : new Date(),
                     "Employees.$[e].FinalRating.Manager.SignOff": finalRating.SignOff,
+                    "Employees.$[e].FinalRating.Status": 'Manager Submited',
 
                 }
             },
@@ -931,12 +932,12 @@ exports.SaveManagerFinalRating = async (finalRating) => {
             if (c && c[0] && c[0].CurrentEmployee[0]) {
                 var empoyee = c[0].CurrentEmployee[0];
                 var manager = c[0].CurrentEmployeeManager[0];
-                if (empoyee) {
+                if (manager) {
 
                     var mailObject = SendMail.GetMailObject(
-                        empoyee.Email,
+                        manager.Email,
                         "Final Rating Submitted",
-                        `Dear ${empoyee.FirstName},
+                        `Dear ${manager.FirstName},
 
                           You have successfully submitted your year-end review
                           
@@ -951,13 +952,13 @@ exports.SaveManagerFinalRating = async (finalRating) => {
                         console.log(res);
                     });
                 }
-                if (manager) {
+                if (empoyee) {
                     var mailObject = SendMail.GetMailObject(
-                        manager.Email,
+                        empoyee.Email,
                         "Final Rating Submitted",
-                        `Dear ${manager.FirstName},
+                        `Dear ${empoyee.FirstName},
 
-                          Your reportee ${employee.FirstName} has successfully submitted  year-end review.
+                          Your Manager ${manager.FirstName} has successfully submitted  year-end review.
                           Kindly access portal to review the year-end review.
                           Thank you,
                           Administrator
@@ -995,6 +996,7 @@ exports.SaveEmployeeFinalRating = async (finalRating) => {
                     "Employees.$[e].FinalRating.Self.IsSubmitted": !finalRating.IsDraft,
                     "Employees.$[e].FinalRating.Self.SubmittedOn": finalRating.IsDraft ? null : new Date(),
                     "Employees.$[e].FinalRating.Self.SignOff": finalRating.SignOff,
+                    "Employees.$[e].FinalRating.Status": 'Employee Submited',
 
                 }
             },

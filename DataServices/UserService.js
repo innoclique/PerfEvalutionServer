@@ -88,7 +88,7 @@ exports.Authenticate = async (LoginModel) => {
     Password = LoginModel.Password;
     console.log('came into login metho')
     try {        
-        const User = await  UserRepo.findOne({ 'Email': Email }) .populate('ThirdSignatory CopiesTo DirectReports Manager Organization JobLevel');
+        const User = await  UserRepo.findOne({ 'Email': Email }) .populate('ThirdSignatory CopiesTo DirectReports Manager Organization JobLevel').select("+Password");
         if (User && Bcrypt.compareSync(Password, User.Password)) {
             var AccesToken = AuthHelper.CreateShortAccesstoken(User);
             if (User.IsLoggedIn) {
@@ -139,7 +139,7 @@ exports.AuthenticateAdmin = async (LoginModel) => {
         Email = LoginModel.Email;
         Password = LoginModel.Password;
 
-        const User = await UserRepo.findOne({ Email: Email });
+        const User = await UserRepo.findOne({ Email: Email }).select("+Password");
 
         if (User && Bcrypt.compareSync(Password, User.Password)) {
 
@@ -162,7 +162,7 @@ exports.AuthenticateAdmin = async (LoginModel) => {
 
 exports.SendResetPsw = async (LoginModel) => {
     Email = LoginModel.Email;
-    const User = await UserRepo.findOne({ 'Email': Email });
+    const User = await UserRepo.findOne({ 'Email': Email }).select("+Password");
 
     if (User && true) {
 
@@ -196,7 +196,7 @@ exports.SendResetPsw = async (LoginModel) => {
 exports.UpdatePassword = async (resetModel) => {
     id = resetModel.userId;
 
-    const User = await UserRepo.findById(id);
+    const User = await UserRepo.findById(id).select("+Password");
     if (User) {
         if (!Bcrypt.compareSync(resetModel.oldPassword, User.Password)) {
             throw Error("Invalid old password");
@@ -218,7 +218,7 @@ exports.UpdatePassword = async (resetModel) => {
 
 exports.ManageAccount = async (id, Model) => {
 
-    const USertoUpdate = await UserRepo.findById(id);
+    const USertoUpdate = await UserRepo.findById(id).select("+Password");
 
     if (USertoUpdate === null) { throw Error("User Not Found"); }
 

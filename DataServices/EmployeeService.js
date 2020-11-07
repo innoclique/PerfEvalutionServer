@@ -867,6 +867,132 @@ exports.SavePeerReview = async (qna) => {
 
 
 
+
+
+
+
+exports.SaveTSFinalRating = async (finalRating) => {
+    try {
+        var _update = await EvaluationRepo.updateOne({
+            _id: Mongoose.Types.ObjectId(finalRating.EvaluationId),
+            "Employees._id": Mongoose.Types.ObjectId(finalRating.EmployeeId)
+        },
+            {
+                $set: {
+                    "Employees.$[e].FinalRating.ThirdSignatory.YearEndComments": finalRating.YearEndComments,
+                    "Employees.$[e].FinalRating.ThirdSignatory.YearEndRating": finalRating.OverallRating,
+                    "Employees.$[e].FinalRating.ThirdSignatory.IsSubmitted": (finalRating.IsDraft || finalRating.ReqRevision) ?false:true,
+                    "Employees.$[e].FinalRating.ThirdSignatory.SubmittedOn": (finalRating.IsDraft || finalRating.ReqRevision)? null : new Date(),
+                    "Employees.$[e].FinalRating.ThirdSignatory.SignOff": finalRating.SignOff,
+
+                    "Employees.$[e].FinalRating.ThirdSignatory.RevComments": finalRating.RevComments,
+                    "Employees.$[e].FinalRating.ThirdSignatory.ReqRevision": finalRating.ReqRevision,
+                    "Employees.$[e].FinalRating.Manager.IsSubmitted": (finalRating.ReqRevision) ?false:true,
+                    "Employees.$[e].FinalRating.Status": `ThirdSignatory ${finalRating.ReqRevision?'Request Revision': 'Submited'}`,
+
+                }
+            },
+            {
+                "arrayFilters": [
+                    { "e._id": ObjectId(finalRating.EmployeeId) }
+                ]
+            }
+        )
+        if (_update.nModified) {
+            var c = await EvaluationRepo.aggregate([
+                { $match: { _id: ObjectId(finalRating.EvaluationId) } },
+                { $unwind: '$Employees' },
+                { $match: { "Employees._id": ObjectId(finalRating.EmployeeId) } },
+                {
+                    $lookup:
+                    {
+                        from: "users",
+                        localField: "Employees._id",
+                        foreignField: "_id",
+                        as: "CurrentEmployee"
+
+                    }
+                },
+                {
+                    $lookup:
+                    {
+                        from: "users",
+                        localField: "CurrentEmployee.Manager",
+                        foreignField: "_id",
+                        as: "CurrentEmployeeManager"
+
+                    }
+                },
+                {
+                    $project: {
+                        "CurrentEmployee.FirstName": 1,
+                        "CurrentEmployee.LastName": 1,
+                        "CurrentEmployee.Email": 1,
+                        "CurrentEmployeeManager.FirstName": 1,
+                        "CurrentEmployeeManager.LastName": 1,
+                        "CurrentEmployeeManager.Email": 1
+
+                    }
+
+                }
+            ])
+            console.log('ccc', c);
+            if (c && c[0] && c[0].CurrentEmployee[0]) {
+                var empoyee = c[0].CurrentEmployee[0];
+                var manager = c[0].CurrentEmployeeManager[0];
+                if (manager) {
+
+                    var mailObject = SendMail.GetMailObject(
+                        manager.Email,
+                        "Final Rating Submitted",
+                        `Dear ${manager.FirstName},
+
+                          You have successfully submitted your year-end review
+                          
+                          Thank you,
+                          Administrator
+                          `,
+                        null,
+                        null
+                    );
+
+                    SendMail.SendEmail(mailObject, function (res) {
+                        console.log(res);
+                    });
+                }
+                if (empoyee) {
+                    var mailObject = SendMail.GetMailObject(
+                        empoyee.Email,
+                        "Final Rating Submitted",
+                        `Dear ${empoyee.FirstName},
+
+                          Your Manager ${manager.FirstName} has successfully submitted  year-end review.
+                          Kindly access portal to review the year-end review.
+                          Thank you,
+                          Administrator
+                          `,
+                        null,
+                        null
+                    );
+
+                    SendMail.SendEmail(mailObject, function (res) {
+                        console.log(res);
+                    });
+                }
+            }
+            return { IsSuccess: true }
+        }
+        else
+            return { IsSuccess: false, Message: 'No Reocrd got updated' }
+    } catch (error) {
+        logger.error('error occurred while saving peer review:', error)
+        throw error;
+    }
+
+}
+
+
+
 exports.SaveManagerFinalRating = async (finalRating) => {
     try {
         var _update = await EvaluationRepo.updateOne({
@@ -880,7 +1006,14 @@ exports.SaveManagerFinalRating = async (finalRating) => {
                     "Employees.$[e].FinalRating.Manager.IsSubmitted": !finalRating.IsDraft,
                     "Employees.$[e].FinalRating.Manager.SubmittedOn": finalRating.IsDraft ? null : new Date(),
                     "Employees.$[e].FinalRating.Manager.SignOff": finalRating.SignOff,
-                    "Employees.$[e].FinalRating.Status": 'Manager Submited',
+
+                    "Employees.$[e].FinalRating.Manager.RevComments": finalRating.RevComments,
+                    "Employees.$[e].FinalRating.Manager.ReqRevision": finalRating.ReqRevision,
+                    "Employees.$[e].FinalRating.Self.IsSubmitted": (finalRating.ReqRevision) ?false:true,
+                    "Employees.$[e].FinalRating.Status": `Manager ${finalRating.ReqRevision?'Request Revision': 'Submited'}`,
+
+
+                    "Employees.$[e].FinalRating.ThirdSignatory.ReqRevision": false,
 
                 }
             },
@@ -993,10 +1126,12 @@ exports.SaveEmployeeFinalRating = async (finalRating) => {
                 $set: {
                     "Employees.$[e].FinalRating.Self.YearEndComments": finalRating.YearEndComments,
                     "Employees.$[e].FinalRating.Self.YearEndRating": finalRating.OverallRating,
-                    "Employees.$[e].FinalRating.Self.IsSubmitted": !finalRating.IsDraft,
+                    "Employees.$[e].FinalRating.Self.IsSubmitted": (finalRating.IsDraft || finalRating.ReqRevision) ?false:true,
                     "Employees.$[e].FinalRating.Self.SubmittedOn": finalRating.IsDraft ? null : new Date(),
                     "Employees.$[e].FinalRating.Self.SignOff": finalRating.SignOff,
                     "Employees.$[e].FinalRating.Status": 'Employee Submited',
+
+                    "Employees.$[e].FinalRating.Manager.ReqRevision": false,
 
                 }
             },

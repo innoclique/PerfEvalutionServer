@@ -44,14 +44,18 @@ const Evalution = new mongoose.Schema({
             Manager: {
                 YearEndComments: { type: String, default: "" },
                 YearEndRating: { type: String, default: "" },
+                RevComments: { type: String, default: "" },
                 SubmittedOn: { type: Date, default: Date() },
-                IsSubmitted: { type: Boolean, default: false }
+                IsSubmitted: { type: Boolean, default: false },
+                ReqRevision: { type: Boolean, default: false }
             },
             ThirdSignatory: {
                 YearEndComments: { type: String, default: "" },
+                RevComments: { type: String, default: "" },
                 YearEndRating: { type: String, default: "" },
                 SubmittedOn: { type: Date, default: Date() },
-                IsSubmitted: { type: Boolean, default: false }
+                IsSubmitted: { type: Boolean, default: false },
+                ReqRevision: { type: Boolean, default: false }
             },
             Status: { type: String, default: "" },
             UpdatedOn: { type: Date, default: Date() }

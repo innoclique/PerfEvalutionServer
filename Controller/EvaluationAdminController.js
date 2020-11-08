@@ -138,3 +138,10 @@ exports.GetEmployeePeersCompetencies=async (req,res,next)=>{
          next(error)});
 }
 
+exports.ReleaseKpiForm=async (req,res,next)=>{
+    await EvaluationService.ReleaseKpiForm(req.body)
+    .then(Response => res.status(200).json(Response))
+    .catch(error =>{
+        logger.error(error)
+         next(error)});
+}

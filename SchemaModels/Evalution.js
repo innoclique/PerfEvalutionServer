@@ -59,9 +59,12 @@ const Evalution = new mongoose.Schema({
             },
             Status: { type: String, default: "" },
             UpdatedOn: { type: Date, default: Date() }
-        }
-
-
+        },
+        InitiatedFor: { 
+            type: String,             
+            enum : ['KPI', 'Evaluation'],             
+            default: 'KPI'             
+            }
     }
     ],
     ActivateKPI: Boolean,
@@ -75,6 +78,8 @@ const Evalution = new mongoose.Schema({
     UpdatedDate: { type: Date, default: Date() },
     Company: { type: mongoose.Schema.Types.ObjectId, ref: 'Organization', default: null },
     EvaluationYear: { type: String, default: new Date().getFullYear() },
+
+
     // tracks: [{
     //     user: {
     //         type: mongoose.Schema.Types.ObjectId,

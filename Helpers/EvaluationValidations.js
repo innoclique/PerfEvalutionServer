@@ -42,7 +42,7 @@ exports.ValidateEvaluationForm = (data) => {
 }
 exports.ValidateDraftEvaluationForm = (data) => {
     const schema = Joi.object().keys({
-        Department:Joi.string().required(),
+        
         Employees:Joi.array().items(Joi.object().required()).min(1).required(),
         EvaluationPeriod: Joi.string().allow('').optional(),
         EvaluationDuration: Joi.string().allow('').optional(),

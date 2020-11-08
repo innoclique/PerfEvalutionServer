@@ -19,12 +19,9 @@ const Messages = require('../Helpers/Messages');
 const UserRepo = require('../SchemaModels/UserSchema');
 const SendMail = require("../Helpers/mail.js");
 var logger = require('../logger');
-
-
 const moment = require("moment");
-
-
 const ObjectId = Mongoose.Types.ObjectId;
+const KpiFormRepo = require('../SchemaModels/KpiForm');
 
 exports.AddStrength = async (strength) => {
     try {
@@ -484,12 +481,12 @@ exports.GetManagers = async (data) => {
             SelectedRoles: { $in: ["EM"] }
         })
 
-        const csa = await UserRepo.findOne(
-            {
-                Organization: Mongoose.Types.ObjectId(data.companyId),
-                Role: 'CSA'
-            })
-            managers.push(csa);
+    const csa = await UserRepo.findOne(
+        {
+            Organization: Mongoose.Types.ObjectId(data.companyId),
+            Role: 'CSA'
+        })
+    managers.push(csa);
     return managers;
 }
 
@@ -509,36 +506,57 @@ exports.GetThirdSignatorys = async (data) => {
 /**For getting employees who has not been added to evaluation */
 exports.GetUnlistedEmployees = async (search) => {
     try {
-        let orgData = await OrganizationRepo.findOne({ _id: search.company });
-        if (!orgData) {
-            return { IsSuccess: true, Message: "No Organization details found", Data: null }
+        if (search.allKpi) {
+            var response = await KpiFormRepo.aggregate([{$match: { 
+                Company: Mongoose.Types.ObjectId(search.company),
+                EvaluationYear:new Date().getFullYear().toString() }},
+                {$project:{
+                    EmployeeId:1
+                }}
+            ])
+            const Employees = await UserRepo.find(
+                {
+                    Organization: Mongoose.Types.ObjectId(search.company),
+                    HasActiveEvaluation: { $ne: "Yes" },
+                    _id: { $in: response.map(x=>{return x.EmployeeId}) }
+
+                }).populate("Manager").sort({ CreatedOn: -1 })
+
+
+            return { IsSuccess: true, Message: "", Data: Employees }
+
+
+
         }
-        //let currentUsersCount=await UserRepo.find({Organization:ObjectId(search.company),IsActive:true}).count()
-        const checkpoint = await UserRepo.aggregate([
-            { $match: { Organization: ObjectId(search.company) } },
-            { $group: { _id: "$HasActiveEvaluation", Count: { $sum: 1 } } }
-        ])
-        
-        if (checkpoint && checkpoint.length > 0) {        
-            let activeEvaluationCount = checkpoint.find(x => x._id === 'Yes')
-            if(activeEvaluationCount){
-                if (parseInt(orgData.UsageCount) === activeEvaluationCount.Count) {
-                    return { IsSuccess: true, Message: "Reached Maximum limit", Data: null }
-                }
+        else {
+            let orgData = await OrganizationRepo.findOne({ _id: search.company });
+            if (!orgData) {
+                return { IsSuccess: true, Message: "No Organization details found", Data: null }
             }
-            
+            //let currentUsersCount=await UserRepo.find({Organization:ObjectId(search.company),IsActive:true}).count()
+            const checkpoint = await UserRepo.aggregate([
+                { $match: { Organization: ObjectId(search.company) } },
+                { $group: { _id: "$HasActiveEvaluation", Count: { $sum: 1 } } }
+            ])
+
+            if (checkpoint && checkpoint.length > 0) {
+                let activeEvaluationCount = checkpoint.find(x => x._id === 'Yes')
+                if (activeEvaluationCount) {
+                    if (parseInt(orgData.UsageCount) === activeEvaluationCount.Count) {
+                        return { IsSuccess: true, Message: "Reached Maximum limit", Data: null }
+                    }
+                }
+
+            }
+
+            const Employees = await UserRepo.find(
+                {
+                    Organization: Mongoose.Types.ObjectId(search.company),
+                    HasActiveEvaluation: { $ne: "Yes" }
+
+                }).populate("Manager").sort({ CreatedOn: -1 })
+            return { IsSuccess: true, Message: "", Data: Employees }
         }
-
-        const Employees = await UserRepo.find(
-            {
-                Organization: Mongoose.Types.ObjectId(search.company),
-                HasActiveEvaluation: { $ne: "Yes" }
-                
-            }).populate("Manager").sort({ CreatedOn: -1 })
-        return { IsSuccess: true, Message: "", Data: Employees }
-
-
-
     } catch (error) {
         logger.error('Error occurred while checking employee count', error)
         throw error;
@@ -647,16 +665,16 @@ exports.GetKpisForTS = async (ThirdSignatory) => {
 exports.SaveCompetencyQnA = async (qna) => {
     try {
         for (let index = 0; index < qna.QnA.length; index++) {
-            const element = qna.QnA[index];    
+            const element = qna.QnA[index];
             var fg = await EvaluationRepo.updateOne({
                 _id: Mongoose.Types.ObjectId(qna.EvaluationId),
-                "Employees._id": Mongoose.Types.ObjectId(qna.EmployeeId),                
-                "Employees.Competencies.Questions": { $elemMatch: { _id: Mongoose.Types.ObjectId(element.QuestionId) } }                
-            },{
-               $set: {
-                        "Employees.$[e].Competencies.$[c].Questions.$[q].SelectedRating": element.Answer
-                    }    
-                },
+                "Employees._id": Mongoose.Types.ObjectId(qna.EmployeeId),
+                "Employees.Competencies.Questions": { $elemMatch: { _id: Mongoose.Types.ObjectId(element.QuestionId) } }
+            }, {
+                $set: {
+                    "Employees.$[e].Competencies.$[c].Questions.$[q].SelectedRating": element.Answer
+                }
+            },
                 {
                     "arrayFilters": [
                         { "e._id": ObjectId(qna.EmployeeId) },
@@ -664,34 +682,34 @@ exports.SaveCompetencyQnA = async (qna) => {
                         { "q._id": ObjectId(element.QuestionId) }]
                 }
             )
-        }    
+        }
         var updateCompetencyList = await EvaluationRepo.updateOne({
             _id: Mongoose.Types.ObjectId(qna.EvaluationId),
-            "Employees._id": Mongoose.Types.ObjectId(qna.EmployeeId)    
-        },{
+            "Employees._id": Mongoose.Types.ObjectId(qna.EmployeeId)
+        }, {
             $set: {
-                    "Employees.$[e].CompetencyComments": qna.Comments,
-                    "Employees.$[e].CompetencyOverallRating": qna.OverallRating,
-                    "Employees.$[e].CompetencySubmitted": !qna.IsDraft,
-                    "Employees.$[e].CompetencySubmittedOn": qna.IsDraft ? null : new Date()
-                }    
-            },
+                "Employees.$[e].CompetencyComments": qna.Comments,
+                "Employees.$[e].CompetencyOverallRating": qna.OverallRating,
+                "Employees.$[e].CompetencySubmitted": !qna.IsDraft,
+                "Employees.$[e].CompetencySubmittedOn": qna.IsDraft ? null : new Date()
+            }
+        },
             {
                 "arrayFilters": [
                     { "e._id": ObjectId(qna.EmployeeId) }
                 ]
             }
         )
-    if(updateCompetencyList){
-        return {IsSuccess:true}
-    }else{
-        return {IsSuccess:false}
-    }       
+        if (updateCompetencyList) {
+            return { IsSuccess: true }
+        } else {
+            return { IsSuccess: false }
+        }
     } catch (error) {
-        logger.error('Error Occurred while saving Competency',error);
+        logger.error('Error Occurred while saving Competency', error);
         throw error;
     }
-    
+
 
 };
 

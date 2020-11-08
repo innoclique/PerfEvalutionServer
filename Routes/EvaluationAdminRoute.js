@@ -16,5 +16,6 @@ router.post("/UpdateDirectReportees", EvaluationController.UpdateDirectReportees
 router.post("/GetCompetencyValues", EvaluationController.GetCompetencyValues);
 router.post("/GetEmpCurrentEvaluation", EvaluationController.GetEmpCurrentEvaluation);
 router.post("/GetEmployeePeersCompetencies", EvaluationController.GetEmployeePeersCompetencies);
+router.post("/ReleaseKpiForm", EvaluationController.ReleaseKpiForm);
 
 module.exports = router;

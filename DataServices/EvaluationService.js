@@ -283,18 +283,16 @@ exports.GetCompetencyValues = async (evaluation) => {
         ])
         var list = [];
         for (let index = 0; index < modelAggregation[0].Questions.length; index++) {
-
-            f.SelectedRating = -1
-            // const element = modelAggregation[0].competenciesList[index];
-            // const Questions = [];
-            // for (let k = 0; k < element.Questions.length; k++) {
-            //     const q = element.Questions[k];
-            //     var f = await questionsRepo.findById(ObjectId(q))
-            //     if (f) {
-            //         f.SelectedRating = -1
-            //         Questions.push(f)
-            //     }
-            // }
+            const element = modelAggregation[0].competenciesList[index];
+            const Questions = [];
+            for (let k = 0; k < element.Questions.length; k++) {
+                const q = element.Questions[k];
+                var f = await questionsRepo.findById(ObjectId(q))
+                if (f) {
+                    f.SelectedRating = -1
+                    Questions.push(f)
+                }
+            }
             list.push({ _id: new ObjectId(), Competency: element, Questions })
         }
         evaluationForm.Employees[0].Competencies = list;

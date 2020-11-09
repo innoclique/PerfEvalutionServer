@@ -414,7 +414,8 @@ exports.GetEmpCurrentEvaluation = async (emp) => {
             const Kpi = await KpiRepo.find({
                 'Owner': emp.EmployeeId,
                 'IsDraftByManager': false,
-                'EvaluationId': evaluationForm._id.toString()
+                'EvaluationYear' :new Date().getFullYear(),
+                // 'EvaluationId': evaluationForm._id.toString()
             }).populate('MeasurementCriteria.measureId Owner')
                 .sort({ UpdatedOn: -1 });
             //this.GetCompetencyFormRatings({ EvaluationId: evaluationForm._id.toString(), EmployeeId: employee._id.toString() })// 

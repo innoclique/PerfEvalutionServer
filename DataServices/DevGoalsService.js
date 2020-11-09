@@ -15,7 +15,8 @@ exports.GetKpisForDevGoals = async (data) => {
 
 
     try {
-        const Kpi = await KpiRepo.find({ 'Owner': data.empId })
+        const Kpi = await KpiRepo.find({ 'Owner': data.empId,
+        'EvaluationYear' :new Date().getFullYear() })
             .populate('MeasurementCriteria.measureId Owner')
             .sort({ UpdatedOn: -1 });
 

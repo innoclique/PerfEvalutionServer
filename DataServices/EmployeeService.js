@@ -198,19 +198,28 @@ exports.GetAllKpis = async (data) => {
 
 
 
-    var allEvaluation = await EvaluationRepo.find({
+    var evaluation = await EvaluationRepo.findOne({
         Employees: { $elemMatch: { _id: Mongoose.Types.ObjectId(data.empId) } },
+        EvaluationYear :new Date().getFullYear(),
         Company: data.orgId
     }).sort({ CreatedDate: -1 });
-    let currEvaluation = allEvaluation[0];
-    let preEvaluation = allEvaluation[1];
+    // let currEvaluation = allEvaluation[0];
+    // let preEvaluation = allEvaluation[1];
 
-    if (!currEvaluation || allEvaluation.length == 0) {
-        throw Error("KPI Setting Form Not Activeted");
+  var kpiFormData  = await KpiFormRepo.findOne({'EmployeeId':  Mongoose.Types.ObjectId(data.empId),
+       IsDraft:false, IsActive:true, EvaluationYear :new Date().getFullYear()
+     });
+
+    if (!kpiFormData) {
+        if (evaluation) {
+            
+        } else {   
+               throw Error("KPI Setting Form Not Activeted");
+        }
     }
     var preKpi = [];
-    if (preEvaluation && !data.currentOnly) {
-        preKpi = await KpiRepo.find({ 'Owner': data.empId, 'EvaluationId': preEvaluation._id })
+    if (!data.currentOnly) {
+        preKpi = await KpiRepo.find({ 'Owner': data.empId, EvaluationYear :new Date().getFullYear()-1 })
             .populate({
                 path: 'MeasurementCriteria.measureId Owner',
                 populate: {
@@ -222,7 +231,7 @@ exports.GetAllKpis = async (data) => {
     }
 
 
-    const Kpi = await KpiRepo.find({ 'Owner': data.empId, 'IsDraftByManager': false, 'EvaluationId': currEvaluation._id })
+    const Kpi = await KpiRepo.find({ 'Owner': data.empId, 'IsDraftByManager': false , EvaluationYear :new Date().getFullYear() })
         .populate({
             path: 'MeasurementCriteria.measureId Owner',
             populate: {
@@ -244,6 +253,7 @@ exports.GetKpisByManager = async (managerId) => {
 
     var Kpis = await KpiRepo.find({
         'ManagerId': managerId,
+        'EvaluationYear' :new Date().getFullYear(),
         'IsDraft': false,
         'IsSubmitedKPIs': true
 
@@ -260,6 +270,7 @@ exports.GetKpisByManager = async (managerId) => {
     var managerDraftsKpis = await KpiRepo.find({
         'ManagerId': managerId,
         'IsDraft': false,
+        'EvaluationYear' :new Date().getFullYear(),
         'IsDraftByManager': true,
     })
         .populate({
@@ -289,6 +300,7 @@ exports.SubmitAllKpis = async (empId) => {
         let submitedKPIs = await KpiRepo.updateMany({
             'Owner': Mongoose.Types.ObjectId(empId),
             'IsDraft': false,
+            'EvaluationYear' :new Date().getFullYear(),
             'IsSubmitedKPIs': false
         },
             {
@@ -647,6 +659,7 @@ exports.GetKpisForTS = async (ThirdSignatory) => {
     var Kpis = await KpiRepo.find({
         Owner: { $in: tsusers.map(x => x._id) },
         IsSubmitedKPIs: true,
+        'EvaluationYear' :new Date().getFullYear(),
         ManagerSignOff: { $ne: null }
     }).populate({
         path: 'MeasurementCriteria.measureId Owner',

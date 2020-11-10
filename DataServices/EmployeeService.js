@@ -955,13 +955,26 @@ exports.SaveTSFinalRating = async (finalRating) => {
                     }
                 },
                 {
+                    $lookup:
+                    {
+                        from: "users",
+                        localField: "CurrentEmployee.ThirdSignatory",
+                        foreignField: "_id",
+                        as: "CurrentEmployeeTS"
+
+                    }
+                },
+                {
                     $project: {
                         "CurrentEmployee.FirstName": 1,
                         "CurrentEmployee.LastName": 1,
                         "CurrentEmployee.Email": 1,
                         "CurrentEmployeeManager.FirstName": 1,
                         "CurrentEmployeeManager.LastName": 1,
-                        "CurrentEmployeeManager.Email": 1
+                        "CurrentEmployeeManager.Email": 1,
+                        "CurrentEmployeeTS.FirstName": 1,
+                        "CurrentEmployeeTS.LastName": 1,
+                        "CurrentEmployeeTS.Email": 1
 
                     }
 
@@ -971,12 +984,13 @@ exports.SaveTSFinalRating = async (finalRating) => {
             if (c && c[0] && c[0].CurrentEmployee[0]) {
                 var empoyee = c[0].CurrentEmployee[0];
                 var manager = c[0].CurrentEmployeeManager[0];
-                if (manager) {
+                var ts = c[0].CurrentEmployeeTS[0];
+                if (ts) {
 
                     var mailObject = SendMail.GetMailObject(
-                        manager.Email,
+                        ts.Email,
                         "Final Rating Submitted",
-                        `Dear ${manager.FirstName},
+                        `Dear ${ts.FirstName},
 
                           You have successfully submitted your year-end review
                           
@@ -997,7 +1011,7 @@ exports.SaveTSFinalRating = async (finalRating) => {
                         "Final Rating Submitted",
                         `Dear ${empoyee.FirstName},
 
-                          Your Manager ${manager.FirstName} has successfully submitted  year-end review.
+                          Your Third Signatory ${manager.FirstName} has successfully submitted  year-end review.
                           Kindly access portal to review the year-end review.
                           Thank you,
                           Administrator
@@ -1010,6 +1024,29 @@ exports.SaveTSFinalRating = async (finalRating) => {
                         console.log(res);
                     });
                 }
+
+
+                if (manager) {
+                    var mailObject = SendMail.GetMailObject(
+                        manager.Email,
+                        "Final Rating Submitted",
+                        `Dear ${manager.FirstName},
+
+                        ${empoyee.FirstName} Third Signatory ${ts.FirstName} has successfully submitted  year-end review.
+                          Kindly access portal to review the year-end review.
+                          Thank you,
+                          Administrator
+                          `,
+                        null,
+                        null
+                    );
+
+                    SendMail.SendEmail(mailObject, function (res) {
+                        console.log(res);
+                    });
+                }
+
+
             }
             return { IsSuccess: true }
         }

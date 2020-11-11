@@ -520,10 +520,11 @@ exports.GetThirdSignatorys = async (data) => {
 /**For getting employees who has not been added to evaluation */
 exports.GetUnlistedEmployees = async (search) => {
     try {
-        if (search.allKpi) {
+        if (search.allKpi==='true') {
             var response = await KpiFormRepo.aggregate([{$match: { 
                 Company: Mongoose.Types.ObjectId(search.company),
-                EvaluationYear:new Date().getFullYear().toString() }},
+                EvaluationYear:new Date().getFullYear().toString()
+                }},                
                 {$project:{
                     EmployeeId:1
                 }}

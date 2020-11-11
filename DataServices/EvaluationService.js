@@ -123,6 +123,7 @@ exports.GetEvaluations = async (clientId) => {
         }).populate("Employees.Model")
             .populate({ path: 'Employees._id', populate: { path: 'Manager' } })
             .sort({ CreatedDate: -1 })
+        
 
         response["kpiList"] = await KpiFormRepo.aggregate([
             { $match: { Company: Mongoose.Types.ObjectId(clientId.clientId) } },
@@ -134,6 +135,7 @@ exports.GetEvaluations = async (clientId) => {
                     as: 'Employee'
                 }
             },
+            {$match:{"Employee.HasActiveEvaluation":{ $ne: "Yes" }}},
             {
                 $lookup: {
                     from: 'users',
@@ -162,7 +164,10 @@ exports.GetEvaluations = async (clientId) => {
                 }
             }
         ])
-        return response;
+        response["kpiList"].map(x => {
+            x.Type = "K"
+        })
+        return [...response["kpiList"], ...response["evaluations"]];
     } catch (error) {
         logger.error('error while GetEvaluations :', error)
         throw error;
@@ -414,7 +419,7 @@ exports.GetEmpCurrentEvaluation = async (emp) => {
             const Kpi = await KpiRepo.find({
                 'Owner': emp.EmployeeId,
                 'IsDraftByManager': false,
-                'EvaluationYear' :new Date().getFullYear(),
+                'EvaluationYear': new Date().getFullYear(),
                 // 'EvaluationId': evaluationForm._id.toString()
             }).populate('MeasurementCriteria.measureId Owner')
                 .sort({ UpdatedOn: -1 });
@@ -737,11 +742,16 @@ exports.GetReporteeEvaluations = async (manager) => {
             },
             { $addFields: { Evaluation: "$EvaluationList.Employees" } },
 
-           
 
-            { $match:{$or:[{"KpiList.EvaluationYear":new Date().getFullYear().toString(),
-            "KpiList.IsDraft":false,"KpiList.IsSubmitedKPIs":true}]}
-           },
+
+            {
+                $match: {
+                    $or: [{
+                        "KpiList.EvaluationYear": new Date().getFullYear().toString(),
+                        "KpiList.IsDraft": false, "KpiList.IsSubmitedKPIs": true
+                    }]
+                }
+            },
 
             {
                 $project: {

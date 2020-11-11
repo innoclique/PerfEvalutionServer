@@ -729,14 +729,15 @@ exports.SaveCompetencyQnA = async (qna) => {
 exports.GetPendingPeerReviewsList = async (emp) => {
     try {
         var list = await EvaluationRepo.aggregate([
-            { $match: { "Employee._id": ObjectId(emp.EmployeeId), status: "Active" } },
+             { $match: { "Employees.Peers.EmployeeId": ObjectId(emp.EmployeeId), status: "Active" } },
             {
                 $addFields: {
                     EvaluationId: "$_id"
                 }
             },
             { $unwind: '$Employees' },
-
+            { $unwind: '$Employees.Peers' },
+            { $match: { "Employees.Peers.EmployeeId": ObjectId(emp.EmployeeId), status: "Active" } },
             {
                 $project: {
                     _id: 0,
@@ -744,16 +745,15 @@ exports.GetPendingPeerReviewsList = async (emp) => {
                     "Employees._id": 1,
                     "EvaluationPeriod": 1,
                     "EvaluationDuration": 1,
-                    'Peer': {
-                        $filter: {
-                            input: "$Employees.Peers",
-                            as: "self",
-                            cond: { $eq: ['$$self.EmployeeId', ObjectId(emp.EmployeeId)] }
-                        },
-
-                    }
+                    // 'Peer': {
+                    //     $filter: {
+                    //         input: "$Employees.Peers",
+                    //         as: "self",
+                    //         cond: { $eq: ['$$self.EmployeeId', ObjectId(emp.EmployeeId)] }
+                    //     },
+                    // }
+                    "Peers":"$Employees.Peers"
                 }
-
             },
             {
                 $lookup:
@@ -762,17 +762,7 @@ exports.GetPendingPeerReviewsList = async (emp) => {
                     localField: "Employees._id",
                     foreignField: "_id",
                     as: "ForEmployee"
-                    //,
-                    // "let":{"ManagerId":"ForEmployee.Manager"},
-                    // pipeline:[
-                    //     {$match:{ "$expr": { "$eq": ["$_id", "$$ManagerId"] }}},
-                    //    {$lookup:{
-                    //     from: "users",
-                    //     as: "Manager",
-                    //   //  localField: "Employees._id",
-                    // //foreignField: "_id",
-                    //    }}
-                    // ]
+                    
                 }
             },
             {
@@ -799,8 +789,10 @@ exports.GetPendingPeerReviewsList = async (emp) => {
                     "Manager.LastName": 1,
                     "Manager.Email": 1,
                     "Manager.Manager": 1,
-                    "EvaluationId": 1,
-
+                    "EvaluationId": 1,          
+                    "Peers"          :1,
+                    IsRatingSubmitted:'$Peers.CompetencySubmitted'
+                    
                 }
             }
         ]
@@ -1360,4 +1352,93 @@ exports.GetPeerAvgRating = async (emp) => {
         logger.error('Error Occurred while getting data for Peer Review list:', error)
         return Error(error.message)
     }
+}
+
+exports.GetPeerReviewRequests = async (emp) => {
+    try {
+        var list = await EvaluationRepo.aggregate([
+            // { $match: { "Employee._id": ObjectId(emp.EmployeeId), status: "Active" } },
+            {
+                $addFields: {
+                    EvaluationId: "$_id"
+                }
+            },
+            { $unwind: '$Employees' },
+
+            {
+                $project: {
+                    _id: 0,
+                    "EvaluationId": 1,
+                    "Employees._id": 1,
+                    "EvaluationPeriod": 1,
+                    "EvaluationDuration": 1,
+                    'Peer': {
+                        $filter: {
+                            input: "$Employees.Peers",
+                            as: "self",
+                            cond: { $eq: ['$$self.EmployeeId', ObjectId(emp.EmployeeId)] }
+                        },
+
+                    }
+                }
+
+            },
+            {
+                $lookup:
+                {
+                    from: "users",
+                    localField: "Employees._id",
+                    foreignField: "_id",
+                    as: "ForEmployee"
+                    //,
+                    // "let":{"ManagerId":"ForEmployee.Manager"},
+                    // pipeline:[
+                    //     {$match:{ "$expr": { "$eq": ["$_id", "$$ManagerId"] }}},
+                    //    {$lookup:{
+                    //     from: "users",
+                    //     as: "Manager",
+                    //   //  localField: "Employees._id",
+                    // //foreignField: "_id",
+                    //    }}
+                    // ]
+                }
+            },
+            {
+                $lookup:
+                {
+                    from: "users",
+                    localField: "ForEmployee.Manager",
+                    foreignField: "_id",
+                    as: "Manager"
+
+                }
+            },
+            {
+                $project: {
+                    "ForEmployee._id": 1,
+                    "ForEmployee.FirstName": 1,
+                    "ForEmployee.LastName": 1,
+                    "ForEmployee.Email": 1,
+                    "ForEmployee.Manager": 1,
+                    "EvaluationPeriod": 1,
+                    "EvaluationDuration": 1,
+                    "Manager._id": 1,
+                    "Manager.FirstName": 1,
+                    "Manager.LastName": 1,
+                    "Manager.Email": 1,
+                    "Manager.Manager": 1,
+                    "EvaluationId": 1,
+
+                }
+            }
+        ]
+
+        )
+
+        return list;
+    } catch (error) {
+        logger.error('Error Occurred while getting data for Peer Review list:', error)
+        return Error(error.message)
+    }
+
 }

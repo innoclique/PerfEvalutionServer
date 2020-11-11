@@ -737,6 +737,12 @@ exports.GetReporteeEvaluations = async (manager) => {
             },
             { $addFields: { Evaluation: "$EvaluationList.Employees" } },
 
+           
+
+            { $match:{$or:[{"KpiList.EvaluationYear":new Date().getFullYear().toString(),
+            "KpiList.IsDraft":false,"KpiList.IsSubmitedKPIs":true}]}
+           },
+
             {
                 $project: {
                     KpiList: 1,

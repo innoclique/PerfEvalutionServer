@@ -10,7 +10,7 @@ const SendMail = require("../Helpers/mail.js");
 var logger = require('../logger');
 var env = process.env.NODE_ENV || "dev";
 var config = require(`../Config/${env}.config`);
-
+var fs = require("fs");
 const moment = require('moment');
 
 const ModelsRepo = require('../SchemaModels/Model');
@@ -31,26 +31,9 @@ exports.AddEvaluation = async (evaluation) => {
         const _currentEvaluation = await EvaluationRepo.findOne({ _id: Mongoose.Types.ObjectId(savedEvauation._id) })
             .populate('Employees._id Employees.Peers.EmployeeId Employees.DirectReportees.EmployeeId CreatedBy').sort({ CreatedDate: -1 })
         var _deliveremails = [];
-        var mailObject = SendMail.GetMailObject(
-            _currentEvaluation.CreatedBy.Email,
-            "Evaluation Rolledout Successfully",
-            `Dear ${_currentEvaluation.CreatedBy.FirstName} 
-            <br/>
-            Congratulations, you have successfully setup the roll-out for the Evaluation for the year : ${new Date().getFullYear()}
-            <br/>
-            <br/>
-    
-            Thank you
-            Admin,
-            ${config.ProductName}
-            `,
-            null,
-            null
-        );
-        console.log('mail', mailObject);
-        SendMail.SendEmail(mailObject, async function (res) {
-            console.log(res);
-        });
+
+      
+        await this.sendmail( _currentEvaluation.CreatedBy);
         _currentEvaluation.Employees.map(e => {
             _deliveremails.push({
                 User: e._id._id,
@@ -247,14 +230,14 @@ exports.UpdatePeers = async (evaluation) => {
         Thank you
         OPAssess Admin
         `,
-                Company: "",
+                
                 Subject: 'New Peer Review Requested'
             })
         })
         var de = await DeliverEmailRepo.insertMany(_deliveremails);
         return true;
     } catch (error) {
-        logger.error('error while updating Direct Reportee Review:', error)
+        logger.error('error while updating Peer  Review:', error)
         throw error;
     }
 
@@ -263,7 +246,7 @@ exports.GetCompetencyValues = async (evaluation) => {
     const evaluationForm = await EvaluationRepo.findOne({ _id: Mongoose.Types.ObjectId(evaluation.EvaluationId), "Employees._id": ObjectId(evaluation.employeeId) });
     var employee = await evaluationForm.Employees.find(x => x._id.toString() === evaluation.employeeId);
     if (employee && employee.Competencies && employee.Competencies.length > 0) {
-        return evaluationForm;
+        return {EvaluationId:evaluationForm._id,Employee:employee};
     } else {
         var modelAggregation = await ModelsRepo.aggregate([
             { $match: { _id: ObjectId(employee.Model) } },
@@ -299,12 +282,15 @@ exports.GetCompetencyValues = async (evaluation) => {
                     Questions.push(f)
                 }
             }
-            list.push({ _id: new ObjectId(), Competency: element, Questions })
+            list.push({ _id: new ObjectId(), Competency: element, Questions,Comments:"" })
         }
     }
-        evaluationForm.Employees[0].Competencies = list;
+    evaluationForm.Employees.find(x => x._id.toString() === evaluation.employeeId).Competencies = list;
         var t = await evaluationForm.save()
-        return t;
+        var employee = await evaluationForm.Employees.find(x => x._id.toString() === evaluation.employeeId);
+        if (employee && employee.Competencies && employee.Competencies.length > 0) {
+            return {EvaluationId:evaluationForm._id,Employee:employee};
+        }
     }
 
 
@@ -858,4 +844,28 @@ exports.ReleaseKpiForm = async (evaluation) => {
     // var savedEvauation = await _evaluation.save();
 
     return true;
+}
+
+ exports.sendmail=async (user)=>{
+    fs.readFile("./EmailTemplates/EmailTemplate.html", async function read(err, bufcontent) {
+        var content = bufcontent.toString();
+
+        let des= `Evaluation has been successfully created.`
+        content = content.replace("##FirstName##",user.FirstName);
+        content = content.replace("##ProductName##", config.ProductName);
+        content = content.replace("##Description##", des);
+        content = content.replace("##Title##", "Devlopment Goal Submited");
+
+    var mailObject = SendMail.GetMailObject(
+        user.Email,
+              "Evaluation Initiated",
+              content,
+              null,
+              null
+            );
+
+    SendMail.SendEmail(mailObject, function (res) {
+        console.log(res);
+    });
+    })    
 }

@@ -1,5 +1,6 @@
 const DbConnection = require("../Config/DbConfig");
 require('dotenv').config();
+var env = process.env.NODE_ENV || "dev";
 const Mongoose = require("mongoose");
 const Bcrypt = require('bcrypt');
 const OrganizationRepo = require('../SchemaModels/OrganizationSchema');
@@ -22,7 +23,8 @@ var logger = require('../logger');
 const moment = require("moment");
 const ObjectId = Mongoose.Types.ObjectId;
 const KpiFormRepo = require('../SchemaModels/KpiForm');
-
+var fs = require("fs");
+var config = require(`../Config/${env}.config`);
 exports.AddStrength = async (strength) => {
     try {
         // const organizationName = await strengthRepo.findOne({ Name: organization.Name });
@@ -688,7 +690,8 @@ exports.SaveCompetencyQnA = async (qna) => {
                 "Employees.Competencies.Questions": { $elemMatch: { _id: Mongoose.Types.ObjectId(element.QuestionId) } }
             }, {
                 $set: {
-                    "Employees.$[e].Competencies.$[c].Questions.$[q].SelectedRating": element.Answer
+                    "Employees.$[e].Competencies.$[c].Questions.$[q].SelectedRating": element.Answer,
+                    "Employees.$[e].Competencies.$[c].Comments": element.Comments,
                 }
             },
                 {
@@ -880,7 +883,34 @@ exports.SavePeerReview = async (qna) => {
                 ]
             }
         )
+        if(_update && !qna.IsDraft){
+            let _user=await UserRepo.findOne({_id:ObjectId(qna.PeerId)},{Email:1,FirstName:1})
+            fs.readFile("./EmailTemplates/PeerReviewSubmitted.html", async function read(err, bufcontent) {
+                var content = bufcontent.toString();
+        
+                let des= `Peer Review has been Successfully Submitted.`
+                content = content.replace("##FirstName##",_user.FirstName);
+                content = content.replace("##ProductName##", config.ProductName);
+                content = content.replace("##Description##", des);
+                content = content.replace("##Title##", "Peer Review SUbmitted");
+    
+            var mailObject = SendMail.GetMailObject(
+                _user.Email,
+                      "Peer Review Submitted",
+                      content,
+                      null,
+                      null
+                    );
+    
+            SendMail.SendEmail(mailObject, function (res) {
+                console.log(res);
+            });
+    
+        });
         return { IsSuccess: true }
+            
+        }
+        
 
     } catch (error) {
         logger.error('error occurred while saving peer review:', error)

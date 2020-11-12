@@ -287,6 +287,7 @@ exports.GetCompetencyValues = async (evaluation) => {
             }
         ])
         var list = [];
+        if (modelAggregation.length>0) {           
         for (let index = 0; index < modelAggregation[0].Questions.length; index++) {
             const element = modelAggregation[0].competenciesList[index];
             const Questions = [];
@@ -300,6 +301,7 @@ exports.GetCompetencyValues = async (evaluation) => {
             }
             list.push({ _id: new ObjectId(), Competency: element, Questions })
         }
+    }
         evaluationForm.Employees[0].Competencies = list;
         var t = await evaluationForm.save()
         return t;

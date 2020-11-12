@@ -253,7 +253,7 @@ exports.GetKpisByManager = async (data) => {
 
     var Kpis = await KpiRepo.find({
         'ManagerId': data.managerId,
-        'Owner': data.managerId,
+        'Owner': data.empId,
         'EvaluationYear' :new Date().getFullYear(),
         'IsDraft': false,
         'IsSubmitedKPIs': true
@@ -270,7 +270,7 @@ exports.GetKpisByManager = async (data) => {
 
     var managerDraftsKpis = await KpiRepo.find({
         'ManagerId': data.managerId,
-        'Owner': data.managerId,
+        'Owner': data.empId,
         'IsDraft': false,
         'EvaluationYear' :new Date().getFullYear(),
         'IsDraftByManager': true,

@@ -603,7 +603,7 @@ else if (data.Action=='Review') {
  
     CreatedBy:Joi.string().required(),
     Owner:Joi.string().required(),
-    EvaluationId:Joi.string().required(),
+    EvaluationId:Joi.string().optional(),
   
     UpdatedBy:Joi.string().required()
 

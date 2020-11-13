@@ -921,12 +921,6 @@ exports.SavePeerReview = async (qna) => {
 
 }
 
-
-
-
-
-
-
 exports.SaveTSFinalRating = async (finalRating) => {
     try {
         var _update = await EvaluationRepo.updateOne({
@@ -1083,9 +1077,6 @@ exports.SaveTSFinalRating = async (finalRating) => {
     }
 
 }
-
-
-
 exports.SaveManagerFinalRating = async (finalRating) => {
     try {
         var _update = await EvaluationRepo.updateOne({
@@ -1474,4 +1465,252 @@ exports.GetPeerReviewRequests = async (emp) => {
         return Error(error.message)
     }
 
+}
+
+exports.GetDRReviewsList = async (emp) => {
+    try {
+        var list = 
+        await EvaluationRepo.aggregate([
+             { $match: { "Employees.DirectReportees.EmployeeId": ObjectId(emp.EmployeeId), status: "Active","EvaluationYear":new Date().getFullYear().toString() } },
+            {
+                $addFields: {
+                    EvaluationId: "$_id"
+                }
+            },
+            { $unwind: '$Employees' },
+            { $unwind: '$Employees.DirectReportees' },
+            { $match: { "Employees.DirectReportees.EmployeeId": ObjectId(emp.EmployeeId), status: "Active" } },
+            {
+                $project: {
+                    _id: 0,
+                    "EvaluationId": 1,
+                    "Employees._id": 1,
+                    "EvaluationPeriod": 1,
+                    "EvaluationDuration": 1,                    
+                    "DirectReportees":"$Employees.DirectReportees"
+                }
+            },
+            {
+                $lookup:
+                {
+                    from: "users",
+                    localField: "Employees._id",
+                    foreignField: "_id",
+                    as: "ForEmployee"
+                }
+            },
+            {
+                $lookup:
+                {
+                    from: "users",
+                    localField: "ForEmployee.Manager",
+                    foreignField: "_id",
+                    as: "Manager"
+
+                }
+            },
+            {
+                $project: {
+                    "ForEmployee._id": 1,
+                    "ForEmployee.FirstName": 1,
+                    "ForEmployee.LastName": 1,
+                    "ForEmployee.Email": 1,
+                    "ForEmployee.Manager": 1,
+                    "EvaluationPeriod": 1,
+                    "EvaluationDuration": 1,
+                    "Manager._id": 1,
+                    "Manager.FirstName": 1,
+                    "Manager.LastName": 1,
+                    "Manager.Email": 1,
+                    "Manager.Manager": 1,
+                    "EvaluationId": 1,          
+                    "DirectReportees":1,
+                    IsRatingSubmitted:'$DirectReportees.CompetencySubmitted'
+                    
+                }
+            }
+        ]
+
+        )
+
+        return list;
+    } catch (error) {
+        logger.error('Error Occurred while getting data for Peer Review list:', error)
+        return Error(error.message)
+    }
+
+}
+
+exports.GetPendingDRReviewsToSubmit = async (emp) => {
+    try {
+        var list = await EvaluationRepo.aggregate([
+            { $match: { _id: ObjectId(emp.EvaluationId) } },
+            { $unwind: '$Employees' },
+            { $match: { "Employees._id": ObjectId(emp.ForEmployeeId) } },
+            {
+                $project: {
+                    _id: 0,
+                    "Employees._id": 1,
+                    'DirectReportee': {
+                        $filter: {
+                            input: "$Employees.DirectReportees",
+                            as: "self",
+                            cond: { $eq: ['$$self.EmployeeId', ObjectId(emp.DirectReport)] }
+                        },
+                    }
+                }
+            },
+            {
+                $lookup:
+                {
+                    from: "competencies",
+                    localField: "DirectReportee.DirectReporteeCompetencyList._id",
+                    foreignField: "_id",
+                    as: "Competencies"
+                }
+            },
+            {
+                $lookup:
+                {
+                    from: "questions",
+                    localField: "Competencies.Questions",
+                    foreignField: "_id",
+                    as: "Questions"
+                }
+            }
+
+        ])
+        return list[0];
+    } catch (error) {
+        logger.error('error occurred while getting emp peer competencies for review:', error)
+        throw error;
+    }
+
+}
+
+exports.SaveDRReview = async (qna) => {
+    try {
+        var _update = await EvaluationRepo.updateOne({
+            _id: Mongoose.Types.ObjectId(qna.EvaluationId),
+            "Employees._id": Mongoose.Types.ObjectId(qna.ForEmployeeId),
+            "Employees.DirectReportees": { $elemMatch: { EmployeeId: Mongoose.Types.ObjectId(qna.DrId) } }
+        },
+            {
+                $set: {
+                    "Employees.$[e].DirectReportees.$[p].QnA": qna.QnA,
+                    "Employees.$[e].DirectReportees.$[p].CompetencyComments": qna.CompetencyComments,
+                    "Employees.$[e].DirectReportees.$[p].CompetencyOverallRating": qna.OverallRating,
+                    "Employees.$[e].DirectReportees.$[p].CompetencySubmitted": !qna.IsDraft,
+                    "Employees.$[e].DirectReportees.$[p].CompetencySubmittedOn": qna.IsDraft ? null : new Date()
+                }
+            },
+            {
+                "arrayFilters": [
+                    { "e._id": ObjectId(qna.ForEmployeeId) },
+                    { "p.EmployeeId": ObjectId(qna.DrId) },
+                ]
+            }
+        )
+        if(_update && !qna.IsDraft){
+            let _user=await UserRepo.findOne({_id:ObjectId(qna.PeerId)},{Email:1,FirstName:1})
+            fs.readFile("./EmailTemplates/PeerReviewSubmitted.html", async function read(err, bufcontent) {
+                var content = bufcontent.toString();
+        
+                let des= `Direct Report Review has been Successfully Submitted.`
+                content = content.replace("##FirstName##",_user.FirstName);
+                content = content.replace("##ProductName##", config.ProductName);
+                content = content.replace("##Description##", des);
+                content = content.replace("##Title##", "Peer Review SUbmitted");
+    
+            var mailObject = SendMail.GetMailObject(
+                _user.Email,
+                      "Direct Report Review Submitted",
+                      content,
+                      null,
+                      null
+                    );
+    
+            SendMail.SendEmail(mailObject, function (res) {
+                console.log(res);
+            });
+    
+        });
+        return { IsSuccess: true }
+            
+        }
+        if(_update && qna.IsDraft){
+            return { IsSuccess: true }
+        }else{
+          throw Error('no record got updated with given input')
+        }
+        
+
+    } catch (error) {
+        logger.error('error occurred while saving peer review:', error)
+        throw error;
+    }
+
+
+
+}
+
+
+exports.GetDrAvgRating = async (emp) => {
+
+    try {
+        var list = await EvaluationRepo.aggregate([
+            { $match: { _id: ObjectId(emp.EvaluationId), "Employees._id": Mongoose.Types.ObjectId(emp.EmployeeId) } },
+            { $unwind: "$Employees" },
+            {
+                $project: {
+                    _id: 0,
+                    "EvaluationId": 1,
+                    "Employees._id": 1,
+                    "EvaluationPeriod": 1,
+                    "EvaluationDuration": 1,
+                    "Employees.DirectReportees.EmployeeId": 1,
+                    "Employees.DirectReportees.CompetencyOverallRating": 1
+                }
+
+            },
+            {
+                $lookup:
+                {
+                    from: "users",
+                    localField: "Employees.DirectReportees.EmployeeId",
+                    foreignField: "_id",
+                    as: "DirectReporteesList"
+
+                }
+            }
+            ,
+            {
+                $addFields: {
+                    averageScore: { $avg: "$Employees.DirectReportees.CompetencyOverallRating" }
+
+                }
+            },
+
+            {
+                $project: {
+                    "DirectReporteesList._id": 1,
+                    "DirectReporteesList.FirstName": 1,
+                    "DirectReporteesList.LastName": 1,
+                    "DirectReporteesList.Email": 1,
+                    "DirectReporteesList.Manager": 1,
+                    "EvaluationPeriod": 1,
+                    "EvaluationDuration": 1,
+                    "EvaluationId": 1,
+                    "averageScore": 1
+
+                }
+            }
+        ]
+
+        )
+        return list;
+    } catch (error) {
+        logger.error('Error Occurred while getting data for Peer Review list:', error)
+        return Error(error.message)
+    }
 }

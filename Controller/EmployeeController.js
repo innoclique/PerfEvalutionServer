@@ -332,3 +332,19 @@ exports.GetTSReporteeEvaluations= async (req, res, next) => {
         .then(Response => Response ? res.status(200).json(Response) : res.status(404).json("No Peer Review found"))
         .catch(err => next(err));
 }
+exports.GetDRReviewsList= async (req, res, next) => {
+    await EmployeeService.GetDRReviewsList(req.body)
+        .then(Response => Response ? res.status(200).json(Response) : res.status(404).json("No Peer Review found"))
+        .catch(err => next(err));
+}
+exports.GetPendingDRReviewsToSubmit= async (req, res, next) => {
+    await EmployeeService.GetPendingDRReviewsToSubmit(req.body)
+        .then(Response => Response ? res.status(200).json(Response) : res.status(404).json("No Peer Review found"))
+        .catch(err => next(err));
+}
+
+exports.SaveDRReview= async (req, res, next) => {
+    await EmployeeService.SaveDRReview(req.body)
+        .then(Response => Response ? res.status(200).json(Response) : res.status(404).json("No Peer Review found"))
+        .catch(err => next(err));
+}

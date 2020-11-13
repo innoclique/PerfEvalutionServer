@@ -195,7 +195,7 @@ exports.UpdateDirectReportees = async (evaluation) => {
         Thank you
         OPAssess Admin
         `,
-                Company: "",
+                
                 Subject: 'New Direct Reportee Review Requested'
             })
         })

@@ -24,7 +24,13 @@ const Evalution = new mongoose.Schema({
                 EmployeeId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
                 displayTemplate: String,
                 DirectReporteeComptencyMessage: { type: String, default: "" },
-                DirectReporteeCompetencyList: []
+                DirectReporteeCompetencyList: [],
+                DirectReporteeCompetencyMessage: String,
+                QnA: [],
+                CompetencyComments: { type: String, default: "" },
+                CompetencyOverallRating: { type: Number, default: 0 },
+                CompetencySubmitted: Boolean,
+                CompetencySubmittedOn: { type: Date, default: Date() }
             }
         ],
         Model: { type: mongoose.Schema.Types.ObjectId, ref: 'models', default: null },

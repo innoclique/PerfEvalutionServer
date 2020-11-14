@@ -202,26 +202,27 @@ exports.GetAllKpis = async (data) => {
 
     var evaluation = await EvaluationRepo.findOne({
         Employees: { $elemMatch: { _id: Mongoose.Types.ObjectId(data.empId) } },
-        EvaluationYear :new Date().getFullYear(),
+        EvaluationYear: new Date().getFullYear(),
         Company: data.orgId
     }).sort({ CreatedDate: -1 });
     // let currEvaluation = allEvaluation[0];
     // let preEvaluation = allEvaluation[1];
 
-  var kpiFormData  = await KpiFormRepo.findOne({'EmployeeId':  Mongoose.Types.ObjectId(data.empId),
-       IsDraft:false, IsActive:true, EvaluationYear :new Date().getFullYear()
-     });
+    var kpiFormData = await KpiFormRepo.findOne({
+        'EmployeeId': Mongoose.Types.ObjectId(data.empId),
+        IsDraft: false, IsActive: true, EvaluationYear: new Date().getFullYear()
+    });
 
     if (!kpiFormData) {
         if (evaluation) {
-            
-        } else {   
-               throw Error("Performance Goal Setting Form Not Activeted");
+
+        } else {
+            throw Error("Performance Goal Setting Form Not Activeted");
         }
     }
     var preKpi = [];
     if (!data.currentOnly) {
-        preKpi = await KpiRepo.find({ 'Owner': data.empId, EvaluationYear :new Date().getFullYear()-1 })
+        preKpi = await KpiRepo.find({ 'Owner': data.empId, EvaluationYear: new Date().getFullYear() - 1 })
             .populate({
                 path: 'MeasurementCriteria.measureId Owner',
                 populate: {
@@ -233,7 +234,7 @@ exports.GetAllKpis = async (data) => {
     }
 
 
-    const Kpi = await KpiRepo.find({ 'Owner': data.empId, 'IsDraftByManager': false , EvaluationYear :new Date().getFullYear() })
+    const Kpi = await KpiRepo.find({ 'Owner': data.empId, 'IsDraftByManager': false, EvaluationYear: new Date().getFullYear() })
         .populate({
             path: 'MeasurementCriteria.measureId Owner',
             populate: {
@@ -256,7 +257,7 @@ exports.GetKpisByManager = async (data) => {
     var Kpis = await KpiRepo.find({
         'ManagerId': data.managerId,
         'Owner': data.empId,
-        'EvaluationYear' :new Date().getFullYear(),
+        'EvaluationYear': new Date().getFullYear(),
         'IsDraft': false,
         'IsSubmitedKPIs': true
 
@@ -274,7 +275,7 @@ exports.GetKpisByManager = async (data) => {
         'ManagerId': data.managerId,
         'Owner': data.empId,
         'IsDraft': false,
-        'EvaluationYear' :new Date().getFullYear(),
+        'EvaluationYear': new Date().getFullYear(),
         'IsDraftByManager': true,
     })
         .populate({
@@ -304,7 +305,7 @@ exports.SubmitAllKpis = async (empId) => {
         let submitedKPIs = await KpiRepo.updateMany({
             'Owner': Mongoose.Types.ObjectId(empId),
             'IsDraft': false,
-            'EvaluationYear' :new Date().getFullYear(),
+            'EvaluationYear': new Date().getFullYear(),
             'IsSubmitedKPIs': false
         },
             {
@@ -522,20 +523,24 @@ exports.GetThirdSignatorys = async (data) => {
 /**For getting employees who has not been added to evaluation */
 exports.GetUnlistedEmployees = async (search) => {
     try {
-        if (search.allKpi==='true') {
-            var response = await KpiFormRepo.aggregate([{$match: { 
-                Company: Mongoose.Types.ObjectId(search.company),
-                EvaluationYear:new Date().getFullYear().toString()
-                }},                
-                {$project:{
-                    EmployeeId:1
-                }}
+        if (search.allKpi === 'true') {
+            var response = await KpiFormRepo.aggregate([{
+                $match: {
+                    Company: Mongoose.Types.ObjectId(search.company),
+                    EvaluationYear: new Date().getFullYear().toString()
+                }
+            },
+            {
+                $project: {
+                    EmployeeId: 1
+                }
+            }
             ])
             const Employees = await UserRepo.find(
                 {
                     Organization: Mongoose.Types.ObjectId(search.company),
                     HasActiveEvaluation: { $ne: "Yes" },
-                    _id: { $in: response.map(x=>{return x.EmployeeId}) }
+                    _id: { $in: response.map(x => { return x.EmployeeId }) }
 
                 }).populate("Manager").sort({ CreatedOn: -1 })
 
@@ -664,7 +669,7 @@ exports.GetKpisForTS = async (ThirdSignatory) => {
     var Kpis = await KpiRepo.find({
         Owner: { $in: tsusers.map(x => x._id) },
         IsSubmitedKPIs: true,
-        'EvaluationYear' :new Date().getFullYear(),
+        'EvaluationYear': new Date().getFullYear(),
         ManagerSignOff: { $ne: null }
     }).populate({
         path: 'MeasurementCriteria.measureId Owner',
@@ -735,7 +740,7 @@ exports.SaveCompetencyQnA = async (qna) => {
 exports.GetPendingPeerReviewsList = async (emp) => {
     try {
         var list = await EvaluationRepo.aggregate([
-             { $match: { "Employees.Peers.EmployeeId": ObjectId(emp.EmployeeId), status: "Active" } },
+            { $match: { "Employees.Peers.EmployeeId": ObjectId(emp.EmployeeId), "Employees.Status": "Active" } },
             {
                 $addFields: {
                     EvaluationId: "$_id"
@@ -743,22 +748,15 @@ exports.GetPendingPeerReviewsList = async (emp) => {
             },
             { $unwind: '$Employees' },
             { $unwind: '$Employees.Peers' },
-            { $match: { "Employees.Peers.EmployeeId": ObjectId(emp.EmployeeId), status: "Active" } },
+            { $match: { "Employees.Peers.EmployeeId": ObjectId(emp.EmployeeId), "Employees.Status": "Active" } },
             {
                 $project: {
                     _id: 0,
                     "EvaluationId": 1,
                     "Employees._id": 1,
                     "EvaluationPeriod": 1,
-                    "EvaluationDuration": 1,
-                    // 'Peer': {
-                    //     $filter: {
-                    //         input: "$Employees.Peers",
-                    //         as: "self",
-                    //         cond: { $eq: ['$$self.EmployeeId', ObjectId(emp.EmployeeId)] }
-                    //     },
-                    // }
-                    "Peers":"$Employees.Peers"
+                    "EvaluationDuration": 1,                    
+                    "Peers": "$Employees.Peers"
                 }
             },
             {
@@ -768,7 +766,7 @@ exports.GetPendingPeerReviewsList = async (emp) => {
                     localField: "Employees._id",
                     foreignField: "_id",
                     as: "ForEmployee"
-                    
+
                 }
             },
             {
@@ -795,10 +793,10 @@ exports.GetPendingPeerReviewsList = async (emp) => {
                     "Manager.LastName": 1,
                     "Manager.Email": 1,
                     "Manager.Manager": 1,
-                    "EvaluationId": 1,          
-                    "Peers"          :1,
-                    IsRatingSubmitted:'$Peers.CompetencySubmitted'
-                    
+                    "EvaluationId": 1,
+                    "Peers": 1,
+                    IsRatingSubmitted: '$Peers.CompetencySubmitted'
+
                 }
             }
         ]
@@ -883,34 +881,34 @@ exports.SavePeerReview = async (qna) => {
                 ]
             }
         )
-        if(_update && !qna.IsDraft){
-            let _user=await UserRepo.findOne({_id:ObjectId(qna.PeerId)},{Email:1,FirstName:1})
+        if (_update && !qna.IsDraft) {
+            let _user = await UserRepo.findOne({ _id: ObjectId(qna.PeerId) }, { Email: 1, FirstName: 1 })
             fs.readFile("./EmailTemplates/PeerReviewSubmitted.html", async function read(err, bufcontent) {
                 var content = bufcontent.toString();
-        
-                let des= `Peer Review has been Successfully Submitted.`
-                content = content.replace("##FirstName##",_user.FirstName);
+
+                let des = `Peer Review has been Successfully Submitted.`
+                content = content.replace("##FirstName##", _user.FirstName);
                 content = content.replace("##ProductName##", config.ProductName);
                 content = content.replace("##Description##", des);
                 content = content.replace("##Title##", "Peer Review SUbmitted");
-    
-            var mailObject = SendMail.GetMailObject(
-                _user.Email,
-                      "Peer Review Submitted",
-                      content,
-                      null,
-                      null
-                    );
-    
-            SendMail.SendEmail(mailObject, function (res) {
-                console.log(res);
+
+                var mailObject = SendMail.GetMailObject(
+                    _user.Email,
+                    "Peer Review Submitted",
+                    content,
+                    null,
+                    null
+                );
+
+                SendMail.SendEmail(mailObject, function (res) {
+                    console.log(res);
+                });
+
             });
-    
-        });
-        return { IsSuccess: true }
-            
+            return { IsSuccess: true }
+
         }
-        
+
 
     } catch (error) {
         logger.error('error occurred while saving peer review:', error)
@@ -931,15 +929,15 @@ exports.SaveTSFinalRating = async (finalRating) => {
                 $set: {
                     "Employees.$[e].FinalRating.ThirdSignatory.YearEndComments": finalRating.YearEndComments,
                     "Employees.$[e].FinalRating.ThirdSignatory.YearEndRating": finalRating.OverallRating,
-                    "Employees.$[e].FinalRating.ThirdSignatory.IsSubmitted": (finalRating.IsDraft || finalRating.ReqRevision) ?false:true,
-                    "Employees.$[e].FinalRating.ThirdSignatory.SubmittedOn": (finalRating.IsDraft || finalRating.ReqRevision)? null : new Date(),
+                    "Employees.$[e].FinalRating.ThirdSignatory.IsSubmitted": (finalRating.IsDraft || finalRating.ReqRevision) ? false : true,
+                    "Employees.$[e].FinalRating.ThirdSignatory.SubmittedOn": (finalRating.IsDraft || finalRating.ReqRevision) ? null : new Date(),
                     "Employees.$[e].FinalRating.ThirdSignatory.SignOff": finalRating.SignOff,
 
                     "Employees.$[e].FinalRating.ThirdSignatory.RevComments": finalRating.RevComments,
                     "Employees.$[e].FinalRating.ThirdSignatory.ReqRevision": finalRating.ReqRevision,
-                    "Employees.$[e].FinalRating.Manager.IsSubmitted": (finalRating.ReqRevision) ?false:true,
-                    "Employees.$[e].FinalRating.Status": `ThirdSignatory ${finalRating.ReqRevision?'Request Revision': 'Submited'}`,
-
+                    "Employees.$[e].FinalRating.Manager.IsSubmitted": (finalRating.ReqRevision) ? false : true,
+                    "Employees.$[e].FinalRating.Status": `ThirdSignatory ${finalRating.ReqRevision ? 'Request Revision' : 'Submited'}`,
+                    "Employees.$[e].Status": (finalRating.IsDraft || finalRating.ReqRevision) ? 'InProgress' : 'Completed',
                 }
             },
             {
@@ -999,7 +997,15 @@ exports.SaveTSFinalRating = async (finalRating) => {
 
                 }
             ])
-            console.log('ccc', c);
+            /**To update employee evaluation status */
+            if ((!finalRating.IsDraft && !finalRating.ReqRevision)) {
+                var _updateEmployee = await UserRepo.updateOne(
+                    { _id: ObjectId(finalRating.EmployeeId) },
+                    { $set: { HasActiveEvaluation: 'No' } }
+                )
+            }
+
+
             if (c && c[0] && c[0].CurrentEmployee[0]) {
                 var empoyee = c[0].CurrentEmployee[0];
                 var manager = c[0].CurrentEmployeeManager[0];
@@ -1093,8 +1099,8 @@ exports.SaveManagerFinalRating = async (finalRating) => {
 
                     "Employees.$[e].FinalRating.Manager.RevComments": finalRating.RevComments,
                     "Employees.$[e].FinalRating.Manager.ReqRevision": finalRating.ReqRevision,
-                    "Employees.$[e].FinalRating.Self.IsSubmitted": (finalRating.ReqRevision) ?false:true,
-                    "Employees.$[e].FinalRating.Status": `Manager ${finalRating.ReqRevision?'Request Revision': 'Submited'}`,
+                    "Employees.$[e].FinalRating.Self.IsSubmitted": (finalRating.ReqRevision) ? false : true,
+                    "Employees.$[e].FinalRating.Status": `Manager ${finalRating.ReqRevision ? 'Request Revision' : 'Submited'}`,
 
 
                     "Employees.$[e].FinalRating.ThirdSignatory.ReqRevision": false,
@@ -1210,7 +1216,7 @@ exports.SaveEmployeeFinalRating = async (finalRating) => {
                 $set: {
                     "Employees.$[e].FinalRating.Self.YearEndComments": finalRating.YearEndComments,
                     "Employees.$[e].FinalRating.Self.YearEndRating": finalRating.OverallRating,
-                    "Employees.$[e].FinalRating.Self.IsSubmitted": (finalRating.IsDraft || finalRating.ReqRevision) ?false:true,
+                    "Employees.$[e].FinalRating.Self.IsSubmitted": (finalRating.IsDraft || finalRating.ReqRevision) ? false : true,
                     "Employees.$[e].FinalRating.Self.SubmittedOn": finalRating.IsDraft ? null : new Date(),
                     "Employees.$[e].FinalRating.Self.SignOff": finalRating.SignOff,
                     "Employees.$[e].FinalRating.Status": 'Employee Submited',
@@ -1378,160 +1384,71 @@ exports.GetPeerAvgRating = async (emp) => {
     }
 }
 
-exports.GetPeerReviewRequests = async (emp) => {
+exports.GetDRReviewsList = async (emp) => {
     try {
-        var list = await EvaluationRepo.aggregate([
-            // { $match: { "Employee._id": ObjectId(emp.EmployeeId), status: "Active" } },
-            {
-                $addFields: {
-                    EvaluationId: "$_id"
-                }
-            },
-            { $unwind: '$Employees' },
+        var list =
+            await EvaluationRepo.aggregate([
+                { $match: { "Employees.DirectReportees.EmployeeId": ObjectId(emp.EmployeeId), "Employees.Status": "Active", "EvaluationYear": new Date().getFullYear().toString() } },
+                {
+                    $addFields: {
+                        EvaluationId: "$_id"
+                    }
+                },
+                { $unwind: '$Employees' },
+                { $unwind: '$Employees.DirectReportees' },
+                { $match: { "Employees.DirectReportees.EmployeeId": ObjectId(emp.EmployeeId), status: "Active" } },
+                {
+                    $project: {
+                        _id: 0,
+                        "EvaluationId": 1,
+                        "Employees._id": 1,
+                        "EvaluationPeriod": 1,
+                        "EvaluationDuration": 1,
+                        "DirectReportees": "$Employees.DirectReportees"
+                    }
+                },
+                {
+                    $lookup:
+                    {
+                        from: "users",
+                        localField: "Employees._id",
+                        foreignField: "_id",
+                        as: "ForEmployee"
+                    }
+                },
+                {
+                    $lookup:
+                    {
+                        from: "users",
+                        localField: "ForEmployee.Manager",
+                        foreignField: "_id",
+                        as: "Manager"
 
-            {
-                $project: {
-                    _id: 0,
-                    "EvaluationId": 1,
-                    "Employees._id": 1,
-                    "EvaluationPeriod": 1,
-                    "EvaluationDuration": 1,
-                    'Peer': {
-                        $filter: {
-                            input: "$Employees.Peers",
-                            as: "self",
-                            cond: { $eq: ['$$self.EmployeeId', ObjectId(emp.EmployeeId)] }
-                        },
+                    }
+                },
+                {
+                    $project: {
+                        "ForEmployee._id": 1,
+                        "ForEmployee.FirstName": 1,
+                        "ForEmployee.LastName": 1,
+                        "ForEmployee.Email": 1,
+                        "ForEmployee.Manager": 1,
+                        "EvaluationPeriod": 1,
+                        "EvaluationDuration": 1,
+                        "Manager._id": 1,
+                        "Manager.FirstName": 1,
+                        "Manager.LastName": 1,
+                        "Manager.Email": 1,
+                        "Manager.Manager": 1,
+                        "EvaluationId": 1,
+                        "DirectReportees": 1,
+                        IsRatingSubmitted: '$DirectReportees.CompetencySubmitted'
 
                     }
                 }
+            ]
 
-            },
-            {
-                $lookup:
-                {
-                    from: "users",
-                    localField: "Employees._id",
-                    foreignField: "_id",
-                    as: "ForEmployee"
-                    //,
-                    // "let":{"ManagerId":"ForEmployee.Manager"},
-                    // pipeline:[
-                    //     {$match:{ "$expr": { "$eq": ["$_id", "$$ManagerId"] }}},
-                    //    {$lookup:{
-                    //     from: "users",
-                    //     as: "Manager",
-                    //   //  localField: "Employees._id",
-                    // //foreignField: "_id",
-                    //    }}
-                    // ]
-                }
-            },
-            {
-                $lookup:
-                {
-                    from: "users",
-                    localField: "ForEmployee.Manager",
-                    foreignField: "_id",
-                    as: "Manager"
-
-                }
-            },
-            {
-                $project: {
-                    "ForEmployee._id": 1,
-                    "ForEmployee.FirstName": 1,
-                    "ForEmployee.LastName": 1,
-                    "ForEmployee.Email": 1,
-                    "ForEmployee.Manager": 1,
-                    "EvaluationPeriod": 1,
-                    "EvaluationDuration": 1,
-                    "Manager._id": 1,
-                    "Manager.FirstName": 1,
-                    "Manager.LastName": 1,
-                    "Manager.Email": 1,
-                    "Manager.Manager": 1,
-                    "EvaluationId": 1,
-
-                }
-            }
-        ]
-
-        )
-
-        return list;
-    } catch (error) {
-        logger.error('Error Occurred while getting data for Peer Review list:', error)
-        return Error(error.message)
-    }
-
-}
-
-exports.GetDRReviewsList = async (emp) => {
-    try {
-        var list = 
-        await EvaluationRepo.aggregate([
-             { $match: { "Employees.DirectReportees.EmployeeId": ObjectId(emp.EmployeeId), status: "Active","EvaluationYear":new Date().getFullYear().toString() } },
-            {
-                $addFields: {
-                    EvaluationId: "$_id"
-                }
-            },
-            { $unwind: '$Employees' },
-            { $unwind: '$Employees.DirectReportees' },
-            { $match: { "Employees.DirectReportees.EmployeeId": ObjectId(emp.EmployeeId), status: "Active" } },
-            {
-                $project: {
-                    _id: 0,
-                    "EvaluationId": 1,
-                    "Employees._id": 1,
-                    "EvaluationPeriod": 1,
-                    "EvaluationDuration": 1,                    
-                    "DirectReportees":"$Employees.DirectReportees"
-                }
-            },
-            {
-                $lookup:
-                {
-                    from: "users",
-                    localField: "Employees._id",
-                    foreignField: "_id",
-                    as: "ForEmployee"
-                }
-            },
-            {
-                $lookup:
-                {
-                    from: "users",
-                    localField: "ForEmployee.Manager",
-                    foreignField: "_id",
-                    as: "Manager"
-
-                }
-            },
-            {
-                $project: {
-                    "ForEmployee._id": 1,
-                    "ForEmployee.FirstName": 1,
-                    "ForEmployee.LastName": 1,
-                    "ForEmployee.Email": 1,
-                    "ForEmployee.Manager": 1,
-                    "EvaluationPeriod": 1,
-                    "EvaluationDuration": 1,
-                    "Manager._id": 1,
-                    "Manager.FirstName": 1,
-                    "Manager.LastName": 1,
-                    "Manager.Email": 1,
-                    "Manager.Manager": 1,
-                    "EvaluationId": 1,          
-                    "DirectReportees":1,
-                    IsRatingSubmitted:'$DirectReportees.CompetencySubmitted'
-                    
-                }
-            }
-        ]
-
-        )
+            )
 
         return list;
     } catch (error) {
@@ -1611,39 +1528,39 @@ exports.SaveDRReview = async (qna) => {
                 ]
             }
         )
-        if(_update && !qna.IsDraft){
-            let _user=await UserRepo.findOne({_id:ObjectId(qna.PeerId)},{Email:1,FirstName:1})
+        if (_update && !qna.IsDraft) {
+            let _user = await UserRepo.findOne({ _id: ObjectId(qna.PeerId) }, { Email: 1, FirstName: 1 })
             fs.readFile("./EmailTemplates/PeerReviewSubmitted.html", async function read(err, bufcontent) {
                 var content = bufcontent.toString();
-        
-                let des= `Direct Report Review has been Successfully Submitted.`
-                content = content.replace("##FirstName##",_user.FirstName);
+
+                let des = `Direct Report Review has been Successfully Submitted.`
+                content = content.replace("##FirstName##", _user.FirstName);
                 content = content.replace("##ProductName##", config.ProductName);
                 content = content.replace("##Description##", des);
                 content = content.replace("##Title##", "Peer Review SUbmitted");
-    
-            var mailObject = SendMail.GetMailObject(
-                _user.Email,
-                      "Direct Report Review Submitted",
-                      content,
-                      null,
-                      null
-                    );
-    
-            SendMail.SendEmail(mailObject, function (res) {
-                console.log(res);
+
+                var mailObject = SendMail.GetMailObject(
+                    _user.Email,
+                    "Direct Report Review Submitted",
+                    content,
+                    null,
+                    null
+                );
+
+                SendMail.SendEmail(mailObject, function (res) {
+                    console.log(res);
+                });
+
             });
-    
-        });
-        return { IsSuccess: true }
-            
-        }
-        if(_update && qna.IsDraft){
             return { IsSuccess: true }
-        }else{
-          throw Error('no record got updated with given input')
+
         }
-        
+        if (_update && qna.IsDraft) {
+            return { IsSuccess: true }
+        } else {
+            throw Error('no record got updated with given input')
+        }
+
 
     } catch (error) {
         logger.error('error occurred while saving peer review:', error)

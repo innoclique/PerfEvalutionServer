@@ -32,8 +32,8 @@ exports.AddEvaluation = async (evaluation) => {
             .populate('Employees._id Employees.Peers.EmployeeId Employees.DirectReportees.EmployeeId CreatedBy').sort({ CreatedDate: -1 })
         var _deliveremails = [];
 
-      
-        await this.sendmail( _currentEvaluation.CreatedBy);
+
+        await this.sendmail(_currentEvaluation.CreatedBy);
         _currentEvaluation.Employees.map(e => {
             _deliveremails.push({
                 User: e._id._id,
@@ -106,7 +106,7 @@ exports.GetEvaluations = async (clientId) => {
         }).populate("Employees.Model")
             .populate({ path: 'Employees._id', populate: { path: 'Manager' } })
             .sort({ CreatedDate: -1 })
-        
+
 
         response["kpiList"] = await KpiFormRepo.aggregate([
             { $match: { Company: Mongoose.Types.ObjectId(clientId.clientId) } },
@@ -118,7 +118,7 @@ exports.GetEvaluations = async (clientId) => {
                     as: 'Employee'
                 }
             },
-            {$match:{"Employee.HasActiveEvaluation":{ $ne: "Yes" }}},
+            { $match: { "Employee.HasActiveEvaluation": { $ne: "Yes" } } },
             {
                 $lookup: {
                     from: 'users',
@@ -195,7 +195,7 @@ exports.UpdateDirectReportees = async (evaluation) => {
         Thank you
         OPAssess Admin
         `,
-                
+
                 Subject: 'New Direct Reportee Review Requested'
             })
         })
@@ -230,7 +230,7 @@ exports.UpdatePeers = async (evaluation) => {
         Thank you
         OPAssess Admin
         `,
-                
+
                 Subject: 'New Peer Review Requested'
             })
         })
@@ -246,7 +246,7 @@ exports.GetCompetencyValues = async (evaluation) => {
     const evaluationForm = await EvaluationRepo.findOne({ _id: Mongoose.Types.ObjectId(evaluation.EvaluationId), "Employees._id": ObjectId(evaluation.employeeId) });
     var employee = await evaluationForm.Employees.find(x => x._id.toString() === evaluation.employeeId);
     if (employee && employee.Competencies && employee.Competencies.length > 0) {
-        return {EvaluationId:evaluationForm._id,Employee:employee};
+        return { EvaluationId: evaluationForm._id, Employee: employee };
     } else {
         var modelAggregation = await ModelsRepo.aggregate([
             { $match: { _id: ObjectId(employee.Model) } },
@@ -270,26 +270,26 @@ exports.GetCompetencyValues = async (evaluation) => {
             }
         ])
         var list = [];
-        if (modelAggregation.length>0) {           
-        for (let index = 0; index < modelAggregation[0].Questions.length; index++) {
-            const element = modelAggregation[0].competenciesList[index];
-            const Questions = [];
-            for (let k = 0; k < element.Questions.length; k++) {
-                const q = element.Questions[k];
-                var f = await questionsRepo.findById(ObjectId(q))
-                if (f) {
-                    f.SelectedRating = -1
-                    Questions.push(f)
+        if (modelAggregation.length > 0) {
+            for (let index = 0; index < modelAggregation[0].Questions.length; index++) {
+                const element = modelAggregation[0].competenciesList[index];
+                const Questions = [];
+                for (let k = 0; k < element.Questions.length; k++) {
+                    const q = element.Questions[k];
+                    var f = await questionsRepo.findById(ObjectId(q))
+                    if (f) {
+                        f.SelectedRating = -1
+                        Questions.push(f)
+                    }
                 }
+                list.push({ _id: new ObjectId(), Competency: element, Questions, Comments: "" })
             }
-            list.push({ _id: new ObjectId(), Competency: element, Questions,Comments:"" })
         }
-    }
-    evaluationForm.Employees.find(x => x._id.toString() === evaluation.employeeId).Competencies = list;
+        evaluationForm.Employees.find(x => x._id.toString() === evaluation.employeeId).Competencies = list;
         var t = await evaluationForm.save()
         var employee = await evaluationForm.Employees.find(x => x._id.toString() === evaluation.employeeId);
         if (employee && employee.Competencies && employee.Competencies.length > 0) {
-            return {EvaluationId:evaluationForm._id,Employee:employee};
+            return { EvaluationId: evaluationForm._id, Employee: employee };
         }
     }
 
@@ -345,7 +345,7 @@ exports.GetEvaluationDashboardData = async (request) => {
     let currentEvlEmployees = await EvaluationRepo.aggregate([
         matchObject,
         { $unwind: '$Employees' },
-        { $match: { "Employees.status": { "$exists": true, "$ne": "completed" } } },
+        { $match: { "Employees.Status": { "$exists": true, "$ne": "Completed" } } },
         { $group: { _id: '$_id', count: { $sum: 1 } } }
     ]);
     let currPendingEval = currentEvlEmployees.map(item => item.count).reduce((prev, next) => prev + next);
@@ -362,7 +362,7 @@ exports.GetEvaluationDashboardData = async (request) => {
             "$match": {
                 "Company": organization._id,
                 "CreatedDate": { "$lt": evalDate.toDate() },
-                "Employees.status": { "$ne": "completed" }
+                "Employees.Status": { "$ne": "Completed" }
             }
         },
         { $lookup: { from: 'users', localField: 'Employees._id', foreignField: '_id', as: 'users' } }
@@ -394,7 +394,17 @@ exports.GetEmpCurrentEvaluation = async (emp) => {
     returnObject["PeerScoreCard"] = {}
     returnObject["DirectReporteeScoreCard"] = {}
     try {
-        const evaluationForm = await EvaluationRepo.findOne({ "Employees._id": ObjectId(emp.EmployeeId),EvaluationYear:new Date().getFullYear().toString() }).populate("Employees.PeersCompetencyList._id").select({ "Employees.Peers": 0 });
+        const evaluationForm = await EvaluationRepo.findOne(
+            {
+                Employees: { $elemMatch: { _id: ObjectId(emp.EmployeeId), Status: "Active" } },
+                EvaluationYear: new Date().getFullYear().toString()
+            }
+        ).populate("Employees.PeersCompetencyList._id").select({ "Employees.Peers": 0 });
+        // const g=await EvaluationRepo.aggregate([
+        //     {$match:{"Employees._id":ObjectId(emp.EmployeeId),"EvaluationYear":new Date().getFullYear().toString()}},
+        //     {$unwind:"Employees"},
+        //     {$match:{"Employees._id":ObjectId(emp.EmployeeId),"Employees.Status":"Active"}},
+        // ])
         if (!evaluationForm) {
             throw "No Evaluation Found";
         }
@@ -477,18 +487,7 @@ exports.GetEmployeePeersCompetencies = async (peer) => {
 
 }
 
-exports.GetPeersRatingForEmployee = async (emp) => {
-    try {
-        var list = await EvaluationRepo.findOne({ _id: ObjectId(emp.EvaluationId), "Employees._id": ObjectId(emp.EmployeeId) }).populate("Peers.EmployeeId")
 
-
-
-        return list;
-    } catch (error) {
-        logger.error('Error Occurred while getting data for Peer Review list:', error)
-        return Error(error.message)
-    }
-}
 
 exports.GetPeerAvgRating = async (emp) => {
 
@@ -609,77 +608,6 @@ exports.GetDirectReporteeAvgRating = async (emp) => {
     }
 }
 
-exports.GetCompetencyFormRatings = async (evaluation) => {
-    var currentEvaluationForm = await EvaluationRepo.aggregate([
-        { $match: { _id: ObjectId(evaluation.EvaluationId) } },
-        { $unwind: "$Employees" },
-        { $match: { "Employees._id": Mongoose.Types.ObjectId(evaluation.EmployeeId) } },
-        {
-            $project: {
-                _id: 0,
-                "EvaluationId": 1,
-                "EvaluationPeriod": 1,
-                "EvaluationDuration": 1,
-                "Employees": 1
-            }
-        }
-    ])
-    if (currentEvaluationForm && currentEvaluationForm.length > 0) {
-        const currentEmployee = currentEvaluationForm[0].Employees;
-        if (currentEmployee && currentEmployee.Competencies && currentEmployee.Competencies.length > 0) {
-            return currentEmployee;
-        } else {
-            var modelAggregation = await ModelsRepo.aggregate([
-                { $match: { _id: currentEmployee.Model } },
-                {
-                    $lookup:
-                    {
-                        from: "competencies",
-                        localField: "Competencies",
-                        foreignField: "_id",
-                        as: "competenciesList"
-                    }
-                },
-                {
-                    $lookup:
-                    {
-                        from: "questions",
-                        localField: "competenciesList.Questions",
-                        foreignField: "_id",
-                        as: "Questions"
-                    }
-                }
-            ])
-            var list = [];
-            for (let index = 0; index < modelAggregation[0].Questions.length; index++) {
-                const q = modelAggregation[0].Questions[index];
-                q.SelectedRating = -1
-            }
-            for (let index = 0; index < modelAggregation[0].competenciesList.length; index++) {
-                const c = {};
-                const element = modelAggregation[0].competenciesList[index];
-                const Questions = [];
-                for (let k = 0; k < element.Questions.length; k++) {
-                    const q = element.Questions[k];
-                    var f = await questionsRepo.findById(ObjectId(q))
-                    if (f) {
-                        f.SelectedRating = -1
-                        Questions.push(f)
-                    }
-                }
-                list.push({ _id: new ObjectId(), Competency: element, Questions })
-            }
-            currentEmployee.Competencies = list;
-            currentEvaluationForm[0].Employees.Competencies = list;
-            var t = await currentEvaluationForm.save()
-            return currentEmployee;
-        }
-
-    }
-
-
-
-}
 
 
 //#region Manager's Reportees Start
@@ -703,14 +631,14 @@ exports.GetReporteeEvaluations = async (manager) => {
                     foreignField: "Employees._id",
                     as: "EvaluationList"
                 }
-            }
-            ,
+            },
             {
                 $match: {
-                    "EvaluationList.EvaluationYear": new Date().getFullYear().toString()
+                    "EvaluationList.EvaluationYear": new Date().getFullYear().toString(),
+                    
+
                 }
             },
-
             {
                 $lookup: {
                     from: "devgoals",
@@ -728,9 +656,11 @@ exports.GetReporteeEvaluations = async (manager) => {
                 }
 
             },
+            //{$unwind:"$EvaluationList.Employees"},
+            
             { $addFields: { Evaluation: "$EvaluationList.Employees" } },
 
-
+          
 
             {
                 $match: {
@@ -750,7 +680,6 @@ exports.GetReporteeEvaluations = async (manager) => {
                     LastName: 1,
                     EmployeeId: 1,
                     Evaluation: 1
-
 
                 }
             }
@@ -790,7 +719,8 @@ exports.GetTSReporteeEvaluations = async (ts) => {
             ,
             {
                 $match: {
-                    "EvaluationList.EvaluationYear": new Date().getFullYear().toString()
+                    "EvaluationList.EvaluationYear": new Date().getFullYear().toString(),
+                    
                 }
             },
 
@@ -846,26 +776,26 @@ exports.ReleaseKpiForm = async (evaluation) => {
     return true;
 }
 
- exports.sendmail=async (user)=>{
+exports.sendmail = async (user) => {
     fs.readFile("./EmailTemplates/EmailTemplate.html", async function read(err, bufcontent) {
         var content = bufcontent.toString();
 
-        let des= `Evaluation has been successfully created.`
-        content = content.replace("##FirstName##",user.FirstName);
+        let des = `Evaluation has been successfully created.`
+        content = content.replace("##FirstName##", user.FirstName);
         content = content.replace("##ProductName##", config.ProductName);
         content = content.replace("##Description##", des);
         content = content.replace("##Title##", "Devlopment Goal Submited");
 
-    var mailObject = SendMail.GetMailObject(
-        user.Email,
-              "Evaluation Initiated",
-              content,
-              null,
-              null
-            );
+        var mailObject = SendMail.GetMailObject(
+            user.Email,
+            "Evaluation Initiated",
+            content,
+            null,
+            null
+        );
 
-    SendMail.SendEmail(mailObject, function (res) {
-        console.log(res);
-    });
-    })    
+        SendMail.SendEmail(mailObject, function (res) {
+            console.log(res);
+        });
+    })
 }

@@ -394,7 +394,7 @@ exports.GetEmpCurrentEvaluation = async (emp) => {
     returnObject["PeerScoreCard"] = {}
     returnObject["DirectReporteeScoreCard"] = {}
     try {
-        const evaluationForm = await EvaluationRepo.findOne({ "Employees._id": ObjectId(emp.EmployeeId) }).populate("Employees.PeersCompetencyList._id").select({ "Employees.Peers": 0 });
+        const evaluationForm = await EvaluationRepo.findOne({ "Employees._id": ObjectId(emp.EmployeeId),EvaluationYear:new Date().getFullYear().toString() }).populate("Employees.PeersCompetencyList._id").select({ "Employees.Peers": 0 });
         if (!evaluationForm) {
             throw "No Evaluation Found";
         }

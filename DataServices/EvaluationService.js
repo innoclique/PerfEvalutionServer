@@ -243,6 +243,7 @@ exports.UpdatePeers = async (evaluation) => {
 
 };
 exports.GetCompetencyValues = async (evaluation) => {
+    try{
     const evaluationForm = await EvaluationRepo.findOne({ _id: Mongoose.Types.ObjectId(evaluation.EvaluationId), "Employees._id": ObjectId(evaluation.employeeId) });
     var employee = await evaluationForm.Employees.find(x => x._id.toString() === evaluation.employeeId);
     if (employee && employee.Competencies && employee.Competencies.length > 0) {
@@ -271,7 +272,7 @@ exports.GetCompetencyValues = async (evaluation) => {
         ])
         var list = [];
         if (modelAggregation.length > 0) {
-            for (let index = 0; index < modelAggregation[0].Questions.length; index++) {
+            for (let index = 0; index < modelAggregation[0].competenciesList.length; index++) {
                 const element = modelAggregation[0].competenciesList[index];
                 const Questions = [];
                 for (let k = 0; k < element.Questions.length; k++) {
@@ -292,6 +293,10 @@ exports.GetCompetencyValues = async (evaluation) => {
             return { EvaluationId: evaluationForm._id, Employee: employee };
         }
     }
+}catch(error){
+    logger.error(error);
+    throw error;
+}
 
 
     //const r = list

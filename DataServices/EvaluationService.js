@@ -611,88 +611,88 @@ exports.GetDirectReporteeAvgRating = async (emp) => {
 
 
 //#region Manager's Reportees Start
-exports.GetReporteeEvaluations = async (manager) => {
-    try {
-        const reportees = await UserRepo.aggregate([
-            { $match: { Manager: ObjectId(manager.id) } },
-            { $addFields: { EmployeeId: "$_id" } },
-            {
-                $project: {
-                    FirstName: 1,
-                    LastName: 1,
-                    Email: 1,
-                    EmployeeId: 1
-                }
-            },
-            {
-                $lookup: {
-                    from: "evalutions",
-                    localField: "EmployeeId",
-                    foreignField: "Employees._id",
-                    as: "EvaluationList"
-                }
-            },
-            {
-                $match: {
-                    "EvaluationList.EvaluationYear": new Date().getFullYear().toString(),
-                    
+// exports.GetReporteeEvaluations = async (manager) => {
+//     try {
+//         const reportees = await UserRepo.aggregate([
+//             { $match: { Manager: ObjectId(manager.id) } },
+//             { $addFields: { EmployeeId: "$_id" } },
+//             {
+//                 $project: {
+//                     FirstName: 1,
+//                     LastName: 1,
+//                     Email: 1,
+//                     EmployeeId: 1
+//                 }
+//             },
+//             {
+//                 $lookup: {
+//                     from: "evalutions",
+//                     localField: "EmployeeId",
+//                     foreignField: "Employees._id",
+//                     as: "EvaluationList"
+//                 }
+//             },
+//             {
+//                 $match: {
+//                     "EvaluationList.EvaluationYear": new Date().getFullYear().toString(),
 
-                }
-            },
-            {
-                $lookup: {
-                    from: "devgoals",
-                    localField: "EmployeeId",
-                    foreignField: "Owner",
-                    as: "GoalList",
-                }
-            },
-            {
-                $lookup: {
-                    from: "kpis",
-                    localField: "EmployeeId",
-                    foreignField: "Owner",
-                    as: "KpiList"
-                }
 
-            },
-            //{$unwind:"$EvaluationList.Employees"},
-            
-            { $addFields: { Evaluation: "$EvaluationList.Employees" } },
+//                 }
+//             },
+//             {
+//                 $lookup: {
+//                     from: "devgoals",
+//                     localField: "EmployeeId",
+//                     foreignField: "Owner",
+//                     as: "GoalList",
+//                 }
+//             },
+//             {
+//                 $lookup: {
+//                     from: "kpis",
+//                     localField: "EmployeeId",
+//                     foreignField: "Owner",
+//                     as: "KpiList"
+//                 }
 
-          
+//             },
+//             //{$unwind:"$EvaluationList.Employees"},
 
-            {
-                $match: {
-                    $or: [{
-                        "KpiList.EvaluationYear": new Date().getFullYear().toString(),
-                        "KpiList.IsDraft": false, "KpiList.IsSubmitedKPIs": true
-                    }]
-                }
-            },
+//             { $addFields: { Evaluation: "$EvaluationList.Employees" } },
 
-            {
-                $project: {
-                    KpiList: 1,
-                    GoalList: 1,
-                    Email: 1,
-                    FirstName: 1,
-                    LastName: 1,
-                    EmployeeId: 1,
-                    Evaluation: 1
 
-                }
-            }
-            // ,
-            // {$unwind:{"EvaluationList.Employees":1}}
-        ])
-        return reportees;
 
-    } catch (error) {
-        console.log('error', error)
-        logger.error(error);
-    }
-}
+//             {
+//                 $match: {
+//                     $or: [{
+//                         "KpiList.EvaluationYear": new Date().getFullYear().toString(),
+//                         "KpiList.IsDraft": false, "KpiList.IsSubmitedKPIs": true
+//                     }]
+//                 }
+//             },
+
+//             {
+//                 $project: {
+//                     KpiList: 1,
+//                     GoalList: 1,
+//                     Email: 1,
+//                     FirstName: 1,
+//                     LastName: 1,
+//                     EmployeeId: 1,
+//                     Evaluation: 1
+
+//                 }
+//             }
+//             // ,
+//             // {$unwind:{"EvaluationList.Employees":1}}
+//         ])
+//         return reportees;
+
+//     } catch (error) {
+//         console.log('error', error)
+//         logger.error(error);
+//     }
+// }
 //#endregion
 
 exports.GetTSReporteeEvaluations = async (ts) => {
@@ -720,7 +720,7 @@ exports.GetTSReporteeEvaluations = async (ts) => {
             {
                 $match: {
                     "EvaluationList.EvaluationYear": new Date().getFullYear().toString(),
-                    
+
                 }
             },
 
@@ -798,4 +798,95 @@ exports.sendmail = async (user) => {
             console.log(res);
         });
     })
+}
+
+
+exports.GetReporteeEvaluations = async (manager) => {
+    try {
+        const reportees = await UserRepo.aggregate([
+            { $match: { Manager: ObjectId(manager.id) ,"HasActiveEvaluation":"Yes"} },
+            { $addFields: { EmployeeId: "$_id" } },
+            {
+                $project: {
+                    FirstName: 1,
+                    LastName: 1,
+                    Email: 1,
+                    EmployeeId: 1
+                }
+            }
+            ,
+            {
+                $lookup: {
+                    from: "evalutions",
+                    localField: "EmployeeId",
+                    foreignField: "Employees._id",
+                    as: "EvaluationList"
+                }
+            },
+{$unwind:"$EvaluationList"},
+
+            
+            
+            {
+                $lookup: {
+                    from: "devgoals",
+                    localField: "EmployeeId",
+                    foreignField: "Owner",
+                    as: "GoalList",
+                }
+            },
+            {
+                $lookup: {
+                    from: "kpis",
+                    localField: "EmployeeId",
+                    foreignField: "Owner",
+                    as: "KpiList"
+                }
+            },
+            { $addFields: { Evaluation: "$EvaluationList.Employees" } },
+            { $addFields: { KpiExist: { $gt: [{ $size: "$KpiList" }, 0] } } },
+            //{$match:{"Evalaution.Status":"Active"}},
+            {
+                $project: {
+                    //KpiList: 1,
+                    GoalList: 1,
+                    Email: 1,
+                    FirstName: 1,
+                    LastName: 1,
+                    EmployeeId: 1,                    
+                    KpiExist: 1,
+                    KpiList: {
+                        "$filter": {
+                            "input": "$KpiList",
+                            "as": "result",
+                            "cond": {
+                                "$and": [
+                                    { "$eq": ["$$result.EvaluationYear", new Date().getFullYear().toString()] },
+                                    { "$eq": ["$$result.IsDraft", false] },
+                                    { "$eq": ["$$result.IsSubmitedKPIs", true] }
+                                ]
+                            }
+                        }
+                    },
+                    Evaluation: {
+                        "$filter": {
+                            "input": "$Evaluation",
+                            "as": "e",
+                            "cond": {
+                                "$and": [
+                                    { "$eq": ["$$e.Status", "Active"] }
+
+                                ]
+                            }
+                        }
+                    }
+                }
+            }
+        ])
+        return reportees;
+
+    } catch (error) {
+        console.log('error', error)
+        logger.error(error);
+    }
 }

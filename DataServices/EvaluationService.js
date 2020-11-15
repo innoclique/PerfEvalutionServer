@@ -393,10 +393,11 @@ exports.GetEmpCurrentEvaluation = async (emp) => {
     returnObject["KpiList"] = []
     returnObject["PeerScoreCard"] = {}
     returnObject["DirectReporteeScoreCard"] = {}
+    let status=['Active','InProgress'];
     try {
         const evaluationForm = await EvaluationRepo.findOne(
             {
-                Employees: { $elemMatch: { _id: ObjectId(emp.EmployeeId), Status: "Active" } },
+                Employees: { $elemMatch: { _id: ObjectId(emp.EmployeeId), Status: {$in:status} } },
                 EvaluationYear: new Date().getFullYear().toString()
             }
         ).populate("Employees.PeersCompetencyList._id").select({ "Employees.Peers": 0 });

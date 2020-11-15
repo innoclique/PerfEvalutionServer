@@ -1103,7 +1103,7 @@ exports.SaveManagerFinalRating = async (finalRating) => {
                     "Employees.$[e].FinalRating.Status": `Manager ${finalRating.ReqRevision ? 'Request Revision' : 'Submited'}`,
 
 
-                    "Employees.$[e].FinalRating.ThirdSignatory.ReqRevision": false,
+                    //"Employees.$[e].FinalRating.ThirdSignatory.ReqRevision": false,
 
                 }
             },
@@ -1215,13 +1215,14 @@ exports.SaveEmployeeFinalRating = async (finalRating) => {
             {
                 $set: {
                     "Employees.$[e].FinalRating.Self.YearEndComments": finalRating.YearEndComments,
+                    "Employees.$[e].FinalRating.Self.RevComments": finalRating.RevComments,
                     "Employees.$[e].FinalRating.Self.YearEndRating": finalRating.OverallRating,
                     "Employees.$[e].FinalRating.Self.IsSubmitted": (finalRating.IsDraft || finalRating.ReqRevision) ? false : true,
                     "Employees.$[e].FinalRating.Self.SubmittedOn": finalRating.IsDraft ? null : new Date(),
                     "Employees.$[e].FinalRating.Self.SignOff": finalRating.SignOff,
                     "Employees.$[e].FinalRating.Status": 'Employee Submited',
 
-                    "Employees.$[e].FinalRating.Manager.ReqRevision": false,
+                   // "Employees.$[e].FinalRating.Manager.ReqRevision": false,
 
                 }
             },

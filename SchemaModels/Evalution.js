@@ -49,6 +49,7 @@ const Evalution = new mongoose.Schema({
                 YearEndComments: { type: String, default: "" },
                 YearEndRating: { type: String, default: "" },
                 SubmittedOn: { type: Date, default: Date() },
+                RevComments: { type: String, default: "" },
                 IsSubmitted: { type: Boolean, default: false },
                 SignOff:{ type: String, default: "" }
             },
@@ -62,7 +63,7 @@ const Evalution = new mongoose.Schema({
             },
             ThirdSignatory: {
                 YearEndComments: { type: String, default: "" },
-                RevComments: { type: String, default: "" },
+              //  RevComments: { type: String, default: "" },
                 YearEndRating: { type: String, default: "" },
                 SubmittedOn: { type: Date, default: Date() },
                 IsSubmitted: { type: Boolean, default: false },

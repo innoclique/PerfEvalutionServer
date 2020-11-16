@@ -936,7 +936,7 @@ exports.SaveTSFinalRating = async (finalRating) => {
                     "Employees.$[e].FinalRating.ThirdSignatory.RevComments": finalRating.RevComments,
                     "Employees.$[e].FinalRating.ThirdSignatory.ReqRevision": finalRating.ReqRevision,
                     "Employees.$[e].FinalRating.Manager.IsSubmitted": (finalRating.ReqRevision) ? false : true,
-                    "Employees.$[e].FinalRating.Status": `ThirdSignatory ${finalRating.ReqRevision ? 'Request Revision' : 'Submited'}`,
+                    "Employees.$[e].FinalRating.Status": `ThirdSignatory ${finalRating.ReqRevision ? 'Request Revision' : 'Submitted'}`,
                     "Employees.$[e].Status": (finalRating.IsDraft || finalRating.ReqRevision) ? 'InProgress' : 'Completed',
                 }
             },
@@ -1014,10 +1014,10 @@ exports.SaveTSFinalRating = async (finalRating) => {
 
                     var mailObject = SendMail.GetMailObject(
                         ts.Email,
-                        "Final Rating Submitted",
+                        `Final Rating ${finalRating.ReqRevision ? 'Request Revision' : 'Submitted'}`,
                         `Dear ${ts.FirstName},
 
-                          You have successfully submitted your year-end review
+                          You have successfully ${finalRating.ReqRevision ? 'Request Revision' : 'Submitted'} your year-end review
                           
                           Thank you,
                           Administrator
@@ -1033,10 +1033,10 @@ exports.SaveTSFinalRating = async (finalRating) => {
                 if (empoyee) {
                     var mailObject = SendMail.GetMailObject(
                         empoyee.Email,
-                        "Final Rating Submitted",
+                        `Final Rating ${finalRating.ReqRevision ? 'Request Revision' : 'Submitted'}`,
                         `Dear ${empoyee.FirstName},
 
-                          Your Third Signatory ${manager.FirstName} has successfully submitted  year-end review.
+                          Your Third Signatory ${manager.FirstName} has successfully ${finalRating.ReqRevision ? 'Request Revision' : 'Submitted'}  year-end review.
                           Kindly access portal to review the year-end review.
                           Thank you,
                           Administrator
@@ -1054,10 +1054,10 @@ exports.SaveTSFinalRating = async (finalRating) => {
                 if (manager) {
                     var mailObject = SendMail.GetMailObject(
                         manager.Email,
-                        "Final Rating Submitted",
+                        `Final Rating ${finalRating.ReqRevision ? 'Request Revision' : 'Submitted'}`,
                         `Dear ${manager.FirstName},
 
-                        ${empoyee.FirstName} Third Signatory ${ts.FirstName} has successfully submitted  year-end review.
+                        ${empoyee.FirstName} Third Signatory ${ts.FirstName} has successfully ${finalRating.ReqRevision ? 'Request Revision' : 'Submitted'}  year-end review.
                           Kindly access portal to review the year-end review.
                           Thank you,
                           Administrator
@@ -1100,10 +1100,10 @@ exports.SaveManagerFinalRating = async (finalRating) => {
                     "Employees.$[e].FinalRating.Manager.RevComments": finalRating.RevComments,
                     "Employees.$[e].FinalRating.Manager.ReqRevision": finalRating.ReqRevision,
                     "Employees.$[e].FinalRating.Self.IsSubmitted": (finalRating.ReqRevision) ? false : true,
-                    "Employees.$[e].FinalRating.Status": `Manager ${finalRating.ReqRevision ? 'Request Revision' : 'Submited'}`,
+                    "Employees.$[e].FinalRating.Status": `Manager ${finalRating.ReqRevision ? 'Request Revision' : 'Submitted'}`,
 
 
-                    //"Employees.$[e].FinalRating.ThirdSignatory.ReqRevision": false,
+                    "Employees.$[e].FinalRating.ThirdSignatory.IsSubmitted": false,
 
                 }
             },
@@ -1159,10 +1159,10 @@ exports.SaveManagerFinalRating = async (finalRating) => {
 
                     var mailObject = SendMail.GetMailObject(
                         manager.Email,
-                        "Final Rating Submitted",
+                        `Final Rating ${finalRating.ReqRevision ? 'Request Revision' : 'Submitted'}`,
                         `Dear ${manager.FirstName},
 
-                          You have successfully submitted your year-end review
+                          You have successfully ${finalRating.ReqRevision ? 'Request Revision' : 'Submitted'} your year-end review
                           
                           Thank you,
                           Administrator
@@ -1178,10 +1178,10 @@ exports.SaveManagerFinalRating = async (finalRating) => {
                 if (empoyee) {
                     var mailObject = SendMail.GetMailObject(
                         empoyee.Email,
-                        "Final Rating Submitted",
+                        `Final Rating ${finalRating.ReqRevision ? 'Request Revision' : 'Submitted'}`,
                         `Dear ${empoyee.FirstName},
 
-                          Your Manager ${manager.FirstName} has successfully submitted  year-end review.
+                          Your Manager ${manager.FirstName} has successfully ${finalRating.ReqRevision ? 'Request Revision' : 'Submitted'}  year-end review.
                           Kindly access portal to review the year-end review.
                           Thank you,
                           Administrator
@@ -1220,9 +1220,9 @@ exports.SaveEmployeeFinalRating = async (finalRating) => {
                     "Employees.$[e].FinalRating.Self.IsSubmitted": (finalRating.IsDraft || finalRating.ReqRevision) ? false : true,
                     "Employees.$[e].FinalRating.Self.SubmittedOn": finalRating.IsDraft ? null : new Date(),
                     "Employees.$[e].FinalRating.Self.SignOff": finalRating.SignOff,
-                    "Employees.$[e].FinalRating.Status": 'Employee Submited',
+                    "Employees.$[e].FinalRating.Status": 'Employee Submitted',
 
-                   // "Employees.$[e].FinalRating.Manager.ReqRevision": false,
+                    "Employees.$[e].FinalRating.Manager.IsSubmitted": false,
 
                 }
             },

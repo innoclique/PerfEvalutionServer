@@ -170,11 +170,11 @@ exports.sendEmailOnDevGoalSubmit = async (manager,devGoalOwnerInfo) => {
             content = content.replace("##FirstName##",devGoalOwnerInfo.FirstName);
             content = content.replace("##ProductName##", config.ProductName);
             content = content.replace("##Description##", des);
-            content = content.replace("##Title##", "Devlopment Goal Submited");
+            content = content.replace("##Title##", "Devlopment Goal Submitted");
 
         var mailObject = SendMail.GetMailObject(
             devGoalOwnerInfo.Email,
-                  "Devlopment Goal Submited",
+                  "Devlopment Goal Submitted",
                   content,
                   null,
                   null
@@ -198,12 +198,12 @@ exports.sendEmailOnDevGoalSubmit = async (manager,devGoalOwnerInfo) => {
             content = content.replace("##FirstName##",manager.FirstName);
             content = content.replace("##ProductName##", config.ProductName);
             content = content.replace("##Description##", des);
-            content = content.replace("##Title##", "Devlopment Goal Submited");
+            content = content.replace("##Title##", "Devlopment Goal Submitted");
 
       
             var mailObject = SendMail.GetMailObject(
             manager.Email,
-                  "Devlopment Goal Submited",
+                  "Devlopment Goal Submitted",
                  content,
                   null,
                   null

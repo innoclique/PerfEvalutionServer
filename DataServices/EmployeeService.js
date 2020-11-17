@@ -324,7 +324,7 @@ exports.SubmitAllKpis = async (empId) => {
                     "Kpi submited for review",
                     `Dear ${User[0].Manager.FirstName},
 
-                                  Your Direct Report, ${User[0].FirstName} has submitted the KPIs.
+                                  Your Direct Report, ${User[0].FirstName} has submitted the Performance Goals.
 
                                     Please click here to login and review.
 
@@ -440,10 +440,10 @@ exports.sendEmailOnManagerSignoff = async (manager, kpiOwnerInfo) => {
 
         var mailObject = SendMail.GetMailObject(
             manager.Email,
-            "Kpi signed-off",
+            "Performance Goal signed-off",
             `Dear ${manager.FirstName},
 
-                          You have successfully signed-off the KPIs for ${kpiOwnerInfo.Owner.FirstName}.
+                          You have successfully signed-off the Performance Goals for ${kpiOwnerInfo.Owner.FirstName}.
 
                         To view details, click here.
 
@@ -464,10 +464,10 @@ exports.sendEmailOnManagerSignoff = async (manager, kpiOwnerInfo) => {
         // send email to User 
         var mailObject = SendMail.GetMailObject(
             kpiOwnerInfo.Owner.Email,
-            "Kpi sign-off",
+            "Performance Goal sign-off",
             `Dear ${kpiOwnerInfo.Owner.FirstName},
 
-                          Your manager, ${manager.FirstName} has <edited> and signed-off your KPIs.
+                          Your manager, ${manager.FirstName} has <edited> and signed-off your Performance Goals.
 
                           Please click here to login and review. You may want to discuss the updates, if any, with your manager.
                           

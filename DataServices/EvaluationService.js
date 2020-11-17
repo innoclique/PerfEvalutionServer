@@ -704,12 +704,13 @@ exports.GetDirectReporteeAvgRating = async (emp) => {
 exports.GetTSReporteeEvaluations = async (ts) => {
     try {
         const reportees = await UserRepo.aggregate([
-            { $match: { ThirdSignatory: ObjectId(ts.id) } },
+            { $match: { ThirdSignatory: ObjectId(ts.id) ,"HasActiveEvaluation":"Yes" } },
             { $addFields: { EmployeeId: "$_id" } },
             {
                 $project: {
                     FirstName: 1,
                     LastName: 1,
+                    Manager:1,
                     Email: 1,
                     EmployeeId: 1
                 }
@@ -748,16 +749,42 @@ exports.GetTSReporteeEvaluations = async (ts) => {
 
             },
             { $addFields: { Evaluation: "$EvaluationList.Employees" } },
+            { $addFields: { KpiExist: { $gt: [{ $size: "$KpiList" }, 0] } } },
 
             {
                 $project: {
-                    KpiList: 1,
                     GoalList: 1,
                     Email: 1,
                     FirstName: 1,
                     LastName: 1,
                     EmployeeId: 1,
-                    Evaluation: 1
+                    Manager:1,
+                    KpiExist:1,
+                    KpiList: {
+                        "$filter": {
+                            "input": "$KpiList",
+                            "as": "result",
+                            "cond": {
+                                "$and": [
+                                    { "$eq": ["$$result.EvaluationYear", new Date().getFullYear().toString()] },
+                                    { "$eq": ["$$result.IsDraft", false] },
+                                    { "$eq": ["$$result.IsSubmitedKPIs", true] }
+                                ]
+                            }
+                        }
+                    },
+                    Evaluation: {
+                        "$filter": {
+                            "input": "$Evaluation",
+                            "as": "e",
+                            "cond": {
+                                "$and": [
+                                    { "$eq": ["$$e.Status", "Active"] }
+
+                                ]
+                            }
+                        }
+                    }
 
 
                 }
@@ -817,7 +844,8 @@ exports.GetReporteeEvaluations = async (manager) => {
                     FirstName: 1,
                     LastName: 1,
                     Email: 1,
-                    EmployeeId: 1
+                    EmployeeId: 1,
+                    Manager:1
                 }
             }
             ,
@@ -859,7 +887,8 @@ exports.GetReporteeEvaluations = async (manager) => {
                     Email: 1,
                     FirstName: 1,
                     LastName: 1,
-                    EmployeeId: 1,                    
+                    EmployeeId: 1,     
+                    Manager:1,               
                     KpiExist: 1,
                     KpiList: {
                         "$filter": {

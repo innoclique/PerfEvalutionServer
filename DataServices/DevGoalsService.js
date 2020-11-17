@@ -95,7 +95,7 @@ exports.UpdateDevGoalById = async (devGoalData) => {
            devGoalData.ManagerFTSubmitedOn=new Date()
             devGoalData.ManagerSignOff={SignOffBy:Manager.FirstName,SignOffOn:new Date()}
 
-          const kpiOwnerInfo=  this.GetKpiDataById(devGoalData.devGoalId)
+          const kpiOwnerInfo=  await UserRepo.findById(devGoalData.empId);
               this.sendEmailOnManagerSignoff(Manager,kpiOwnerInfo);
 
 
@@ -218,6 +218,57 @@ exports.sendEmailOnDevGoalSubmit = async (manager,devGoalOwnerInfo) => {
 }
 
 
+exports.sendEmailOnManagerSignoff = async (manager, kpiOwnerInfo) => {
+
+
+    if (manager) {
+        // send email to manager 
+
+        var mailObject = SendMail.GetMailObject(
+            manager.Email,
+            "Developmental Goal signed-off",
+            `Dear ${manager.FirstName},
+
+            You have successfully added comments to the action plan for  ${kpiOwnerInfo.FirstName}.
+
+                        To view details, click here.
+
+
+                          
+                          Thank you,
+                          Administrator
+                          `,
+            null,
+            null
+        );
+
+        SendMail.SendEmail(mailObject, function (res) {
+            console.log(res);
+        });
+
+
+        // send email to User 
+        var mailObject = SendMail.GetMailObject(
+            kpiOwnerInfo.Email,
+            "Developmental Goal sign-off",
+            `Dear ${kpiOwnerInfo.FirstName},
+
+            Your manager ${manager.FirstName} successfully added comments.
+                          
+                          
+                          Thank you,
+                         Administrator
+                          `,
+            null,
+            null
+        );
+
+        SendMail.SendEmail(mailObject, function (res) {
+            console.log(res);
+        });
+    }
+
+}
 
 
 

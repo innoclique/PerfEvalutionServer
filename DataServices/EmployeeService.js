@@ -27,17 +27,15 @@ var fs = require("fs");
 var config = require(`../Config/${env}.config`);
 exports.AddStrength = async (strength) => {
     try {
-        // const organizationName = await strengthRepo.findOne({ Name: organization.Name });
-        // const organizationEmail = await strengthRepo.findOne({ Email: organization.Email });
-        // const organizationPhone = await OrganizationRepo.findOne({ Phone: organization.Phone });
-
-        // if (organizationName !== null) { throw Error("Organization Name Already Exist"); }
-
-        // if (organizationEmail !== null) { throw Error("Organization Email Already Exist "); }
-
-        // if (organizationPhone !== null) { throw Error("Organization Phone Number Already Exist"); }
-        const Strength = new strengthRepo(strength);
-        await Strength.save();
+        if(strength.StrengthId){
+            let {StrengthId} = strength;
+            delete strength.StrengthId;
+            let response = await StrengthRepo.updateOne({_id:ObjectId(StrengthId)},strength);
+        }else{
+            let Strength = new StrengthRepo(strength);
+            strength.CreatedYear= new Date().getFullYear();
+            await Strength.save()
+        }
         return true;
     }
     catch (err) {

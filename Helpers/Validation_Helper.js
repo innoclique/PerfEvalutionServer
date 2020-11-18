@@ -503,15 +503,22 @@ exports.ValidateUpdateReseller=(schema)=>{
 
 }
 exports.ValidateStrength = ( data)=>{
-
+   console.log("ValidateStrength:ValidateStrength")
    const schema = Joi.object().keys({
+      StrengthId:Joi.optional(),
       Strength: Joi.string().required(),
       Leverage: Joi.string().required(),
       TeamBenifit: Joi.string().required(),
       SelfBenifit: Joi.string().required(),
-      Status: Joi.string().required(),
-      Comments: Joi.string().required(),
-      Employee: Joi.string().required()
+      Status: Joi.optional(),
+      ProgressComments: Joi.optional(),
+      ManagerComments: Joi.optional(),
+      Employee: Joi.string().required(),
+      Owner: Joi.string().required(),
+      ManagerId: Joi.string().required(),
+      IsDraft:Joi.optional(),
+      IsStrengthSubmited:Joi.optional(),
+      
   });
   return schema;
 }

@@ -111,9 +111,9 @@ exports.AddStrength = async (req, res, next) => {
             debugger
             await EmployeeService.AddStrength(req.body)
                 .then((Response) => {
-                    res.status(200).json({ message: " Strength added Succeesfully" });
+                    res.status(200).json({  message: "Success" });
                 })
-                .catch(err => { next(err) });
+                .catch(err => { ogger.error(err);next(err) });
         }
     });
 }

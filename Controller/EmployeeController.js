@@ -348,3 +348,9 @@ exports.SaveDRReview= async (req, res, next) => {
         .then(Response => Response ? res.status(200).json(Response) : res.status(404).json("No Peer Review found"))
         .catch(err => next(err));
 }
+
+exports.SaveCompetencyQnAByManager= async (req, res, next) => {
+    await EmployeeService.SaveCompetencyQnAByManager(req.body)
+        .then(Response => Response ? res.status(200).json(Response) : res.status(404).json("No Peer Review found"))
+        .catch(err => next(err));
+}

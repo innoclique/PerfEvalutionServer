@@ -695,6 +695,7 @@ exports.SaveCompetencyQnA = async (qna) => {
                 $set: {
                     "Employees.$[e].Competencies.$[c].Questions.$[q].SelectedRating": element.Answer,
                     "Employees.$[e].Competencies.$[c].Comments": element.Comments,
+                    "Employees.$[e].Competencies.$[c].CompetencyAvgRating": element.CompetencyAvgRating,
                 }
             },
                 {
@@ -868,6 +869,7 @@ exports.SavePeerReview = async (qna) => {
                     "Employees.$[e].Peers.$[p].QnA": qna.QnA,
                     "Employees.$[e].Peers.$[p].CompetencyComments": qna.CompetencyComments,
                     "Employees.$[e].Peers.$[p].CompetencyOverallRating": qna.OverallRating,
+                    
                     "Employees.$[e].Peers.$[p].CompetencySubmitted": !qna.IsDraft,
                     "Employees.$[e].Peers.$[p].CompetencySubmittedOn": qna.IsDraft ? null : new Date()
                 }
@@ -1630,3 +1632,104 @@ exports.GetDrAvgRating = async (emp) => {
         return Error(error.message)
     }
 }
+
+
+
+
+exports.GetCompetenciesForManagerToSubmit = async (emp) => {
+    try {
+        var list = await EvaluationRepo.aggregate([
+            { $match: { _id: ObjectId(emp.EvaluationId) } },
+            { $unwind: '$Employees' },
+            { $match: { "Employees._id": ObjectId(emp.ForEmployeeId) } },
+            {
+                $project: {
+                    _id: 0,
+                    "Employees._id": 1,
+                    'DirectReportee': {
+                        $filter: {
+                            input: "$Employees.DirectReportees",
+                            as: "self",
+                            cond: { $eq: ['$$self.EmployeeId', ObjectId(emp.DirectReport)] }
+                        },
+                    }
+                }
+            },
+            {
+                $lookup:
+                {
+                    from: "competencies",
+                    localField: "DirectReportee.DirectReporteeCompetencyList._id",
+                    foreignField: "_id",
+                    as: "Competencies"
+                }
+            },
+            {
+                $lookup:
+                {
+                    from: "questions",
+                    localField: "Competencies.Questions",
+                    foreignField: "_id",
+                    as: "Questions"
+                }
+            }
+
+        ])
+        return list[0];
+    } catch (error) {
+        logger.error('error occurred while getting emp peer competencies for review:', error)
+        throw error;
+    }
+
+}
+exports.SaveCompetencyQnAByManager = async (qna) => {
+    try {
+        for (let index = 0; index < qna.QnA.length; index++) {
+            const element = qna.QnA[index];
+            var fg = await EvaluationRepo.updateOne({
+                _id: Mongoose.Types.ObjectId(qna.EvaluationId),
+                "Employees._id": Mongoose.Types.ObjectId(qna.EmployeeId),
+                "Employees.Manager.Competencies.Questions": { $elemMatch: { _id: Mongoose.Types.ObjectId(element.QuestionId) } }
+            }, {
+                $set: {
+                    "Employees.$[e].Manager.Competencies.$[c].Questions.$[q].SelectedRating": element.Answer,
+                    "Employees.$[e].Manager.Competencies.$[c].Comments": element.Comments,
+                    "Employees.$[e].Manager.Competencies.$[c].CompetencyAvgRating": element.CompetencyAvgRating,
+                }
+            },
+                {
+                    "arrayFilters": [
+                        { "e._id": ObjectId(qna.EmployeeId) },
+                        { "c._id": ObjectId(element.CompetencyRowId) },
+                        { "q._id": ObjectId(element.QuestionId) }]
+                }
+            )
+        }
+        var updateCompetencyList = await EvaluationRepo.updateOne({
+            _id: Mongoose.Types.ObjectId(qna.EvaluationId),
+            "Employees._id": Mongoose.Types.ObjectId(qna.EmployeeId)
+        }, {
+            $set: {
+                "Employees.$[e].Manager.CompetencySubmitted": !qna.IsDraft,
+                "Employees.$[e].Manager.CompetencySubmittedOn": qna.IsDraft ? null : new Date()
+                
+            }
+        },
+            {
+                "arrayFilters": [
+                    { "e._id": ObjectId(qna.EmployeeId) }
+                ]
+            }
+        )
+        if (updateCompetencyList) {
+            return { IsSuccess: true }
+        } else {
+            return { IsSuccess: false }
+        }
+    } catch (error) {
+        logger.error('Error Occurred while saving Competency', error);
+        throw error;
+    }
+
+
+};

@@ -287,6 +287,8 @@ exports.GetCompetencyValues = async (evaluation) => {
             }
         }
         evaluationForm.Employees.find(x => x._id.toString() === evaluation.employeeId).Competencies = list;
+        evaluationForm.Employees.find(x => x._id.toString() === evaluation.employeeId).Manager.Competencies = list;
+
         var t = await evaluationForm.save()
         var employee = await evaluationForm.Employees.find(x => x._id.toString() === evaluation.employeeId);
         if (employee && employee.Competencies && employee.Competencies.length > 0) {
@@ -394,6 +396,7 @@ exports.GetEvaluationDashboardData = async (request) => {
 exports.GetEmpCurrentEvaluation = async (emp) => {
     var returnObject = {};
     returnObject["Competencies"] = {}
+    returnObject["ManagerCompetencies"] = {}
     returnObject["FinalRating"] = {}
     returnObject["KpiList"] = []
     returnObject["PeerScoreCard"] = {}
@@ -433,7 +436,7 @@ exports.GetEmpCurrentEvaluation = async (emp) => {
             returnObject.FinalRating = employee.FinalRating;
             returnObject.PeerScoreCard = await this.GetPeerAvgRating({ EvaluationId: evaluationForm._id.toString(), EmployeeId: employee._id.toString() })
             returnObject.DirectReporteeScoreCard = await this.GetDirectReporteeAvgRating({ EvaluationId: evaluationForm._id.toString(), EmployeeId: employee._id.toString() })
-
+returnObject.ManagerCompetencies=await this.GetEmpCompetenciesForManager({ EvaluationId: evaluationForm._id, employeeId: employee._id.toString() })
             return returnObject;
         }
     } catch (error) {
@@ -492,6 +495,7 @@ exports.GetEmployeePeersCompetencies = async (peer) => {
     return returnObject;
 
 }
+
 
 
 
@@ -924,4 +928,69 @@ exports.GetReporteeEvaluations = async (manager) => {
         console.log('error', error)
         logger.error(error);
     }
+}
+
+
+exports.GetEmpCompetenciesForManager = async (evaluation) => {
+    try{
+    const evaluationForm = await EvaluationRepo.findOne({ _id: Mongoose.Types.ObjectId(evaluation.EvaluationId), "Employees._id": ObjectId(evaluation.employeeId) });
+    var employee = await evaluationForm.Employees.find(x => x._id.toString() === evaluation.employeeId);
+    if (employee && employee.Manager && employee.Manager.Competencies && employee.Manager.Competencies.length > 0) {
+        return { EvaluationId: evaluationForm._id, Manager: employee.Manager };
+    } else {
+        var modelAggregation = await ModelsRepo.aggregate([
+            { $match: { _id: ObjectId(employee.Model) } },
+            {
+                $lookup:
+                {
+                    from: "competencies",
+                    localField: "Competencies",
+                    foreignField: "_id",
+                    as: "competenciesList"
+                }
+            },
+            {
+                $lookup:
+                {
+                    from: "questions",
+                    localField: "competenciesList.Questions",
+                    foreignField: "_id",
+                    as: "Questions"
+                }
+            }
+        ])
+        var list = [];
+        if (modelAggregation.length > 0) {
+            for (let index = 0; index < modelAggregation[0].competenciesList.length; index++) {
+                const element = modelAggregation[0].competenciesList[index];
+                const Questions = [];
+                for (let k = 0; k < element.Questions.length; k++) {
+                    const q = element.Questions[k];
+                    var f = await questionsRepo.findById(ObjectId(q))
+                    if (f) {
+                        f.SelectedRating = -1
+                        Questions.push(f)
+                    }
+                }
+                list.push({ _id: new ObjectId(), Competency: element, Questions, Comments: "" })
+            }
+        }
+        evaluationForm.Employees.find(x => x._id.toString() === evaluation.employeeId).Competencies = list;
+        evaluationForm.Employees.find(x => x._id.toString() === evaluation.employeeId).Manager.Competencies = list;
+
+        var t = await evaluationForm.save()
+        var employee = await evaluationForm.Employees.find(x => x._id.toString() === evaluation.employeeId);
+        if (employee && employee.Manager && employee.Manager.Competencies && employee.Manager.Competencies.length > 0) {
+            return { EvaluationId: evaluationForm._id, Manager: employee.Manager };
+        }
+    }
+}catch(error){
+    logger.error(error);
+    throw error;
+}
+
+
+    //const r = list
+    //return r;
+
 }

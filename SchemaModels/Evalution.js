@@ -12,6 +12,14 @@ const Evalution = new mongoose.Schema({
                     default: 'Active'
                 },
         _id: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+        Manager:{
+            Id: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+            Competencies: [],
+            CompetencyComments: { type: String, default: "" },
+            CompetencyOverallRating: { type: String, default: "" },
+            CompetencySubmitted: Boolean,
+            CompetencySubmittedOn: { type: Date, default: Date() }
+        },
         Peers: [
             {
                 EmployeeId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },

@@ -23,6 +23,7 @@ var logger = require('../logger');
 const moment = require("moment");
 const ObjectId = Mongoose.Types.ObjectId;
 const KpiFormRepo = require('../SchemaModels/KpiForm');
+const strengthRepo = require('../SchemaModels/Strengths');
 var fs = require("fs");
 var config = require(`../Config/${env}.config`);
 exports.AddStrength = async (strength) => {
@@ -125,7 +126,7 @@ exports.GetAllMeasurementCriterias = async (empId) => {
 
 exports.CreateMeasurementCriteria = async (measures) => {
     const MeasureCriteria = new MeasureCriteriaRepo(measures);
-    await MeasureCriteria.save();
+  return  await MeasureCriteria.save();
 
 };
 

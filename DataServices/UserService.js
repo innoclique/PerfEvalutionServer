@@ -310,7 +310,7 @@ exports.CreateEmployee = async (employee) => {
         const EmployeeEmail = await UserRepo.findOne({ Email: employee.Email });
         const EmployeePhone = await UserRepo.findOne({ Phone: employee.PhoneNumber });
 
-        if (EmployeeName !== null) { throw Error("Employee Name Already Exist"); }
+      //  if (EmployeeName !== null) { throw Error("Employee Name Already Exist"); }
 
         if (EmployeeEmail !== null) { throw Error("Employee Email Already Exist "); }
 
@@ -406,7 +406,7 @@ exports.UpdateEmployee = async (employee) => {
 
         const EmployeePhone = await UserRepo.findOne({ PhoneNumber: employee.PhoneNumber });
 
-        if (EmployeeName !== null && EmployeeName._id != employee._id) { throw Error("Employee Name Already Exist"); }
+       // if (EmployeeName !== null && EmployeeName._id != employee._id) { throw Error("Employee Name Already Exist"); }
 
         if (EmployeePhone !== null && EmployeePhone._id != employee._id) { throw Error("Employee Phone Number Already Exist"); }
 

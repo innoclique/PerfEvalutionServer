@@ -5,6 +5,7 @@ const DevGoalsRepo = require('../SchemaModels/DevGoals');
 const UserRepo = require('../SchemaModels/UserSchema');
 const KpiRepo = require('../SchemaModels/KPI');
 const EvaluationRepo = require('../SchemaModels/Evalution');
+const strengthRepo = require('../SchemaModels/Strengths');
 var config = require(`../Config/${env}.config`);
 const SendMail = require("../Helpers/mail.js");
 var fs = require("fs");
@@ -125,6 +126,47 @@ exports.UpdateDevGoalById = async (devGoalData) => {
 }
 
 
+
+
+
+
+exports.UpdateStrengthById = async (strenthData) => {
+    try {
+
+        strenthData.Action = 'Update';
+        if (strenthData.IsManaFTSubmited) {
+            const Manager = await UserRepo.findById(strenthData.UpdatedBy);
+           strenthData.ManagerFTSubmitedOn=new Date()
+            strenthData.ManagerSignOff={SignOffBy:Manager.FirstName,SignOffOn:new Date()}
+
+          const kpiOwnerInfo=  await UserRepo.findById(strenthData.empId);
+              this.sendEmailOnManagerSignoff(Manager,kpiOwnerInfo);
+
+
+        }
+
+        if (strenthData.ViewedByEmpOn) {
+         
+            strenthData.ViewedByEmpOn= new Date();
+        }
+      
+        strenthData.UpdatedOn = new Date();
+       await strengthRepo.findByIdAndUpdate(strenthData.StrengthId, strenthData);
+
+      // this.addDevGoalTrack(strenthData);
+     
+
+        return true;
+    }
+    catch (err) {
+        logger.error(err)
+
+        console.log(err);
+        throw (err);
+    }
+
+
+}
 
 
 exports.AddDevGoal = async (devGoalModel) => {

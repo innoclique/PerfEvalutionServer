@@ -504,12 +504,31 @@ exports.ValidateUpdateReseller=(schema)=>{
 }
 exports.ValidateStrength = ( data)=>{
    console.log("ValidateStrength:ValidateStrength")
+
+   if (data.Action=='Review') {
+      
+   
+      const schema = Joi.object().keys({
+       
+         Action: Joi.string().required(),
+         StrengthId:Joi.required(),
+         ManagerComments:Joi.optional(),
+         IsDraftByManager:Joi.optional(),
+         IsManaFTSubmited: Joi.any().optional(),
+         UpdatedBy: Joi.string().required(),
+         empId: Joi.string().required(),
+
+
+      });
+      return schema;
+   
+   }else { 
    const schema = Joi.object().keys({
       StrengthId:Joi.optional(),
       Strength: Joi.string().required(),
-      Leverage: Joi.string().required(),
-      TeamBenifit: Joi.string().required(),
-      SelfBenifit: Joi.string().required(),
+      Leverage: Joi.optional(),
+      TeamBenifit: Joi.optional(),
+      SelfBenifit: Joi.optional(),
       Status: Joi.optional(),
       ProgressComments: Joi.optional(),
       ManagerComments: Joi.optional(),
@@ -521,6 +540,8 @@ exports.ValidateStrength = ( data)=>{
       
   });
   return schema;
+
+   }
 }
 
 exports.ValidateAccomplishment = ( data)=>{

@@ -5,7 +5,8 @@ const mongoose = require("mongoose");
 
 const StrengthSchema = new mongoose.Schema({
     Strength: { type: String, required: true },
-    Leverage: { type: String, required: true, unique: true },
+    // Leverage: { type: String, required: true, unique: true },
+    Leverage: { type: String },
     TeamBenifit: { type: String },
     SelfBenifit: { type: String },
     Status:{type:String},

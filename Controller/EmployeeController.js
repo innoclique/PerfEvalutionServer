@@ -94,7 +94,7 @@ exports.CreateMeasurementCriteria = async (req, res, next) => {
             
             await EmployeeService.CreateMeasurementCriteria(req.body)
                 .then((Response) => {
-                    res.status(200).json({ message: "Success" });
+                    res.status(200).json(Response);
                 })
                 .catch(err => { next(err) });
         }
@@ -104,11 +104,11 @@ exports.CreateMeasurementCriteria = async (req, res, next) => {
 
 
 exports.AddStrength = async (req, res, next) => {
-    debugger
+    
     Joi.validate(req.body, Validation_Helper.ValidateStrength(req.body), async (err, result) => {
         if (err) { res.status(400).json({ message: err.details.map(i => i.message).join(" / ") }) }
         else {
-            debugger
+            
             await EmployeeService.AddStrength(req.body)
                 .then((Response) => {
                     res.status(200).json({  message: "Success" });

@@ -56,6 +56,7 @@ route.post('/GetKpisForTS', EmployeeController.GetKpisForTS);
 route.post('/GetKpisForDevGoals',AuthHelper.Authorization(), DevGoalsController.GetKpisForDevGoals);
 route.post('/AddDevGoal', AuthHelper.Authorization(), DevGoalsController.AddDevGoal);
 route.post('/UpdateDevGoalById', AuthHelper.Authorization(), DevGoalsController.UpdateDevGoalById);
+route.post('/UpdateStrengthById', AuthHelper.Authorization(), DevGoalsController.UpdateStrengthById);
 route.post('/GetAllDevGoals', AuthHelper.Authorization(), DevGoalsController.GetAllDevGoals);
 
 route.post('/SaveCompetencyQnA', AuthHelper.Authorization(), EmployeeController.SaveCompetencyQnA);

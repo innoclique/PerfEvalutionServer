@@ -13,10 +13,11 @@ const DevGoalSchema = new mongoose.Schema({
     GoalActionItems: [{
         ActionStep:String,
         ProgressIndicators:String,
+        OtherParticipants:String,
         TargetDate:Date,
         Status :String,
         Barriers:String,
-        OtherParticipants:{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }
+        // OtherParticipants:{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }
 
            }
         

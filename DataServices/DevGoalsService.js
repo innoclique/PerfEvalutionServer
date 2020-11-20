@@ -129,6 +129,59 @@ exports.UpdateDevGoalById = async (devGoalData) => {
 
 
 
+exports.SubmitAllActionPlan = async (data) => {
+    try {
+
+        const User = await UserRepo.find({ "_id": data.empId })
+            .populate('Manager');
+
+        let submited = await DevGoalsRepo.updateMany({
+            'Owner': Mongoose.Types.ObjectId(data.empId),
+            'IsDraft': false,
+            'CreatedYear': new Date().getFullYear(),
+            'IsGoalSubmited': false
+        },
+            {
+                $set: {
+                    'IsGoalSubmited': true,
+                    'EmpFTSubmitedOn': new Date(),
+                    'Signoff': { SignOffBy: User[0].FirstName, SignOffOn: new Date() }
+                }
+            });
+
+
+            let submitedStrengths = await strengthRepo.updateMany({
+                'Owner': Mongoose.Types.ObjectId(data.empId),
+                'IsDraft': false,
+                'CreatedYear': new Date().getFullYear(),
+                'IsStrengthSubmited': false
+            },
+                {
+                    $set: {
+                        'IsStrengthSubmited': true,
+                        'EmpFTSubmitedOn': new Date(),
+                        'Signoff': { SignOffBy: User[0].FirstName, SignOffOn: new Date() }
+                    }
+                });
+
+        if (submited.nModified >0 || submitedStrengths.nModified>0) {
+            this.sendEmailOnDevGoalSubmit(User[0].Manager,User[0]);
+        }
+
+        return true
+    }
+    catch (err) {
+        logger.error(err)
+
+        console.log(err);
+        throw (err);
+    }
+
+
+};
+
+
+
 
 exports.UpdateStrengthById = async (strenthData) => {
     try {
@@ -208,11 +261,11 @@ exports.sendEmailOnDevGoalSubmit = async (manager,devGoalOwnerInfo) => {
             var content = bufcontent.toString();
     
             let des= `You have successfully submitted the action plan.
-            To view details, <a href="${config.APP_BASE_URL}#/employee/goals">click here</a>.`
+            To view details, <a href="${config.APP_BASE_URL}#/employee/action-plan">click here</a>.`
             content = content.replace("##FirstName##",devGoalOwnerInfo.FirstName);
             content = content.replace("##ProductName##", config.ProductName);
             content = content.replace("##Description##", des);
-            content = content.replace("##Title##", "Devlopment Goal Submitted");
+            content = content.replace("##Title##", "Action Plan Submitted");
 
         var mailObject = SendMail.GetMailObject(
             devGoalOwnerInfo.Email,
@@ -234,8 +287,8 @@ exports.sendEmailOnDevGoalSubmit = async (manager,devGoalOwnerInfo) => {
         fs.readFile("./EmailTemplates/EmailTemplate.html", async function read(err, bufcontent) {
             var content = bufcontent.toString();
     
-            let des= `  Your direct report, ${devGoalOwnerInfo.FirstName} ${devGoalOwnerInfo.LastName}, has submitted the action plan(Devlopment Goal).
-            You may login to review. To view details, <a href="${config.APP_BASE_URL}#/em/goals">click here</a>.
+            let des= `  Your direct report, ${devGoalOwnerInfo.FirstName} ${devGoalOwnerInfo.LastName}, has submitted the action plan.
+            You may login to review. To view details, <a href="${config.APP_BASE_URL}#/em/review-action-plan">click here</a>.
                `
             content = content.replace("##FirstName##",manager.FirstName);
             content = content.replace("##ProductName##", config.ProductName);

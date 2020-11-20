@@ -26,6 +26,15 @@ exports.GetAllDevGoals = async (req, res, next) => {
 
 
 
+exports.SubmitActionPlanByEmp = async (req, res, next) => {
+    await DevGoalsService.SubmitAllActionPlan(req.body)
+        .then(Response => Response ? res.status(200).json({message: "The Performance Goals have been submitted successfully and your sign-off registered."}) : res.status(404).json("Kpi Not Found"))
+        .catch(err => next(err));
+
+}
+
+
+
 exports.UpdateDevGoalById = async (req, res, next) => {
     
     Joi.validate(req.body, DevGoalsValidations.ValidateDevGoal(req.body), async (err, result) => {

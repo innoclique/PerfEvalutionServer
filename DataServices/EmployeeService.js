@@ -33,8 +33,8 @@ exports.AddStrength = async (strength) => {
             delete strength.StrengthId;
             let response = await StrengthRepo.updateOne({_id:ObjectId(StrengthId)},strength);
         }else{
-            let Strength = new StrengthRepo(strength);
             strength.CreatedYear= new Date().getFullYear();
+            let Strength = new StrengthRepo(strength);
             await Strength.save()
         }
         return true;

@@ -74,6 +74,7 @@ route.post('/GetDRReviewsList', EmployeeController.GetDRReviewsList);
 route.post('/GetPendingDRReviewsToSubmit', EmployeeController.GetPendingDRReviewsToSubmit);
 route.post('/SaveDRReview', EmployeeController.SaveDRReview);
 route.post('/SaveCompetencyQnAByManager', EmployeeController.SaveCompetencyQnAByManager);
+route.post('/GetOverallRatingByCompetency', EmployeeController.GetOverallRatingByCompetency);
 
 module.exports = route;
 

@@ -442,12 +442,13 @@ exports.ValidateAddReseller=(schema)=>{
       
       
       
-      PhoneExt:Joi.string().allow(['']),
+      PhoneExt:Joi.string().allow(['',null]),
       IsActive:Joi.optional(),
       CreatedBy:Joi.string().required().trim(),
       CreatedOn:Joi.optional(),
       
-      IsDraft:Joi.optional()
+      IsDraft:Joi.optional(),
+      ParentOrganization:Joi.string().required()
  });
 
  return organization;

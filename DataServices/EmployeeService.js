@@ -1734,3 +1734,53 @@ exports.SaveCompetencyQnAByManager = async (qna) => {
 
 
 };
+
+
+exports.GetOverallRatingByCompetency=async(emp)=>{
+    try {
+        var list = await EvaluationRepo.aggregate([
+            { $match: { _id: ObjectId(emp.EvaluationId) } },
+            { $unwind: '$Employees' },
+            { $match: { "Employees._id": ObjectId(emp.ForEmployeeId) } },
+            {
+                $project: {
+                    _id: 0,
+                    "Employees._id": 1,
+                    'Employees.Manager.Competencies': 1,
+                    'Employees.Competencies':1,
+                    'Employees.Peers.QnA':1,
+                    'Employees.DirectReportees.QnA':1
+
+                }
+            },
+            {$addFields:{"Manager":"$Employees.Manager.Competencies"}},
+            {$addFields:{"Employee":"$Employees.Competencies"}},
+            {$addFields:{"Peers":"$Employees.Peers.QnA"}},
+            {$addFields:{"DRs":"$Employees.DirectReportees.QnA"}},
+            {
+                $project: {
+                    _id: 0,
+                    "Employees._id": 1,
+                    'Manager': 1,
+                    'Employee':1,
+                    'Peers':1,
+                    'DRs':1,
+                    "PP":{
+                        $reduce: {
+                        input: "$Peers",
+                        initialValue: [ ],
+                        in: { $concatArrays : ["$$value", "$$this"] }
+                     }
+                    }
+
+                }
+
+            }
+        ])
+        return list[0];
+    } catch (error) {
+        logger.error('error occurred while getting emp peer competencies for review:', error)
+        throw error;
+    }
+
+}

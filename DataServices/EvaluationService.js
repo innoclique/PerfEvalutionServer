@@ -331,7 +331,33 @@ exports.GetEvaluationDashboardData = async (request) => {
     groupObj['$group']['count'] = {};
     groupObj['$group']['count']['$sum'] = 1;
     aggregateArray[1] = groupObj;
-    evalDashboardResponse['chart'] = await EvaluationRepo.aggregate(aggregateArray);
+    let chatArray = await EvaluationRepo.aggregate(aggregateArray);
+    let status = ['Active','inprogress','completed','not started'];
+    if(chatArray && chatArray.length>0){
+        status.forEach(s=>{
+            const flag = chatArray.find(element => element._id !== s);
+            //console.log(`${flag}-${element.status}-${s}`)
+            if(flag){
+                let statusObj = {
+                    "_id":s,
+                    "count":0
+                }
+                chatArray.push(statusObj);
+            }
+        });
+        evalDashboardResponse['chart'] = chatArray;
+    }else{
+        let _cArray = [];
+        status.forEach(s => {
+            let statusObj = {
+                "_id":s,
+                "count":0
+            }
+            _cArray.push(statusObj);
+        })
+        evalDashboardResponse['chart'] = status;
+    }
+    //evalDashboardResponse['chart'] = await EvaluationRepo.aggregate(aggregateArray);
     /**
      * End->Chart
      */
@@ -339,14 +365,15 @@ exports.GetEvaluationDashboardData = async (request) => {
     /**
      * Start->Next Evaluation
      */
-
     evalDashboardResponse['next_evaluation'] = {};
+    
     if (EvaluationPeriod && EvaluationPeriod === 'CalendarYear') {
         let momentNextEvlDate = moment().add(1, 'years').startOf('year');
         evalDashboardResponse['next_evaluation']['date'] = momentNextEvlDate.format("MMM Do YYYY");
         evalDashboardResponse['next_evaluation']['days'] = momentNextEvlDate.diff(moment(), 'days');
     }
     let totalEmployees = await UserRepo.countDocuments({ "Organization": organization._id });
+    
     evalDashboardResponse['next_evaluation']['total_employees'] = totalEmployees
 
     let currentEvlEmployees = await EvaluationRepo.aggregate([
@@ -355,7 +382,11 @@ exports.GetEvaluationDashboardData = async (request) => {
         { $match: { "Employees.Status": { "$exists": true, "$ne": "Completed" } } },
         { $group: { _id: '$_id', count: { $sum: 1 } } }
     ]);
-    let currPendingEval = currentEvlEmployees.map(item => item.count).reduce((prev, next) => prev + next);
+    
+    let currPendingEval=0;
+    if(currentEvlEmployees && currentEvlEmployees.length>0){
+        currPendingEval = currentEvlEmployees.map(item => item.count).reduce((prev, next) => prev + next);
+    }
     evalDashboardResponse['next_evaluation']['current_pending_evealuations'] = currPendingEval;
     /**
      * Start->Overdue Evaluations
@@ -364,6 +395,7 @@ exports.GetEvaluationDashboardData = async (request) => {
     if (EvaluationPeriod && EvaluationPeriod === 'CalendarYear') {
         evalDate = moment().startOf('year');
     }
+    
     let overDueCondition = [
         {
             "$match": {
@@ -376,6 +408,7 @@ exports.GetEvaluationDashboardData = async (request) => {
     ];
     let overDueEvaluations = await EvaluationRepo.aggregate(overDueCondition);
     let overDueEvaluationEmps = [];
+    
     overDueEvaluations.forEach(overDueObj => {
         let { CreatedDate, users } = overDueObj;
         for (var i = 0; i < users.length; i++) {

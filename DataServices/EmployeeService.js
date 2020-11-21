@@ -25,6 +25,9 @@ const ObjectId = Mongoose.Types.ObjectId;
 const KpiFormRepo = require('../SchemaModels/KpiForm');
 var fs = require("fs");
 var config = require(`../Config/${env}.config`);
+const EvaluationStatus =require('../common/EvaluationStatus');
+const { boolean } = require("joi");
+
 exports.AddStrength = async (strength) => {
     try {
         if(strength.StrengthId){
@@ -638,24 +641,170 @@ exports.GetPeers = async (employee) => {
 exports.DashboardData = async (employee) => {
     const response = {};
     let { userId } = employee;
-    console.log(`userId: ${userId}`);
-    const evaluationRepo = await EvaluationRepo
-        .find({
-            "Employees.Peers": {
-                $elemMatch:
-                    { "EmployeeId": Mongoose.Types.ObjectId(userId) }
-            }
-        }).populate("Employees._id");
+    const evaluationRepo = await peerInfo(userId);
+    response['current_evaluation'] = await currentEvaluationProgress(userId);
+    response['previous_evaluation'] = await previousEvaluationProgress(userId);
     response['peer_review'] = {};
     let momentNextEvlDate = moment().add(1, 'years').startOf('year');
     response['peer_review']['date'] = momentNextEvlDate.format("MMM Do YYYY");
     response['peer_review']['days'] = momentNextEvlDate.diff(moment(), 'days');
     response['peer_review']['rating_for'] = "N/A";
+    let peerReviewList = [];
     if (evaluationRepo && evaluationRepo.length > 0 && evaluationRepo[0].Employees) {
-        let { _id } = evaluationRepo[0].Employees[0];
-        response['peer_review']['rating_for'] = _id.FirstName + " " + _id.LastName;
+        evaluationRepo.forEach(element=>{
+            let {Employees} = element;
+            Employees.forEach(employeeObj=>{
+                let {Peers,_id} = employeeObj;
+                let peerList = Peers.filter(peerObj=>peerObj.EmployeeId==userId);
+                let peerReviewObj={};
+                peerReviewObj.title = peerList[0].displayTemplate;
+                peerReviewObj.rating = peerList[0].CompetencyOverallRating;
+                peerReviewObj.deparment = _id.Department || 'N/A';
+                peerReviewList.push(peerReviewObj);
+            });
+        });
     }
+    response['peer_review']['list']=peerReviewList;
     return response;
+}
+const currentEvaluationProgress = async (userId)=>{
+    console.log("currentEvaluationProgress");
+    let currentYear = moment().format('YYYY');
+    let evaluationOb = {};
+    let whereObj = {
+        "Employees._id":Mongoose.Types.ObjectId(userId),
+        "EvaluationYear":currentYear
+        
+    };
+    let project = {
+        "Employees":{
+            "$elemMatch":{
+                "_id":Mongoose.Types.ObjectId(userId)
+            }
+        }
+    };
+    let currentEvaluation = await EvaluationRepo.findOne(whereObj,project);
+    let Employees=null;
+    if(currentEvaluation && currentEvaluation.Employees){
+        Employees = currentEvaluation.Employees;
+    }else{
+        evaluationOb["status"] = 0; 
+        evaluationOb["FinalRating"] = "N/A";
+    }
+    if(Employees && Employees.length>0){
+        let {Status,FinalRating} = Employees[0];
+        let {Manager,ThirdSignatory} = FinalRating;
+        if(ThirdSignatory && ThirdSignatory.IsSubmitted){
+            evaluationOb["ThirdSignatory"] = "Submitted";
+        }else{
+            evaluationOb["ThirdSignatory"] = "Pending";
+        }
+        if(Manager && Manager.IsSubmitted){
+            evaluationOb["Manager"] = "Done";
+        }else{
+            evaluationOb["Manager"] = "Pending";
+        }
+        if(FinalRating && FinalRating.Status && FinalRating.Status!=""){
+            evaluationOb["FinalRating"] = FinalRating.Status;
+        }else{
+            evaluationOb["FinalRating"] = "Pending";
+        }
+        if(EvaluationStatus[Status]){
+            evaluationOb["status"] = EvaluationStatus[Status];
+        }else{
+            evaluationOb["status"] = 0;
+        }
+    }else{
+        evaluationOb["status"] = 0; 
+        evaluationOb["FinalRating"] = "N/A";
+        evaluationOb["Manager"] = "N/A";
+        evaluationOb["ThirdSignatory"] = "N/A";
+    }
+    return evaluationOb;
+}
+
+const previousEvaluationProgress = async (userId)=>{
+    let previousEvaluation = {};
+    let prevYearStart = moment().subtract(1, 'years').startOf('year');
+    let prevYearEnd = moment().subtract(1, 'years').endOf('year');
+    previousEvaluation['period'] = prevYearStart.format("MMM")+" - "+prevYearEnd.format("MMM, YYYY");
+    let whereObj = {
+        "Employees._id":Mongoose.Types.ObjectId(userId),
+        "CreatedDate":{
+            "$gte":prevYearStart,
+            "$lt":prevYearEnd
+        },
+        "Employees.Status":"EvaluationComplete"
+        
+
+    };
+    let project = {
+        "Employees":{
+            "$elemMatch":{
+                "_id":Mongoose.Types.ObjectId(userId)
+            }
+        }
+    };
+    let prevEvaluation = await EvaluationRepo.findOne(whereObj,project);
+    if(prevEvaluation){
+        let {Employees} = prevEvaluation;
+        let {FinalRating,Peers} = Employees[0];
+        if(FinalRating){
+            let {Manager} = FinalRating;
+            let {YearEndRating} = Manager;
+            if(YearEndRating && YearEndRating!=""){
+                previousEvaluation['rating'] = YearEndRating;
+            }
+            previousEvaluation['rating'] = "N/A";
+        }
+        
+        /*let peerReview = false;
+        for(var i=0;i<Peers.length;i++){
+            let peerObj = Peers[i];
+            peerReview = peerObj.status || false;
+            if(!peerReview){
+                break;
+            }
+        }
+        previousEvaluation['peer_review'] = "In progress";
+        if(peerReview){
+            previousEvaluation['peer_review'] = "Done";
+        }*/
+        previousEvaluation['peer_review'] =getPeerInfo(Peers);
+    }else{
+        previousEvaluation['rating'] = "N/A";
+        previousEvaluation['peer_review'] = "N/A";
+    }
+    
+    return previousEvaluation;
+}
+
+const getPeerInfo = (Peers)=>{
+    let previousEvaluationObj = "";
+    let peerReview = false;
+        for(var i=0;i<Peers.length;i++){
+            let peerObj = Peers[i];
+            peerReview = peerObj.status || false;
+            if(!peerReview){
+                break;
+            }
+        }
+    previousEvaluationObj = "In progress";
+    if(peerReview){
+        previousEvaluationObj = "Done";
+    }
+    return previousEvaluationObj;
+}
+
+
+const peerInfo = async (userId)=>{
+    return  await EvaluationRepo
+    .find({
+        "Employees.Peers": {
+            $elemMatch:
+                { "EmployeeId": Mongoose.Types.ObjectId(userId) }
+        }
+    }).populate("Employees._id");
 }
 
 

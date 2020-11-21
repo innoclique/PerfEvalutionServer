@@ -17,6 +17,7 @@ const ApplicationRoute=require('./Routes/ApplicationRoute');
 const EvaluationRoute=require('./Routes/EvaluationAdminRoute');
 const psaRoute=require('./Routes/PSARoute');
 const rsaARoute=require('./Routes/RSARoute');
+const csaARoute=require('./Routes/CSARoute');
 /////////////////////////////////////////////////////
 var logger=require('./logger');
 App.use(Cors());
@@ -32,6 +33,7 @@ App.use("/api/app", ApplicationRoute );
 App.use("/api/evaluation", EvaluationRoute );
 App.use("/api/psa", psaRoute );
 App.use("/api/rsa", rsaARoute );
+App.use("/api/csa", csaARoute );
 App.use(Cookieparser());
 ////////////////////global error handler-------
 App.use(AuthHelper.ErrorHandler);  

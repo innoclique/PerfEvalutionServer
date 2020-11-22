@@ -26,17 +26,17 @@ const KpiFormRepo = require('../SchemaModels/KpiForm');
 const strengthRepo = require('../SchemaModels/Strengths');
 var fs = require("fs");
 var config = require(`../Config/${env}.config`);
-const EvaluationStatus =require('../common/EvaluationStatus');
+const EvaluationStatus = require('../common/EvaluationStatus');
 const { boolean } = require("joi");
 
 exports.AddStrength = async (strength) => {
     try {
-        if(strength.StrengthId){
-            let {StrengthId} = strength;
+        if (strength.StrengthId) {
+            let { StrengthId } = strength;
             delete strength.StrengthId;
-            let response = await StrengthRepo.updateOne({_id:ObjectId(StrengthId)},strength);
-        }else{
-            strength.CreatedYear= new Date().getFullYear();
+            let response = await StrengthRepo.updateOne({ _id: ObjectId(StrengthId) }, strength);
+        } else {
+            strength.CreatedYear = new Date().getFullYear();
             let Strength = new StrengthRepo(strength);
             await Strength.save()
         }
@@ -129,7 +129,7 @@ exports.GetAllMeasurementCriterias = async (empId) => {
 
 exports.CreateMeasurementCriteria = async (measures) => {
     const MeasureCriteria = new MeasureCriteriaRepo(measures);
-  return  await MeasureCriteria.save();
+    return await MeasureCriteria.save();
 
 };
 
@@ -652,12 +652,12 @@ exports.DashboardData = async (employee) => {
     response['peer_review']['rating_for'] = "N/A";
     let peerReviewList = [];
     if (evaluationRepo && evaluationRepo.length > 0 && evaluationRepo[0].Employees) {
-        evaluationRepo.forEach(element=>{
-            let {Employees} = element;
-            Employees.forEach(employeeObj=>{
-                let {Peers,_id} = employeeObj;
-                let peerList = Peers.filter(peerObj=>peerObj.EmployeeId==userId);
-                let peerReviewObj={};
+        evaluationRepo.forEach(element => {
+            let { Employees } = element;
+            Employees.forEach(employeeObj => {
+                let { Peers, _id } = employeeObj;
+                let peerList = Peers.filter(peerObj => peerObj.EmployeeId == userId);
+                let peerReviewObj = {};
                 peerReviewObj.title = peerList[0].displayTemplate;
                 peerReviewObj.rating = peerList[0].CompetencyOverallRating;
                 peerReviewObj.deparment = _id.Department || 'N/A';
@@ -665,58 +665,58 @@ exports.DashboardData = async (employee) => {
             });
         });
     }
-    response['peer_review']['list']=peerReviewList;
+    response['peer_review']['list'] = peerReviewList;
     return response;
 }
-const currentEvaluationProgress = async (userId)=>{
+const currentEvaluationProgress = async (userId) => {
     console.log("currentEvaluationProgress");
     let currentYear = moment().format('YYYY');
     let evaluationOb = {};
     let whereObj = {
-        "Employees._id":Mongoose.Types.ObjectId(userId),
-        "EvaluationYear":currentYear
-        
+        "Employees._id": Mongoose.Types.ObjectId(userId),
+        "EvaluationYear": currentYear
+
     };
     let project = {
-        "Employees":{
-            "$elemMatch":{
-                "_id":Mongoose.Types.ObjectId(userId)
+        "Employees": {
+            "$elemMatch": {
+                "_id": Mongoose.Types.ObjectId(userId)
             }
         }
     };
-    let currentEvaluation = await EvaluationRepo.findOne(whereObj,project);
-    let Employees=null;
-    if(currentEvaluation && currentEvaluation.Employees){
+    let currentEvaluation = await EvaluationRepo.findOne(whereObj, project);
+    let Employees = null;
+    if (currentEvaluation && currentEvaluation.Employees) {
         Employees = currentEvaluation.Employees;
-    }else{
-        evaluationOb["status"] = 0; 
+    } else {
+        evaluationOb["status"] = 0;
         evaluationOb["FinalRating"] = "N/A";
     }
-    if(Employees && Employees.length>0){
-        let {Status,FinalRating} = Employees[0];
-        let {Manager,ThirdSignatory} = FinalRating;
-        if(ThirdSignatory && ThirdSignatory.IsSubmitted){
+    if (Employees && Employees.length > 0) {
+        let { Status, FinalRating } = Employees[0];
+        let { Manager, ThirdSignatory } = FinalRating;
+        if (ThirdSignatory && ThirdSignatory.IsSubmitted) {
             evaluationOb["ThirdSignatory"] = "Submitted";
-        }else{
+        } else {
             evaluationOb["ThirdSignatory"] = "Pending";
         }
-        if(Manager && Manager.IsSubmitted){
+        if (Manager && Manager.IsSubmitted) {
             evaluationOb["Manager"] = "Done";
-        }else{
+        } else {
             evaluationOb["Manager"] = "Pending";
         }
-        if(FinalRating && FinalRating.Status && FinalRating.Status!=""){
+        if (FinalRating && FinalRating.Status && FinalRating.Status != "") {
             evaluationOb["FinalRating"] = FinalRating.Status;
-        }else{
+        } else {
             evaluationOb["FinalRating"] = "Pending";
         }
-        if(EvaluationStatus[Status]){
+        if (EvaluationStatus[Status]) {
             evaluationOb["status"] = EvaluationStatus[Status];
-        }else{
+        } else {
             evaluationOb["status"] = 0;
         }
-    }else{
-        evaluationOb["status"] = 0; 
+    } else {
+        evaluationOb["status"] = 0;
         evaluationOb["FinalRating"] = "N/A";
         evaluationOb["Manager"] = "N/A";
         evaluationOb["ThirdSignatory"] = "N/A";
@@ -724,41 +724,41 @@ const currentEvaluationProgress = async (userId)=>{
     return evaluationOb;
 }
 
-const previousEvaluationProgress = async (userId)=>{
+const previousEvaluationProgress = async (userId) => {
     let previousEvaluation = {};
     let prevYearStart = moment().subtract(1, 'years').startOf('year');
     let prevYearEnd = moment().subtract(1, 'years').endOf('year');
-    previousEvaluation['period'] = prevYearStart.format("MMM")+" - "+prevYearEnd.format("MMM, YYYY");
+    previousEvaluation['period'] = prevYearStart.format("MMM") + " - " + prevYearEnd.format("MMM, YYYY");
     let whereObj = {
-        "Employees._id":Mongoose.Types.ObjectId(userId),
-        "CreatedDate":{
-            "$gte":prevYearStart,
-            "$lt":prevYearEnd
+        "Employees._id": Mongoose.Types.ObjectId(userId),
+        "CreatedDate": {
+            "$gte": prevYearStart,
+            "$lt": prevYearEnd
         },
-        "Employees.Status":"EvaluationComplete"
-        
+        "Employees.Status": "EvaluationComplete"
+
 
     };
     let project = {
-        "Employees":{
-            "$elemMatch":{
-                "_id":Mongoose.Types.ObjectId(userId)
+        "Employees": {
+            "$elemMatch": {
+                "_id": Mongoose.Types.ObjectId(userId)
             }
         }
     };
-    let prevEvaluation = await EvaluationRepo.findOne(whereObj,project);
-    if(prevEvaluation){
-        let {Employees} = prevEvaluation;
-        let {FinalRating,Peers} = Employees[0];
-        if(FinalRating){
-            let {Manager} = FinalRating;
-            let {YearEndRating} = Manager;
-            if(YearEndRating && YearEndRating!=""){
+    let prevEvaluation = await EvaluationRepo.findOne(whereObj, project);
+    if (prevEvaluation) {
+        let { Employees } = prevEvaluation;
+        let { FinalRating, Peers } = Employees[0];
+        if (FinalRating) {
+            let { Manager } = FinalRating;
+            let { YearEndRating } = Manager;
+            if (YearEndRating && YearEndRating != "") {
                 previousEvaluation['rating'] = YearEndRating;
             }
             previousEvaluation['rating'] = "N/A";
         }
-        
+
         /*let peerReview = false;
         for(var i=0;i<Peers.length;i++){
             let peerObj = Peers[i];
@@ -771,41 +771,41 @@ const previousEvaluationProgress = async (userId)=>{
         if(peerReview){
             previousEvaluation['peer_review'] = "Done";
         }*/
-        previousEvaluation['peer_review'] =getPeerInfo(Peers);
-    }else{
+        previousEvaluation['peer_review'] = getPeerInfo(Peers);
+    } else {
         previousEvaluation['rating'] = "N/A";
         previousEvaluation['peer_review'] = "N/A";
     }
-    
+
     return previousEvaluation;
 }
 
-const getPeerInfo = (Peers)=>{
+const getPeerInfo = (Peers) => {
     let previousEvaluationObj = "";
     let peerReview = false;
-        for(var i=0;i<Peers.length;i++){
-            let peerObj = Peers[i];
-            peerReview = peerObj.status || false;
-            if(!peerReview){
-                break;
-            }
+    for (var i = 0; i < Peers.length; i++) {
+        let peerObj = Peers[i];
+        peerReview = peerObj.status || false;
+        if (!peerReview) {
+            break;
         }
+    }
     previousEvaluationObj = "In progress";
-    if(peerReview){
+    if (peerReview) {
         previousEvaluationObj = "Done";
     }
     return previousEvaluationObj;
 }
 
 
-const peerInfo = async (userId)=>{
-    return  await EvaluationRepo
-    .find({
-        "Employees.Peers": {
-            $elemMatch:
-                { "EmployeeId": Mongoose.Types.ObjectId(userId) }
-        }
-    }).populate("Employees._id");
+const peerInfo = async (userId) => {
+    return await EvaluationRepo
+        .find({
+            "Employees.Peers": {
+                $elemMatch:
+                    { "EmployeeId": Mongoose.Types.ObjectId(userId) }
+            }
+        }).populate("Employees._id");
 }
 
 
@@ -904,7 +904,7 @@ exports.GetPendingPeerReviewsList = async (emp) => {
                     "EvaluationId": 1,
                     "Employees._id": 1,
                     "EvaluationPeriod": 1,
-                    "EvaluationDuration": 1,                    
+                    "EvaluationDuration": 1,
                     "Peers": "$Employees.Peers"
                 }
             },
@@ -1019,7 +1019,7 @@ exports.SavePeerReview = async (qna) => {
                     "Employees.$[e].Peers.$[p].QnA": qna.QnA,
                     "Employees.$[e].Peers.$[p].CompetencyComments": qna.CompetencyComments,
                     "Employees.$[e].Peers.$[p].CompetencyOverallRating": qna.OverallRating,
-                    
+
                     "Employees.$[e].Peers.$[p].CompetencySubmitted": !qna.IsDraft,
                     "Employees.$[e].Peers.$[p].CompetencySubmittedOn": qna.IsDraft ? null : new Date()
                 }
@@ -1862,7 +1862,7 @@ exports.SaveCompetencyQnAByManager = async (qna) => {
             $set: {
                 "Employees.$[e].Manager.CompetencySubmitted": !qna.IsDraft,
                 "Employees.$[e].Manager.CompetencySubmittedOn": qna.IsDraft ? null : new Date()
-                
+
             }
         },
             {
@@ -1885,7 +1885,7 @@ exports.SaveCompetencyQnAByManager = async (qna) => {
 };
 
 
-exports.GetOverallRatingByCompetency=async(emp)=>{
+exports.GetOverallRatingByCompetency = async (emp) => {
     try {
         var list = await EvaluationRepo.aggregate([
             { $match: { _id: ObjectId(emp.EvaluationId) } },
@@ -1894,42 +1894,115 @@ exports.GetOverallRatingByCompetency=async(emp)=>{
             {
                 $project: {
                     _id: 0,
-                    "Employees._id": 1,
-                    'Employees.Manager.Competencies': 1,
-                    'Employees.Competencies':1,
-                    'Employees.Peers.QnA':1,
-                    'Employees.DirectReportees.QnA':1
-
+                    "Employees": 1
                 }
             },
-            {$addFields:{"Manager":"$Employees.Manager.Competencies"}},
-            {$addFields:{"Employee":"$Employees.Competencies"}},
-            {$addFields:{"Peers":"$Employees.Peers.QnA"}},
-            {$addFields:{"DRs":"$Employees.DirectReportees.QnA"}},
+            { $addFields: { "Manager": "$Employees.Manager" } },
+            { $addFields: { "Employee": "$Employees" } },
+            { $addFields: { "Peers": "$Employees.Peers" } },
+            { $addFields: { "DRs": "$Employees.DirectReportees" } },
             {
                 $project: {
                     _id: 0,
                     "Employees._id": 1,
                     'Manager': 1,
-                    'Employee':1,
-                    'Peers':1,
-                    'DRs':1,
-                    "PP":{
-                        $reduce: {
-                        input: "$Peers",
-                        initialValue: [ ],
-                        in: { $concatArrays : ["$$value", "$$this"] }
-                     }
-                    }
+                    'Employee': 1,
+                    'Peers': 1,
+                    'DRs': 1
+
 
                 }
 
             }
-        ])
-        return list[0];
+        ]);
+        var _clist = [];
+        var returnObj = {
+            competencyId: "",
+            allSubmitted: false,
+            overallScore: 0
+        };
+        var allPeersRatingSubmitted = true;
+        var allDrSubmitted = true;
+        var managerSubmitted = true;
+        if (list[0] && list[0].Employee.Competencies && list[0].Employee.Competencies.length > 0) {
+            var clist = list[0].Employee.Competencies.map(x => x.Competency._id);
+            for (let index = 0; index < clist.length; index++) {
+                const element = clist[index];
+                _pcScore = [];
+                var _p = list[0].Peers.filter(x => x.CompetencySubmitted === false)
+                if (_p && _p.length > 0) {
+                    allPeersRatingSubmitted = false;
+                    _clist.push({ competencyId: element, allSubmitted: false, overallScore: 0 })
+                    continue;
+                } else {
+                    var allpeers = list[0].Peers.map(x => x.QnA)
+                    if (allpeers && allpeers.length > 0) {
+                        for (let p = 0; p < allpeers.length; p++) {
+                            const currentPeer = allpeers[p];
+                            var currentCompetency = currentPeer.filter(x => x.CompetencyId === element)
+                            var _avg = calcAverage(currentCompetency.map(x => x.Answer))
+                            _pcScore.push(_avg);
+                        }
+                    }
+                }
+                //For Direct Reportee
+                _drScore = [];
+                var _d = list[0].DRs.filter(x => x.CompetencySubmitted === false)
+                if (_d && _d.length > 0) {
+                    allDrSubmitted = false;
+                    _clist.push({ competencyId: element, allSubmitted: false, overallScore: 0 })
+                    continue;
+                } else {
+                    var alldrs = list[0].DRs.map(x => x.QnA)
+                    if (alldrs && alldrs.length > 0) {
+                        for (let d = 0; d < alldrs.length; p++) {
+                            const currentDr = alldrs[d];
+                            var currentDrCompetency = currentDr.filter(x => x.CompetencyId === element)
+                            var _avg = calcAverage(currentDrCompetency.map(x => x.Answer))
+                            _drScore.push(_avg);
+                        }
+                    }
+                }
+
+                //For Manager Rating
+                _managerScore = [];
+                if (!list[0].Manager.CompetencySubmitted) {
+                    managerSubmitted = false;
+                    _clist.push({ competencyId: element, allSubmitted: false, overallScore: 0 })
+                    continue;
+                } else {
+                    var _manager = list[0].Manager.map(x => x.Competencies)
+                    if (_manager && _manager.length > 0) {
+                        for (let m = 0; m < _manager.length; p++) {
+                            const currentM = _manager[m];
+                            var currentMCompetency = currentM.filter(x => x._id === element)
+                            var _avg = calcAverage(currentMCompetency.map(x => x.Answer))
+                            _managerScore.push(_avg);
+                        }
+                    }
+                }
+                var _overallScore=calcAverage(_pcScore)+calcAverage(_drScore)+_managerScore
+                _clist.push({ competencyId: element, allSubmitted: true, overallScore: _overallScore })
+            }
+        }
+        return _clist
+
     } catch (error) {
         logger.error('error occurred while getting emp peer competencies for review:', error)
         throw error;
     }
 
 }
+
+function calcAverage(arr) {
+    var sum = 0;
+    for (var i = 0; i < arr.length; i++) {
+        sum += parseInt(arr[i], 10); //don't forget to add the base
+    }
+
+    var avg = sum / arr.length;
+    return avg || 0;
+}
+
+
+

@@ -17,7 +17,7 @@ const Evalution = new mongoose.Schema({
             Competencies: [],
             CompetencyComments: { type: String, default: "" },
             CompetencyOverallRating: { type: String, default: "" },
-            CompetencySubmitted: Boolean,
+            CompetencySubmitted: {type:Boolean,default:false},
             CompetencySubmittedOn: { type: Date, default: Date() }
         },
         Peers: [
@@ -29,7 +29,7 @@ const Evalution = new mongoose.Schema({
                 QnA: [],
                 CompetencyComments: { type: String, default: "" },
                 CompetencyOverallRating: { type: Number, default: 0 },
-                CompetencySubmitted: Boolean,
+                CompetencySubmitted: {type:Boolean,default:false},
                 CompetencySubmittedOn: { type: Date, default: Date() }
             }],
         DirectReportees: [
@@ -42,7 +42,7 @@ const Evalution = new mongoose.Schema({
                 QnA: [],
                 CompetencyComments: { type: String, default: "" },
                 CompetencyOverallRating: { type: Number, default: 0 },
-                CompetencySubmitted: Boolean,
+                CompetencySubmitted: {type:Boolean,default:false},
                 CompetencySubmittedOn: { type: Date, default: Date() }
             }
         ],
@@ -50,7 +50,7 @@ const Evalution = new mongoose.Schema({
         Competencies: [],
         CompetencyComments: { type: String, default: "" },
         CompetencyOverallRating: { type: String, default: "" },
-        CompetencySubmitted: Boolean,
+        CompetencySubmitted: {type:Boolean,default:false},
         CompetencySubmittedOn: { type: Date, default: Date() },
         FinalRating: {
             Self: {

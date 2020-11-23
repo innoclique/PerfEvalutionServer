@@ -28,6 +28,7 @@ exports.AddEvaluation = async (evaluation) => {
         var savedEvauation = await _evaluation.save();
         var _emps = evaluation.Employees.map(x => x._id);
         await UserRepo.updateMany({ _id: { $in: _emps } }, { $set: { HasActiveEvaluation: "Yes" } });
+        await KpiFormRepo.updateMany({ EmployeeId: { $in: _emps } }, { $set: { IsActive: false } });
         const _currentEvaluation = await EvaluationRepo.findOne({ _id: Mongoose.Types.ObjectId(savedEvauation._id) })
             .populate('Employees._id Employees.Peers.EmployeeId Employees.DirectReportees.EmployeeId CreatedBy').sort({ CreatedDate: -1 })
         var _deliveremails = [];

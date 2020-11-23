@@ -6,6 +6,8 @@ const UserRepo = require('../SchemaModels/UserSchema');
 const KpiRepo = require('../SchemaModels/KPI');
 const EvaluationRepo = require('../SchemaModels/Evalution');
 const strengthRepo = require('../SchemaModels/Strengths');
+const ObjectId = Mongoose.Types.ObjectId;
+const DevGoalsService = require('../DataServices/DevGoalsService')
 var config = require(`../Config/${env}.config`);
 const SendMail = require("../Helpers/mail.js");
 var fs = require("fs");
@@ -384,6 +386,217 @@ exports.addDevGoalTrack = async (devGoalModel) => {
     reportOBJ.tracks.push(track);
     return await reportOBJ.save();
 
+}
+
+
+
+
+exports.GetTSReporteeEvaluations = async (ts) => {
+    try {
+        const reportees = await UserRepo.aggregate([
+            { $match: { ThirdSignatory: ObjectId(ts.id) ,"HasActiveEvaluation":"Yes" } },
+            { $addFields: { EmployeeId: "$_id" } },
+            {
+                $project: {
+                    FirstName: 1,
+                    LastName: 1,
+                    Manager:1,
+                    Email: 1,
+                    EmployeeId: 1
+                }
+            },
+            {
+                $lookup: {
+                    from: "evalutions",
+                    localField: "EmployeeId",
+                    foreignField: "Employees._id",
+                    as: "EvaluationList"
+                }
+            }
+            ,
+            {
+                $match: {
+                    "EvaluationList.EvaluationYear": new Date().getFullYear().toString(),
+
+                }
+            },
+
+            {
+                $lookup: {
+                    from: "devgoals",
+                    localField: "EmployeeId",
+                    foreignField: "Owner",
+                    as: "GoalList",
+                }
+            },
+            {
+                $lookup: {
+                    from: "kpis",
+                    localField: "EmployeeId",
+                    foreignField: "Owner",
+                    as: "KpiList"
+                }
+
+            },
+            { $addFields: { Evaluation: "$EvaluationList.Employees" } },
+            { $addFields: { KpiExist: { $gt: [{ $size: "$KpiList" }, 0] } } },
+
+            {
+                $project: {
+                    GoalList: 1,
+                    Email: 1,
+                    FirstName: 1,
+                    LastName: 1,
+                    EmployeeId: 1,
+                    Manager:1,
+                    KpiExist:1,
+                    KpiList: {
+                        "$filter": {
+                            "input": "$KpiList",
+                            "as": "result",
+                            "cond": {
+                                "$and": [
+                                    { "$eq": ["$$result.EvaluationYear", new Date().getFullYear().toString()] },
+                                    { "$eq": ["$$result.IsDraft", false] },
+                                    { "$eq": ["$$result.IsSubmitedKPIs", true] }
+                                ]
+                            }
+                        }
+                    },
+                    Evaluation: {
+                        "$filter": {
+                            "input": "$Evaluation",
+                            "as": "e",
+                            "cond": {
+                                "$and": [
+                                    { "$eq": ["$$e.Status", "Active"] }
+
+                                ]
+                            }
+                        }
+                    }
+
+
+                }
+            }
+            // ,
+            // {$unwind:{"EvaluationList.Employees":1}}
+        ])
+        return reportees;
+
+    } catch (error) {
+        console.log('error', error)
+        logger.error(error);
+    }
+}
+
+
+exports.ReleaseKpiForm = async (evaluation) => {
+    const g = await KpiFormRepo.insertMany(evaluation);
+    // const _evaluation = await KpiFormRepo(evaluation);
+    // var savedEvauation = await _evaluation.save();
+
+    return true;
+}
+
+
+
+exports.GetReporteeReleasedKpiForm = async (manager) => {
+    try {
+        const reportees = await UserRepo.aggregate([
+            { $match: { Manager: ObjectId(manager.id) } },
+            { $addFields: { EmployeeId: "$_id" } },
+            {
+                $project: {
+                    FirstName: 1,
+                    LastName: 1,
+                    Email: 1,
+                    EmployeeId: 1,
+                    Manager:1
+                }
+            }
+            ,
+            {
+                $lookup: {
+                    from: "kpiforms",
+                    localField: "EmployeeId",
+                    foreignField: "EmployeeId",
+                    as: "ReleasedKpiList"
+                }
+            },
+{$unwind:"$ReleasedKpiList"},
+
+            
+            
+            {
+                $lookup: {
+                    from: "devgoals",
+                    localField: "EmployeeId",
+                    foreignField: "Owner",
+                    as: "GoalList",
+                }
+            },
+            {
+                $lookup: {
+                    from: "kpis",
+                    localField: "EmployeeId",
+                    foreignField: "Owner",
+                    as: "KpiList"
+                }
+            },
+            { $addFields: { ReleasedKpis: "$ReleasedKpiList.Employees" } },
+            { $addFields: { KpiExist: { $gt: [{ $size: "$KpiList" }, 0] } } },
+            //{$match:{"Evalaution.Status":"Active"}},
+            {
+                $project: {
+                    //KpiList: 1,
+                    GoalList: 1,
+                    Email: 1,
+                    FirstName: 1,
+                    LastName: 1,
+                    EmployeeId: 1,     
+                    Manager:1,               
+                    KpiExist: 1,
+                    ReleasedKpis:{
+                        "$filter": {
+                            "input": "$ReleasedKpis",
+                            "as": "releasedResult",
+                            "cond": {
+                                "$and": [
+                                    { "$eq": ["$$releasedResult.EvaluationYear", new Date().getFullYear().toString()] },
+                                    { "$eq": ["$$releasedResult.IsActive", true] },
+                                    ] 
+                            }
+                        }
+                    },
+                    KpiList: {
+                        "$filter": {
+                            "input": "$KpiList",
+                            "as": "result",
+                            "cond": {
+                                "$and": [
+                                    { "$eq": ["$$result.EvaluationYear", new Date().getFullYear().toString()] },
+                                    { "$eq": ["$$result.IsDraft", false] },
+                                    { "$eq": ["$$result.IsSubmitedKPIs", true] }
+                                ]
+                            }
+                        }
+                    }
+                }
+            }
+        ])
+
+
+        // var evList=[]
+        //  evList=  DevGoalsService.GetReporteeReleasedKpiForm(manager);
+        // return [...reportees,...evList];
+return reportees;
+   
+
+    } catch (error) {
+        console.log('error', error)
+        logger.error(error);
+    }
 }
 
 

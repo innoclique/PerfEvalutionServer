@@ -326,63 +326,21 @@ exports.CreateEmployee = async (employee) => {
         else if (!employee.IgnoreEvalAdminCreated && employee.ApplicationRole == Messages.constants.EO_ID && EvalAdminFound == null) {
             throw Error("Evaluation Administrator Not Found");
         }
-
-        var _temppwd=AuthHelper.GenerateRandomPassword()
+        var _temppwd="";
+        if(employee.IsDraft=='false'){
+         _temppwd=AuthHelper.GenerateRandomPassword()
         employee.Password = Bcrypt.hashSync(_temppwd, 10);
+        }
 
         const newemp = new UserRepo(employee);
         await newemp.save();
 
         //send email to employee
          //send email to  user
-         var mailObject = SendMail.GetMailObject(
-            newemp.Email,
-            "Employee account created",
-
-                  `Dear ${newemp.FirstName},
-
-                  Congratulations, Employee account has been created. Your login id is your email. You will receive a separate email for password. Please change your password when you login first time.
-                  
-                  Email: ${newemp.Email},
-                  
-                  Please click here to login.
-                  
-                  Thank you,
-                  Administrator
-                  `,
-                  null,
-                  null
-                );
-
-                //Password: ${_temppwd}
-
-        SendMail.SendEmail(mailObject, function (res) {
-            console.log(res);
-        });
-
-        var mailObject = SendMail.GetMailObject(
-            newemp.Email,
-                  "Employee account created",
-
-                  `Dear ${newemp.FirstName},
-
-                  Congratulations, Employee account has been created. Please change your password when you login first time.
-                  
-                  Password: ${_temppwd},
-                  
-                  Please click here to login.
-                  
-                  Thank you,
-                  Administrator
-                  `,
-                  null,
-                  null
-                );
-
-
-        SendMail.SendEmail(mailObject, function (res) {
-            console.log(res);
-        });
+         if(employee.IsDraft=='false'){
+             this.sendEmpCreateEamils(newemp,_temppwd);
+        
+        }
         
         return true;
     }
@@ -414,8 +372,14 @@ exports.UpdateEmployee = async (employee) => {
 
         delete employee._id;
         employee.UpdatedOn = new Date();
-        const emp = await UserRepo.update({_id:empId}, employee);
+        const emp = await UserRepo.findOneAndUpdate({_id:empId}, employee)  .select("+Password");;
 
+        if(employee.IsDraft=='false'&& emp.Password==''){
+            var _temppwd=AuthHelper.GenerateRandomPassword()
+           // emp.Password = Bcrypt.hashSync(_temppwd, 10);
+            await UserRepo.update({_id:empId}, {Password:Bcrypt.hashSync(_temppwd, 10)} );
+            this.sendEmpCreateEamils(emp,_temppwd);
+        }
         return true;
     }
     catch (err) {
@@ -427,6 +391,60 @@ exports.UpdateEmployee = async (employee) => {
 
 
 }
+
+
+exports.sendEmpCreateEamils = async (newemp,_temppwd) =>{
+    
+    var mailObject = SendMail.GetMailObject(
+        newemp.Email,
+        "Employee account created",
+
+              `Dear ${newemp.FirstName},
+
+              Congratulations, Employee account has been created. Your login id is your email. You will receive a separate email for password. Please change your password when you login first time.
+              
+              Email: ${newemp.Email},
+              
+              Please click here to login.
+              
+              Thank you,
+              Administrator
+              `,
+              null,
+              null
+            );
+
+            //Password: ${_temppwd}
+
+    SendMail.SendEmail(mailObject, function (res) {
+        console.log(res);
+    });
+
+    var mailObject = SendMail.GetMailObject(
+        newemp.Email,
+              "Employee account created",
+
+              `Dear ${newemp.FirstName},
+
+              Congratulations, Employee account has been created. Please change your password when you login first time.
+              
+              Password: ${_temppwd},
+              
+              Please click here to login.
+              
+              Thank you,
+              Administrator
+              `,
+              null,
+              null
+            );
+
+
+    SendMail.SendEmail(mailObject, function (res) {
+        console.log(res);
+    });
+}
+
 
 exports.GetEmployeeDataById = async (Id) => {
     

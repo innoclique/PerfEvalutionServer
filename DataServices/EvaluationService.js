@@ -466,7 +466,7 @@ exports.GetEmpCurrentEvaluation = async (emp) => {
             returnObject.PeerScoreCard = await this.GetPeerAvgRating({ EvaluationId: evaluationForm._id.toString(), EmployeeId: employee._id.toString() })
             returnObject.DirectReporteeScoreCard = await this.GetDirectReporteeAvgRating({ EvaluationId: evaluationForm._id.toString(), EmployeeId: employee._id.toString() })
             returnObject.ManagerCompetencies = await this.GetEmpCompetenciesForManager({ EvaluationId: evaluationForm._id, employeeId: employee._id.toString() })
-            returnObject.OverallCompetencyRating = await EmployeeService.GetOverallRatingByCompetency({ EvaluationId: evaluationForm._id, ForEmployeeId: employee._id.toString() })
+          //  returnObject.OverallCompetencyRating = await EmployeeService.GetOverallRatingByCompetency({ EvaluationId: evaluationForm._id, ForEmployeeId: employee._id.toString() })
             return returnObject;
         }
     } catch (error) {

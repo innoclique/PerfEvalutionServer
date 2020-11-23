@@ -29,7 +29,9 @@ route.post('/AddKpi', EmployeeController.AddKpi);
 route.post('/GetKpiDataById',EmployeeController.GetKpiDataById);
 route.post('/GetAllKpis',EmployeeController.GetAllKpis);
 route.post('/GetKpisByManager',EmployeeController.GetKpisByManager);
+route.post('/GetKpisByManagerId',EmployeeController.GetKpisByManagerId);
 route.post('/SubmitKpisForEvaluation',EmployeeController.SubmitKpisForEvaluation);
+route.post('/SubmitAllKpisByManager',EmployeeController.SubmitAllKpisByManager);
 route.post('/UpdateKpiDataById',EmployeeController.UpdateKpiDataById);
 route.post('/dashboard',EmployeeController.Dashboard);
 
@@ -59,6 +61,7 @@ route.post('/UpdateDevGoalById', AuthHelper.Authorization(), DevGoalsController.
 route.post('/UpdateStrengthById', AuthHelper.Authorization(), DevGoalsController.UpdateStrengthById);
 route.post('/GetAllDevGoals', AuthHelper.Authorization(), DevGoalsController.GetAllDevGoals);
 route.post('/SubmitActionPlanByEmp',DevGoalsController.SubmitActionPlanByEmp);
+route.post('/GetReporteeReleasedKpiForm',DevGoalsController.GetReporteeReleasedKpiForm);
 
 route.post('/SaveCompetencyQnA', AuthHelper.Authorization(), EmployeeController.SaveCompetencyQnA);
 route.post('/GetPendingPeerReviewsList', EmployeeController.GetPendingPeerReviewsList);

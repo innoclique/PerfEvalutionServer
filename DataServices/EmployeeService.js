@@ -434,6 +434,50 @@ exports.addKpiTrack = async (kpi) => {
 
 }
 
+
+
+
+exports.SubmitAllKpisByManager = async (empId) => {
+    debugger
+    try {
+
+            const User = await UserRepo.find({ "_id": empId })
+            .populate('Manager');
+
+        let submitedKPIs = await KpiRepo.updateMany({
+            'Owner': Mongoose.Types.ObjectId(empId),
+            'IsDraft': false,
+            'IsDraftByManager': false,
+            'EvaluationYear': new Date().getFullYear(),
+            'IsSubmitedKPIs': true,
+            'ManagerSignOff': {submited:false}
+        },
+            {
+                $set: {
+                    'ManagerFTSubmitedOn': new Date(),
+                    'ManagerSignOff': { SignOffBy: User[0].Manager.FirstName, SignOffOn: new Date() }
+                }
+            });
+
+        if (submitedKPIs.nModified>0) {
+            // send email to manager 
+            this.sendEmailOnManagerSignoff(User[0].Manager, User[0]);
+           
+        }
+
+        return true
+    }
+    catch (err) {
+        logger.error(err)
+
+        console.log(err);
+        throw (err);
+    }
+
+
+};
+
+
 exports.sendEmailOnManagerSignoff = async (manager, kpiOwnerInfo) => {
 
 
@@ -465,9 +509,9 @@ exports.sendEmailOnManagerSignoff = async (manager, kpiOwnerInfo) => {
 
         // send email to User 
         var mailObject = SendMail.GetMailObject(
-            kpiOwnerInfo.Owner.Email,
+            kpiOwnerInfo.Email,
             "Performance Goal sign-off",
-            `Dear ${kpiOwnerInfo.Owner.FirstName},
+            `Dear ${kpiOwnerInfo.FirstName},
 
                           Your manager, ${manager.FirstName} has <edited> and signed-off your Performance Goals.
 

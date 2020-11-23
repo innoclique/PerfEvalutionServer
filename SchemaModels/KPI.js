@@ -1,7 +1,7 @@
 const Express = require("express");
 require('dotenv').config();
 const mongoose = require("mongoose");
-const { date, string, boolean } = require("joi");
+const { date, string, boolean, any } = require("joi");
 //const { boolean } = require("joi");
 
 const KpiSchema = new mongoose.Schema({
@@ -28,7 +28,7 @@ const KpiSchema = new mongoose.Schema({
     EmpFTSubmitedOn:  { type: Date },
     EmpFTViewOn:  { type: Date },
     ManagerFTSubmitedOn:  { type: Date },
-    ManagerSignOff:  { type: Object },
+    ManagerSignOff:  { type: Object ,default:{submited:false}},
     CreatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     Owner: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     ManagerId:{ type: mongoose.Schema.Types.ObjectId, ref: 'User' },

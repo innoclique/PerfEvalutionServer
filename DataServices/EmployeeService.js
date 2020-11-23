@@ -2015,18 +2015,14 @@ exports.GetOverallRatingByCompetency = async (emp) => {
                     _clist.push({ competencyId: element, allSubmitted: false, overallScore: 0 })
                     continue;
                 } else {
-                    var _manager = list[0].Manager.map(x => x.Competencies)
-                    if (_manager && _manager.length > 0) {
-                        for (let m = 0; m < _manager.length; p++) {
-                            const currentM = _manager[m];
-                            var currentMCompetency = currentM.filter(x => x._id === element)
-                            var _avg = calcAverage(currentMCompetency.map(x => x.Answer))
+                    var _manager = list[0].Manager.Competencies.find(x => x.Competency._id === element)
+                    if (_manager ) {
+                        var _avg = calcAverage(_manager.Questions.map(x=>x.SelectedRating))
                             _managerScore.push(_avg);
-                        }
                     }
                 }
-                var _overallScore=calcAverage(_pcScore)+calcAverage(_drScore)+_managerScore
-                _clist.push({ competencyId: element, allSubmitted: true, overallScore: _overallScore })
+                var _overallScore=calcAverage(_pcScore)+calcAverage(_drScore)+_managerScore[0]
+                _clist.push({ competencyId: element, allSubmitted: true, overallScore: (_overallScore/3).toFixed(2) })
             }
         }
         return _clist
@@ -2039,13 +2035,16 @@ exports.GetOverallRatingByCompetency = async (emp) => {
 }
 
 function calcAverage(arr) {
+    if(arr && arr.length===0){
+        return 0;
+    }
     var sum = 0;
     for (var i = 0; i < arr.length; i++) {
         sum += parseInt(arr[i], 10); //don't forget to add the base
     }
 
     var avg = sum / arr.length;
-    return avg || 0;
+    return parseFloat(avg.toFixed(2));
 }
 
 

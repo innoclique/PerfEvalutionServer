@@ -311,19 +311,16 @@ exports.GetEvaluationDashboardData = async (request) => {
     let evalDashboardResponse = {};
     let aggregateArray = [];
     let { userId } = request;
-    let organization = await OrganizationSchema.findOne({ "Admin": userId });
-    let { EvaluationPeriod } = organization;
+    let _userObj = await UserRepo.findOne({"_id":Mongoose.Types.ObjectId(userId)}).populate("Organization");
+    let orgId = _userObj.Organization._id;
+    let { EvaluationPeriod } = _userObj.Organization;
     /**
      * Start->Charts
      */
     let matchObject = {};
     matchObject['$match'] = {};
-    matchObject['$match']["Company"] = organization._id;
-    matchObject['$match']["CreatedDate"] = {};
-    matchObject['$match']["CreatedDate"] = {
-        "$gte": moment().startOf('year').toDate(),
-        "$lt": moment().endOf('year').toDate()
-    };
+    matchObject['$match']["Company"] = orgId;
+    matchObject['$match']["EvaluationYear"] = moment().format("YYYY");
     aggregateArray[0] = matchObject;
     let groupObj = {};
     groupObj['$group'] = {};
@@ -331,8 +328,9 @@ exports.GetEvaluationDashboardData = async (request) => {
     groupObj['$group']['count'] = {};
     groupObj['$group']['count']['$sum'] = 1;
     aggregateArray[1] = groupObj;
+    console.log(aggregateArray)
     let chatArray = await EvaluationRepo.aggregate(aggregateArray);
-    let status = ['Active', 'inprogress', 'completed', 'not started'];
+    let status = ['Active', 'inprogress', 'Completed', 'not started'];
     if (chatArray && chatArray.length > 0) {
         status.forEach(s => {
             const flag = chatArray.find(element => element._id !== s);
@@ -372,21 +370,13 @@ exports.GetEvaluationDashboardData = async (request) => {
         evalDashboardResponse['next_evaluation']['date'] = momentNextEvlDate.format("MMM Do YYYY");
         evalDashboardResponse['next_evaluation']['days'] = momentNextEvlDate.diff(moment(), 'days');
     }
-    let totalEmployees = await UserRepo.countDocuments({ "Organization": organization._id });
+    let totalEmployees = await UserRepo.countDocuments({ "Organization": orgId,"Role":"EO" });
 
     evalDashboardResponse['next_evaluation']['total_employees'] = totalEmployees
-
-    let currentEvlEmployees = await EvaluationRepo.aggregate([
-        matchObject,
-        { $unwind: '$Employees' },
-        { $match: { "Employees.Status": { "$exists": true, "$ne": "Completed" } } },
-        { $group: { _id: '$_id', count: { $sum: 1 } } }
-    ]);
-
-    let currPendingEval = 0;
-    if (currentEvlEmployees && currentEvlEmployees.length > 0) {
-        currPendingEval = currentEvlEmployees.map(item => item.count).reduce((prev, next) => prev + next);
-    }
+    let currPendingEval = await EvaluationRepo.countDocuments({
+        "Company":Mongoose.Types.ObjectId(orgId),
+        "status":{ "$exists": true, "$ne": "Completed" }
+    })
     evalDashboardResponse['next_evaluation']['current_pending_evealuations'] = currPendingEval;
     /**
      * Start->Overdue Evaluations
@@ -399,7 +389,7 @@ exports.GetEvaluationDashboardData = async (request) => {
     let overDueCondition = [
         {
             "$match": {
-                "Company": organization._id,
+                "Company": orgId,
                 "CreatedDate": { "$lt": evalDate.toDate() },
                 "Employees.Status": { "$ne": "Completed" }
             }

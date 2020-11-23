@@ -115,7 +115,7 @@ exports.Authenticate = async (LoginModel) => {
             var OrganizationData=await OrganizationRepo.findOne({Admin:adminId})
 
             return {
-                ID: User._id, Role: User.Role, Email: User.Email,
+                ID: User._id,SelectedRoles:User.SelectedRoles, Role: User.Role, Email: User.Email,
                 UserName: User.UserName, AccessToken: AccesToken,
                 RefreshToken: User.RefreshToken, IsPswChangedOnFirstLogin: User.IsPswChangedOnFirstLogin,
                 User: User,

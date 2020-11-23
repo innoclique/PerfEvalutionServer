@@ -321,10 +321,6 @@ exports.GetEvaluationDashboardData = async (request) => {
     matchObject['$match'] = {};
     matchObject['$match']["Company"] = orgId;
     matchObject['$match']["EvaluationYear"] = moment().format("YYYY");
-    /*matchObject['$match']["CreatedDate"] = {
-        "$gte": moment().startOf('year').toDate(),
-        "$lt": moment().endOf('year').toDate()
-    };*/
     aggregateArray[0] = matchObject;
     let groupObj = {};
     groupObj['$group'] = {};
@@ -386,7 +382,6 @@ exports.GetEvaluationDashboardData = async (request) => {
      * Start->Overdue Evaluations
      */
     let evalDate;
-    console.log("EvaluationPeriod:"+EvaluationPeriod)
     if (EvaluationPeriod && EvaluationPeriod === 'CalendarYear') {
         evalDate = moment().startOf('year');
     }

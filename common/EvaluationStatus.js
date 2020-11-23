@@ -10,5 +10,6 @@ EvaluationStatus['RevisionProgress'] = 90;
 EvaluationStatus['AwaitingPeer Review'] = 90;
 EvaluationStatus['RevisionSubmitted'] = 95;
 EvaluationStatus['EvaluationComplete'] = 100;
+EvaluationStatus['Completed'] = 100;
 
 module.exports = EvaluationStatus;

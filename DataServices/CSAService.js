@@ -27,6 +27,7 @@ const evaluationCurrentStatus = (evaluationList)=>{
     let currentYear = moment().format('YYYY');
     let completed=0, inprogress=0;
     let currentEvaluation = evaluationList.filter(obj => obj._id === currentYear);
+    console.log(JSON.stringify(currentEvaluation,null,5));
     if(currentEvaluation){
         let {list} = currentEvaluation[0];
         completed = list.filter(obj => obj.status==='Completed').length;

@@ -702,7 +702,7 @@ exports.DashboardData = async (employee) => {
                 let { Peers, _id } = employeeObj;
                 let peerList = Peers.filter(peerObj => peerObj.EmployeeId == userId);
                 let peerReviewObj = {};
-                peerReviewObj.title = peerList[0].displayTemplate;
+                peerReviewObj.title = _id.FirstName +" "+_id.LastName;
                 peerReviewObj.rating = peerList[0].CompetencyOverallRating;
                 peerReviewObj.deparment = _id.Department || 'N/A';
                 peerReviewList.push(peerReviewObj);

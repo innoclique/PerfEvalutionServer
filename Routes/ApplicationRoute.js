@@ -60,6 +60,8 @@ route.post('/AddDevGoal', AuthHelper.Authorization(), DevGoalsController.AddDevG
 route.post('/UpdateDevGoalById', AuthHelper.Authorization(), DevGoalsController.UpdateDevGoalById);
 route.post('/UpdateStrengthById', AuthHelper.Authorization(), DevGoalsController.UpdateStrengthById);
 route.post('/GetAllDevGoals', AuthHelper.Authorization(), DevGoalsController.GetAllDevGoals);
+route.post('/GetAllDevGoalsByManger', AuthHelper.Authorization(), DevGoalsController.GetAllDevGoalsByManger);
+route.post('/GetAllStrengthsByManger', AuthHelper.Authorization(), DevGoalsController.GetAllStrengthsByManger);
 route.post('/SubmitActionPlanByEmp',DevGoalsController.SubmitActionPlanByEmp);
 route.post('/GetReporteeReleasedKpiForm',DevGoalsController.GetReporteeReleasedKpiForm);
 

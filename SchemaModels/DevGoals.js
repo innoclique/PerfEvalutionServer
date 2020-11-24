@@ -38,7 +38,7 @@ const DevGoalSchema = new mongoose.Schema({
     EmpFTSubmitedOn:  { type: Date },
     EmpFTViewOn:  { type: Date },
     ManagerFTSubmitedOn:  { type: Date },
-    ManagerSignOff:  { type: Object },
+    ManagerSignOff:  { type: Object ,default:{submited:false}},
     CreatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     Owner: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     ManagerId:{ type: mongoose.Schema.Types.ObjectId, ref: 'User' },

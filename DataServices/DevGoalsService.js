@@ -88,6 +88,67 @@ try{
 
 
 
+exports.GetAllDevGoalsByManger = async (data) => {
+
+    try{
+    
+      
+    
+        //   const Kpi = await KpiRepo.find({'Owner':data.empId,'IsDraftByManager':false, 'EvaluationId':currEvaluation._id})
+        const devGoals = await DevGoalsRepo.find({ 'Owner': data.empId, 
+                'MakePrivate': {$in: [false,data.fetchAll ] },  
+                 'IsDraftByManager': false ,
+                 'IsDraft': false ,
+                 'IsGoalSubmited':true,
+                 'CreatedYear': ""+new Date().getFullYear() })
+               .populate('Kpi')
+            .sort({ UpdatedOn: -1 });
+    
+    
+        return devGoals;
+    
+    
+    } catch (error) {
+        logger.error(err)
+    
+        console.log(err);
+        throw (err);
+    
+    }
+    };
+
+    
+
+exports.GetAllStrengthsByManger = async (data) => {
+
+    try{
+    
+      
+    
+        //   const Kpi = await KpiRepo.find({'Owner':data.empId,'IsDraftByManager':false, 'EvaluationId':currEvaluation._id})
+        const devGoals = await strengthRepo.find({ 'Owner': data.empId, 
+                
+                 'IsDraft': false ,
+                 'IsStrengthSubmited':true,
+                 'CreatedYear': ""+new Date().getFullYear() } )
+            .sort({ UpdatedOn: -1 });
+    
+    
+        return devGoals;
+    
+    
+    } catch (error) {
+        logger.error(err)
+    
+        console.log(err);
+        throw (err);
+    
+    }
+    };
+
+
+
+
 
 exports.UpdateDevGoalById = async (devGoalData) => {
     try {
@@ -433,6 +494,14 @@ exports.GetReporteeReleasedKpiForm = async (manager) => {
             },
             {
                 $lookup: {
+                    from: "strengths",
+                    localField: "EmployeeId",
+                    foreignField: "Owner",
+                    as: "StrengthList",
+                }
+            },
+            {
+                $lookup: {
                     from: "kpis",
                     localField: "EmployeeId",
                     foreignField: "Owner",
@@ -451,9 +520,22 @@ exports.GetReporteeReleasedKpiForm = async (manager) => {
                             "as": "goalresult",
                             "cond": {
                                 "$and": [
-                                    { "$eq": ["$$goalresult.EvaluationYear", new Date().getFullYear()+""] },
+                                    { "$eq": ["$$goalresult.CreatedYear", new Date().getFullYear()+""] },
                                     { "$eq": ["$$goalresult.IsDraft", false] },
                                     { "$eq": ["$$goalresult.IsGoalSubmited", true] }
+                                ]
+                            }
+                        }
+                    },
+                    StrengthList: {
+                        "$filter": {
+                            "input": "$StrengthList",
+                            "as": "strresult",
+                            "cond": {
+                                "$and": [
+                                    { "$eq": ["$$strresult.CreatedYear", new Date().getFullYear()+""] },
+                                    { "$eq": ["$$strresult.IsDraft", false] },
+                                    { "$eq": ["$$strresult.IsStrengthSubmited", true] }
                                 ]
                             }
                         }
@@ -535,6 +617,14 @@ exports.GetTSReleasedKpiForm = async (manager) => {
             },
             {
                 $lookup: {
+                    from: "strengths",
+                    localField: "EmployeeId",
+                    foreignField: "Owner",
+                    as: "StrengthList",
+                }
+            },
+            {
+                $lookup: {
                     from: "kpis",
                     localField: "EmployeeId",
                     foreignField: "Owner",
@@ -553,9 +643,22 @@ exports.GetTSReleasedKpiForm = async (manager) => {
                             "as": "goalresult",
                             "cond": {
                                 "$and": [
-                                    { "$eq": ["$$goalresult.EvaluationYear", new Date().getFullYear()+""] },
+                                    { "$eq": ["$$goalresult.CreatedYear", new Date().getFullYear()+""] },
                                     { "$eq": ["$$goalresult.IsDraft", false] },
                                     { "$eq": ["$$goalresult.IsGoalSubmited", true] }
+                                ]
+                            }
+                        }
+                    },
+                    StrengthList: {
+                        "$filter": {
+                            "input": "$StrengthList",
+                            "as": "strresult",
+                            "cond": {
+                                "$and": [
+                                    { "$eq": ["$$strresult.CreatedYear", new Date().getFullYear()+""] },
+                                    { "$eq": ["$$strresult.IsDraft", false] },
+                                    { "$eq": ["$$strresult.IsStrengthSubmited", true] }
                                 ]
                             }
                         }

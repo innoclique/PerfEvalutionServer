@@ -80,6 +80,7 @@ const Evalution = new mongoose.Schema({
                 ReqRevision: { type: Boolean, default: false }
             },
             Status: { type: String, default: "" },
+            FRReqRevision: { type: Boolean, default: false },
             UpdatedOn: { type: Date, default: Date() }
         },
         InitiatedFor: { 

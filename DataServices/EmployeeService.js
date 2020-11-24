@@ -61,7 +61,8 @@ exports.GetStrengthById = async (Id) => {
 };
 exports.GetAllStrengths = async (empId) => {
 
-    const Strengths = await StrengthRepo.find({ 'Employee': empId });
+    const Strengths = await StrengthRepo.find({ 'Employee': empId,
+    'CreatedYear': ""+new Date().getFullYear() });
     return Strengths;
 };
 exports.AddAccomplishment = async (accomplishment) => {
@@ -115,8 +116,9 @@ exports.GetKpiSetupBasicData = async (empId, orgId) => {
     const coachingRem = Messages.constants.COACHING_REM_DAYS;
     var allEvaluation = await EvaluationRepo.find({
         Employees: { $elemMatch: { _id: Mongoose.Types.ObjectId(empId) } },
+        EvaluationYear: new Date().getFullYear(),
         Company: orgId
-    }).sort({ CreatedDate: -1 });
+    }).sort({ CreatedDate: -1 });  
     let evaluation = allEvaluation[0];
     return { KpiStatus, KpiScore, coachingRem, evaluation };
 };
@@ -1133,14 +1135,15 @@ exports.SaveTSFinalRating = async (finalRating) => {
                 $set: {
                     "Employees.$[e].FinalRating.ThirdSignatory.YearEndComments": finalRating.YearEndComments,
                     "Employees.$[e].FinalRating.ThirdSignatory.YearEndRating": finalRating.OverallRating,
-                    "Employees.$[e].FinalRating.ThirdSignatory.IsSubmitted": (finalRating.IsDraft || finalRating.ReqRevision) ? false : true,
-                    "Employees.$[e].FinalRating.ThirdSignatory.SubmittedOn": (finalRating.IsDraft || finalRating.ReqRevision) ? null : new Date(),
+                    "Employees.$[e].FinalRating.ThirdSignatory.IsSubmitted": !finalRating.IsDraft ,
+                    "Employees.$[e].FinalRating.ThirdSignatory.SubmittedOn": (finalRating.IsDraft) ? null : new Date(),
                     "Employees.$[e].FinalRating.ThirdSignatory.SignOff": finalRating.SignOff,
 
                     "Employees.$[e].FinalRating.ThirdSignatory.RevComments": finalRating.RevComments,
                     "Employees.$[e].FinalRating.ThirdSignatory.ReqRevision": finalRating.ReqRevision,
-                    "Employees.$[e].FinalRating.Manager.IsSubmitted": (finalRating.ReqRevision) ? false : true,
-                    "Employees.$[e].FinalRating.Status": `ThirdSignatory ${finalRating.ReqRevision ? 'Request Revision' : 'Submitted'}`,
+                    "Employees.$[e].FinalRating.Manager.IsSubmitted": (finalRating.ReqRevision && !finalRating.FRReqRevision ) ? false : true,
+                    "Employees.$[e].FinalRating.Status": `ThirdSignatory ${ (finalRating.ReqRevision && !finalRating.FRReqRevision)? 'Request Revision' : 'Submitted'}`,
+                    "Employees.$[e].FinalRating.FRReqRevision": finalRating.FRReqRevision,
                     "Employees.$[e].Status": (finalRating.IsDraft || finalRating.ReqRevision) ? 'InProgress' : 'Completed',
                 }
             },
@@ -1302,12 +1305,14 @@ exports.SaveManagerFinalRating = async (finalRating) => {
                     "Employees.$[e].FinalRating.Manager.SignOff": finalRating.SignOff,
 
                     "Employees.$[e].FinalRating.Manager.RevComments": finalRating.RevComments,
-                    "Employees.$[e].FinalRating.Manager.ReqRevision": finalRating.ReqRevision,
-                    "Employees.$[e].FinalRating.Self.IsSubmitted": (finalRating.ReqRevision) ? false : true,
-                    "Employees.$[e].FinalRating.Status": `Manager ${finalRating.ReqRevision ? 'Request Revision' : 'Submitted'}`,
+                    //"Employees.$[e].FinalRating.Manager.ReqRevision": finalRating.ReqRevision,
+                    // "Employees.$[e].FinalRating.Self.IsSubmitted": (finalRating.ReqRevision) ? false : true,
+                    "Employees.$[e].FinalRating.Self.IsSubmitted": false,
+                    // "Employees.$[e].FinalRating.Status": `Manager ${finalRating.ReqRevision ? 'Request Revision' : 'Submitted'}`,
+                    "Employees.$[e].FinalRating.Status": `Manager Submitted`,
 
 
-                    "Employees.$[e].FinalRating.ThirdSignatory.IsSubmitted": false,
+                    //"Employees.$[e].FinalRating.ThirdSignatory.IsSubmitted": false,
 
                 }
             },
@@ -1421,12 +1426,12 @@ exports.SaveEmployeeFinalRating = async (finalRating) => {
                     "Employees.$[e].FinalRating.Self.YearEndComments": finalRating.YearEndComments,
                     "Employees.$[e].FinalRating.Self.RevComments": finalRating.RevComments,
                     "Employees.$[e].FinalRating.Self.YearEndRating": finalRating.OverallRating,
-                    "Employees.$[e].FinalRating.Self.IsSubmitted": (finalRating.IsDraft || finalRating.ReqRevision) ? false : true,
+                    "Employees.$[e].FinalRating.Self.IsSubmitted": !finalRating.IsDraft ,
                     "Employees.$[e].FinalRating.Self.SubmittedOn": finalRating.IsDraft ? null : new Date(),
                     "Employees.$[e].FinalRating.Self.SignOff": finalRating.SignOff,
                     "Employees.$[e].FinalRating.Status": 'Employee Submitted',
 
-                    "Employees.$[e].FinalRating.Manager.IsSubmitted": false,
+                   // "Employees.$[e].FinalRating.Manager.IsSubmitted": false,
 
                 }
             },

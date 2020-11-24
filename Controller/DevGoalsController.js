@@ -25,6 +25,26 @@ exports.GetAllDevGoals = async (req, res, next) => {
 }
 
 
+exports.GetAllStrengthsByManger = async (req, res, next) => {
+    await DevGoalsService.GetAllStrengthsByManger(req.body)
+        .then(Response => Response ? res.status(200).json(Response) : res.status(404).json("Kpi Not Found"))
+        .catch(err => next(err));
+
+      
+
+}
+
+
+exports.GetAllDevGoalsByManger = async (req, res, next) => {
+    await DevGoalsService.GetAllDevGoalsByManger(req.body)
+        .then(Response => Response ? res.status(200).json(Response) : res.status(404).json("Kpi Not Found"))
+        .catch(err => next(err));
+
+      
+
+}
+
+
 
 exports.SubmitActionPlanByEmp = async (req, res, next) => {
     await DevGoalsService.SubmitAllActionPlan(req.body)

@@ -766,6 +766,14 @@ exports.GetTSReporteeEvaluations = async (ts) => {
             },
             {
                 $lookup: {
+                    from: "strengths",
+                    localField: "EmployeeId",
+                    foreignField: "Owner",
+                    as: "StrengthList",
+                }
+            },
+            {
+                $lookup: {
                     from: "kpis",
                     localField: "EmployeeId",
                     foreignField: "Owner",
@@ -778,7 +786,32 @@ exports.GetTSReporteeEvaluations = async (ts) => {
 
             {
                 $project: {
-                    GoalList: 1,
+                    GoalList: {
+                        "$filter": {
+                            "input": "$GoalList",
+                            "as": "goalresult",
+                            "cond": {
+                                "$and": [
+                                    { "$eq": ["$$goalresult.CreatedYear", new Date().getFullYear()+""] },
+                                    { "$eq": ["$$goalresult.IsDraft", false] },
+                                    { "$eq": ["$$goalresult.IsGoalSubmited", true] }
+                                ]
+                            }
+                        }
+                    },
+                    StrengthList: {
+                        "$filter": {
+                            "input": "$StrengthList",
+                            "as": "strresult",
+                            "cond": {
+                                "$and": [
+                                    { "$eq": ["$$strresult.CreatedYear", new Date().getFullYear()+""] },
+                                    { "$eq": ["$$strresult.IsDraft", false] },
+                                    { "$eq": ["$$strresult.IsStrengthSubmited", true] }
+                                ]
+                            }
+                        }
+                    },
                     Email: 1,
                     FirstName: 1,
                     LastName: 1,
@@ -888,6 +921,14 @@ exports.GetReporteeEvaluations = async (manager) => {
 
             {
                 $lookup: {
+                    from: "strengths",
+                    localField: "EmployeeId",
+                    foreignField: "Owner",
+                    as: "StrengthList",
+                }
+            },
+            {
+                $lookup: {
                     from: "devgoals",
                     localField: "EmployeeId",
                     foreignField: "Owner",
@@ -908,7 +949,33 @@ exports.GetReporteeEvaluations = async (manager) => {
             {
                 $project: {
                     //KpiList: 1,
-                    GoalList: 1,
+                    GoalList: {
+                        "$filter": {
+                            "input": "$GoalList",
+                            "as": "goalresult",
+                            "cond": {
+                                "$and": [
+                                    { "$eq": ["$$goalresult.CreatedYear", new Date().getFullYear()+""] },
+                                    { "$eq": ["$$goalresult.IsDraft", false] },
+                                    { "$eq": ["$$goalresult.IsGoalSubmited", true] }
+                                ]
+                            }
+                        }
+                    },
+                    StrengthList: {
+                        "$filter": {
+                            "input": "$StrengthList",
+                            "as": "strresult",
+                            "cond": {
+                                "$and": [
+                                    { "$eq": ["$$strresult.CreatedYear", new Date().getFullYear()+""] },
+                                    { "$eq": ["$$strresult.IsDraft", false] },
+                                    { "$eq": ["$$strresult.IsStrengthSubmited", true] }
+                                ]
+                            }
+                        }
+                    },
+                    
                     Email: 1,
                     FirstName: 1,
                     LastName: 1,

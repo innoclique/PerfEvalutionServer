@@ -642,7 +642,7 @@ else if (data.Action=='Review') {
    const schema = Joi.object().keys({
       kpiId: Joi.required(),
       Action: Joi.string().required(),
-      ManagerScore: Joi.number().optional(),
+      ManagerScore: Joi.optional(),
       YECommManager: Joi.optional(),
       CoachingReminder: Joi.string().optional(),
       IsManaFTSubmited: Joi.any().optional(),

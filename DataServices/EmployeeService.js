@@ -685,6 +685,8 @@ exports.GetPeers = async (employee) => {
 };
 exports.DashboardData = async (employee) => {
     const response = {};
+    try{
+    
     let { userId } = employee;
     const evaluationRepo = await peerInfo(userId);
     response['current_evaluation'] = await currentEvaluationProgress(userId);
@@ -703,13 +705,21 @@ exports.DashboardData = async (employee) => {
                 let peerList = Peers.filter(peerObj => peerObj.EmployeeId == userId);
                 let peerReviewObj = {};
                 peerReviewObj.title = _id.FirstName +" "+_id.LastName;
-                peerReviewObj.rating = peerList[0].CompetencyOverallRating;
+                if(peerList && peerList.length>0)
+                    peerReviewObj.rating = peerList[0].CompetencyOverallRating;
+                else
+                peerReviewObj.rating = 'N/A';
                 peerReviewObj.deparment = _id.Department || 'N/A';
                 peerReviewList.push(peerReviewObj);
             });
         });
     }
     response['peer_review']['list'] = peerReviewList;
+    }
+    catch(e){
+        console.log(e)
+    }
+    
     return response;
 }
 const currentEvaluationProgress = async (userId) => {

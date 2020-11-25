@@ -221,7 +221,7 @@ exports.GetAllKpis = async (data) => {
         if (evaluation) {
 
         } else {
-            throw Error("Performance Goal Setting Form Not Activeted");
+            throw Error("Performance Goal Setting Form Not Activated");
         }
     }
     var preKpi = [];

@@ -48,7 +48,7 @@ exports.GetAllDevGoalsByManger = async (req, res, next) => {
 
 exports.SubmitActionPlanByEmp = async (req, res, next) => {
     await DevGoalsService.SubmitAllActionPlan(req.body)
-        .then(Response => Response ? res.status(200).json({message: "The Performance Goals have been submitted successfully and your sign-off registered."}) : res.status(404).json("Kpi Not Found"))
+        .then(Response => Response ? res.status(200).json({message: "Action plan has been submitted successfully."}) : res.status(404).json("Kpi Not Found"))
         .catch(err => next(err));
 
 }

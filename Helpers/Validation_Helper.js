@@ -446,7 +446,8 @@ exports.UpdateOrganizationSchema=(schema)=>{
          then:Joi.string().required().trim()
       }),
       EndMonth:Joi.optional(),
-      IsDraft:Joi.optional()
+      IsDraft:Joi.optional(),
+      ParentOrganization:Joi.optional()
  });
 
  return organization;
@@ -547,7 +548,8 @@ exports.ValidateUpdateReseller=(schema)=>{
       UpdatedBy:Joi.string().required().trim(),
       UpdatedOn:Joi.optional(),
       
-      IsDraft:Joi.optional()
+      IsDraft:Joi.optional(),
+      ParentOrganization:Joi.optional()
  });
 
  return organization;

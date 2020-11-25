@@ -7,7 +7,7 @@ exports.ValidateDevGoal = ( data)=>{
       
    
       const schema = Joi.object().keys({
-         kpiId: Joi.required(),
+         devGoalId: Joi.required(),
          Action: Joi.string().required(),
          UpdatedBy: Joi.string().required(),
          IsActive: Joi.any().required()
@@ -19,8 +19,11 @@ exports.ValidateDevGoal = ( data)=>{
       
    
       const schema = Joi.object().keys({
-         kpiId: Joi.required(),
-         ViewedByEmpOn: Joi.required(),
+         devGoalId: Joi.required(),
+        // ViewedByEmpOn: Joi.required(),
+        UpdatedBy: Joi.string().required(),
+         empId: Joi.string().required(),
+         ViewedByManagerOn: Joi.required(),
          Action: Joi.string().required(),
          });
       return schema;

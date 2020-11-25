@@ -17,6 +17,8 @@ const StrengthSchema = new mongoose.Schema({
     IsActive: { type: Boolean, default: true },
     IsStrengthSubmited:{ type: Boolean, default:false },
     ManagerSignOff:  { type: Object ,default:{submited:false}},
+    ViewedByEmpOn:{ type: String },
+    ViewedByManagerOn:{ type: String },
     CreatedYear:{ type: String },
     CreatedOn:  { type: Date,default:Date() },
     UpdatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },

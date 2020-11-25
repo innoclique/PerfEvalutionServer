@@ -24,6 +24,7 @@ const KpiSchema = new mongoose.Schema({
     IsActive: { type: Boolean, default: true },
     IsSubmitedKPIs:{ type: Boolean, default:false },
     ViewedByEmpOn:{ type: String },
+    ViewedByManagerOn:{ type: String },
     CreatedOn:  { type: Date,default:Date() },
     EmpFTSubmitedOn:  { type: Date },
     EmpFTViewOn:  { type: Date },

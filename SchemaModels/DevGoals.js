@@ -33,6 +33,7 @@ const DevGoalSchema = new mongoose.Schema({
     IsActive: { type: Boolean, default: true },
     IsGoalSubmited:{ type: Boolean, default:false },
     ViewedByEmpOn:{ type: String },
+    ViewedByManagerOn:{ type: String },
     CreatedYear:{ type: String },
     CreatedOn:  { type: Date,default:Date() },
     EmpFTSubmitedOn:  { type: Date },

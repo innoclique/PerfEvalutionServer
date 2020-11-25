@@ -875,7 +875,7 @@ exports.sendmail = async (user) => {
         content = content.replace("##FirstName##", user.FirstName);
         content = content.replace("##ProductName##", config.ProductName);
         content = content.replace("##Description##", des);
-        content = content.replace("##Title##", "Devlopment Goal Submitted");
+        content = content.replace("##Title##", "Evaluation Initiated");
 
         var mailObject = SendMail.GetMailObject(
             user.Email,

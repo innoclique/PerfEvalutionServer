@@ -8,6 +8,7 @@ const EvaluationRepo = require('../SchemaModels/Evalution');
 const strengthRepo = require('../SchemaModels/Strengths');
 const ObjectId = Mongoose.Types.ObjectId;
 const DevGoalsService = require('../DataServices/DevGoalsService')
+const EvaluationService = require('./EvaluationService');
 var config = require(`../Config/${env}.config`);
 const SendMail = require("../Helpers/mail.js");
 var fs = require("fs");
@@ -165,9 +166,12 @@ exports.UpdateDevGoalById = async (devGoalData) => {
 
         }
 
-        if (devGoalData.ViewedByEmpOn) {
-         
-            devGoalData.ViewedByEmpOn= new Date();
+        if (devGoalData.ViewedByManagerOn) {
+            const Manager1 = await UserRepo.findById(devGoalData.UpdatedBy);
+            const kpiOwnerInfo1=  await UserRepo.findById(devGoalData.empId);
+            devGoalData.ViewedByManagerOn= new Date();
+            this.sendEmailEmpOnManagerViewed(Manager1,kpiOwnerInfo1);
+
         }
       
         devGoalData.UpdatedOn = new Date();
@@ -261,9 +265,9 @@ exports.UpdateStrengthById = async (strenthData) => {
 
         }
 
-        if (strenthData.ViewedByEmpOn) {
+        if (strenthData.ViewedByManagerOn) {
          
-            strenthData.ViewedByEmpOn= new Date();
+            strenthData.ViewedByManagerOn= new Date();
         }
       
         strenthData.UpdatedOn = new Date();
@@ -332,7 +336,7 @@ exports.sendEmailOnDevGoalSubmit = async (manager,devGoalOwnerInfo) => {
 
         var mailObject = SendMail.GetMailObject(
             devGoalOwnerInfo.Email,
-                  "Devlopment Goal Submitted",
+                  "Action Plan Submitted",
                   content,
                   null,
                   null
@@ -356,12 +360,12 @@ exports.sendEmailOnDevGoalSubmit = async (manager,devGoalOwnerInfo) => {
             content = content.replace("##FirstName##",manager.FirstName);
             content = content.replace("##ProductName##", config.ProductName);
             content = content.replace("##Description##", des);
-            content = content.replace("##Title##", "Devlopment Goal Submitted");
+            content = content.replace("##Title##", "Action Plan Submitted");
 
       
             var mailObject = SendMail.GetMailObject(
             manager.Email,
-                  "Devlopment Goal Submitted",
+                  "Action Plan Submitted",
                  content,
                   null,
                   null
@@ -385,11 +389,11 @@ exports.sendEmailOnManagerSignoff = async (manager, kpiOwnerInfo) => {
         var mailObject = SendMail.GetMailObject(
             manager.Email,
             "Developmental Goal signed-off",
-            `Dear ${manager.FirstName},
+            `Dear ${manager.FirstName}, <br>
 
             You have successfully added comments to the action plan for  ${kpiOwnerInfo.FirstName}.
 
-                        To view details, click here.
+                        To view details, click here. <br>
 
 
                           
@@ -409,12 +413,42 @@ exports.sendEmailOnManagerSignoff = async (manager, kpiOwnerInfo) => {
         var mailObject = SendMail.GetMailObject(
             kpiOwnerInfo.Email,
             "Developmental Goal sign-off",
-            `Dear ${kpiOwnerInfo.FirstName},
+            `Dear ${kpiOwnerInfo.FirstName}, <br>
 
-            Your manager ${manager.FirstName} successfully added comments.
+            Your manager ${manager.FirstName} successfully added comments. <br>
                           
                           
                           Thank you,
+                         Administrator
+                          `,
+            null,
+            null
+        );
+
+        SendMail.SendEmail(mailObject, function (res) {
+            console.log(res);
+        });
+    }
+
+}
+
+
+exports.sendEmailEmpOnManagerViewed = async (manager, kpiOwnerInfo) => {
+
+
+    if (kpiOwnerInfo) {
+       
+        // send email to User 
+        var mailObject = SendMail.GetMailObject(
+            kpiOwnerInfo.Email,
+            "Action plan viewed",
+            `Dear ${kpiOwnerInfo.FirstName}, <br>
+
+            
+            Your manager  has opened your action plan. You may want to initiate a offline discussion for this. 
+                          
+                          
+                   <br>       Thank you,
                          Administrator
                           `,
             null,
@@ -565,10 +599,9 @@ exports.GetReporteeReleasedKpiForm = async (manager) => {
         ])
 
 
-        // var evList=[]
-        //  evList=  DevGoalsService.GetReporteeReleasedKpiForm(manager);
-        // return [...reportees,...evList];
-return reportees;
+        var evReportees=[];
+      evReportees=  await   EvaluationService.GetReporteeEvaluations(manager);
+return [...reportees,...evReportees];
    
 
     } catch (error) {
@@ -688,10 +721,10 @@ exports.GetTSReleasedKpiForm = async (manager) => {
         ])
 
 
-        // var evList=[]
-        //  evList=  DevGoalsService.GetReporteeReleasedKpiForm(manager);
-        // return [...reportees,...evList];
-return reportees;
+       
+    var evReportees=[];
+      evReportees=   await EvaluationService.GetTSReporteeEvaluations(manager);
+return [...reportees,...evReportees];
    
 
     } catch (error) {

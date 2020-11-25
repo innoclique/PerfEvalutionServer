@@ -326,14 +326,14 @@ exports.SubmitAllKpis = async (empId) => {
                 var mailObject = SendMail.GetMailObject(
                     User[0].Manager.Email,
                     "Performance Goals submited for review",
-                    `Dear ${User[0].Manager.FirstName},
+                    `Dear ${User[0].Manager.FirstName},<br>
 
                                   Your Direct Report, ${User[0].FirstName} has submitted the Performance Goals.
 
                                     Please click here to login and review.
 
                                   
-                                  Thank you,
+                                    <br>  Thank you,
                                   <product name> Administrator
                                   `,
                     null,
@@ -349,13 +349,13 @@ exports.SubmitAllKpis = async (empId) => {
             var mailObject = SendMail.GetMailObject(
                 User[0].Email,
                 "Performance Goals submited for review",
-                `Dear ${User[0].FirstName},
+                `Dear ${User[0].FirstName},<br>
 
                                   Your KPIs have been successfully submitted to your manager.
                                   
                                   To view details, click here.
                                   
-                                  Thank you,
+                                  <br>   Thank you,
                                  Administrator
                                   `,
                 null,
@@ -489,11 +489,11 @@ exports.sendEmailOnManagerSignoff = async (manager, kpiOwnerInfo) => {
         var mailObject = SendMail.GetMailObject(
             manager.Email,
             "Performance Goals signed-off",
-            `Dear ${manager.FirstName},
+            `Dear ${manager.FirstName}, <br>
 
                           You have successfully signed-off the Performance Goals for ${kpiOwnerInfo.FirstName}.
 
-                        To view details, click here.
+                        To view details, click here. <br>
 
 
                           
@@ -513,14 +513,14 @@ exports.sendEmailOnManagerSignoff = async (manager, kpiOwnerInfo) => {
         var mailObject = SendMail.GetMailObject(
             kpiOwnerInfo.Email,
             "Performance Goals sign-off",
-            `Dear ${kpiOwnerInfo.FirstName},
+            `Dear ${kpiOwnerInfo.FirstName}, <br>
 
                           Your manager, ${manager.FirstName} has <edited> and signed-off your Performance Goals.
 
                           Please click here to login and review. You may want to discuss the updates, if any, with your manager.
                           
                           
-                          Thank you,
+                          <br> Thank you,
                          Administrator
                           `,
             null,
@@ -1222,11 +1222,11 @@ exports.SaveTSFinalRating = async (finalRating) => {
                     var mailObject = SendMail.GetMailObject(
                         ts.Email,
                         `Final Rating ${finalRating.ReqRevision ? 'Request Revision' : 'Submitted'}`,
-                        `Dear ${ts.FirstName},
+                        `Dear ${ts.FirstName}, <br>
 
                           You have successfully ${finalRating.ReqRevision ? 'Request Revision' : 'Submitted'} your year-end review
                           
-                          Thank you,
+                          <br>  Thank you,
                           Administrator
                           `,
                         null,
@@ -1241,11 +1241,11 @@ exports.SaveTSFinalRating = async (finalRating) => {
                     var mailObject = SendMail.GetMailObject(
                         empoyee.Email,
                         `Final Rating ${finalRating.ReqRevision ? 'Request Revision' : 'Submitted'}`,
-                        `Dear ${empoyee.FirstName},
+                        `Dear ${empoyee.FirstName}, <br>
 
                           Your Third Signatory ${manager.FirstName} has successfully ${finalRating.ReqRevision ? 'Request Revision' : 'Submitted'}  year-end review.
                           Kindly access portal to review the year-end review.
-                          Thank you,
+                          <br> Thank you,
                           Administrator
                           `,
                         null,
@@ -1262,11 +1262,11 @@ exports.SaveTSFinalRating = async (finalRating) => {
                     var mailObject = SendMail.GetMailObject(
                         manager.Email,
                         `Final Rating ${finalRating.ReqRevision ? 'Request Revision' : 'Submitted'}`,
-                        `Dear ${manager.FirstName},
+                        `Dear ${manager.FirstName}, <br>
 
                         ${empoyee.FirstName} Third Signatory ${ts.FirstName} has successfully ${finalRating.ReqRevision ? 'Request Revision' : 'Submitted'}  year-end review.
                           Kindly access portal to review the year-end review.
-                          Thank you,
+                          <br>  Thank you,
                           Administrator
                           `,
                         null,
@@ -1369,11 +1369,11 @@ exports.SaveManagerFinalRating = async (finalRating) => {
                     var mailObject = SendMail.GetMailObject(
                         manager.Email,
                         `Final Rating ${finalRating.ReqRevision ? 'Request Revision' : 'Submitted'}`,
-                        `Dear ${manager.FirstName},
+                        `Dear ${manager.FirstName}, <br>
 
                           You have successfully ${finalRating.ReqRevision ? 'Request Revision' : 'Submitted'} your year-end review
                           
-                          Thank you,
+                          <br> Thank you,
                           Administrator
                           `,
                         null,
@@ -1388,11 +1388,11 @@ exports.SaveManagerFinalRating = async (finalRating) => {
                     var mailObject = SendMail.GetMailObject(
                         empoyee.Email,
                         `Final Rating ${finalRating.ReqRevision ? 'Request Revision' : 'Submitted'}`,
-                        `Dear ${empoyee.FirstName},
+                        `Dear ${empoyee.FirstName}, <br>
 
                           Your Manager ${manager.FirstName} has successfully ${finalRating.ReqRevision ? 'Request Revision' : 'Submitted'}  year-end review.
                           Kindly access portal to review the year-end review.
-                          Thank you,
+                          <br> Thank you,
                           Administrator
                           `,
                         null,
@@ -1488,11 +1488,11 @@ exports.SaveEmployeeFinalRating = async (finalRating) => {
                     var mailObject = SendMail.GetMailObject(
                         employee.Email,
                         "Final Rating Submitted",
-                        `Dear ${employee.FirstName},
+                        `Dear ${employee.FirstName}, <br>
 
                           You have successfully submitted your year-end review
                           
-                          Thank you,
+                          <br>  Thank you,
                           Administrator
                           `,
                         null,
@@ -1507,11 +1507,11 @@ exports.SaveEmployeeFinalRating = async (finalRating) => {
                     var mailObject = SendMail.GetMailObject(
                         manager.Email,
                         "Final Rating Submitted",
-                        `Dear ${manager.FirstName},
+                        `Dear ${manager.FirstName}, <br>
 
                           Your reportee ${employee.FirstName} has successfully submitted  year-end review.
                           Kindly access portal to review the year-end review.
-                          Thank you,
+                          <br> Thank you,
                           Administrator
                           `,
                         null,

@@ -64,6 +64,7 @@ route.post('/GetAllDevGoalsByManger', AuthHelper.Authorization(), DevGoalsContro
 route.post('/GetAllStrengthsByManger', AuthHelper.Authorization(), DevGoalsController.GetAllStrengthsByManger);
 route.post('/SubmitActionPlanByEmp',DevGoalsController.SubmitActionPlanByEmp);
 route.post('/GetReporteeReleasedKpiForm',DevGoalsController.GetReporteeReleasedKpiForm);
+route.post('/GetTSReleasedKpiForm',DevGoalsController.GetTSReleasedKpiForm);
 
 route.post('/SaveCompetencyQnA', AuthHelper.Authorization(), EmployeeController.SaveCompetencyQnA);
 route.post('/GetPendingPeerReviewsList', EmployeeController.GetPendingPeerReviewsList);

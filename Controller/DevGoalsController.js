@@ -60,6 +60,14 @@ exports.GetReporteeReleasedKpiForm= async (req, res, next) => {
 }
 
 
+exports.GetTSReleasedKpiForm= async (req, res, next) => {
+    await DevGoalsService.GetTSReleasedKpiForm(req.body)
+        .then(Response => Response ? res.status(200).json(Response) : res.status(404).json("No Performance Goals Review found"))
+        .catch(err => next(err));
+}
+
+
+
 
 exports.UpdateDevGoalById = async (req, res, next) => {
     

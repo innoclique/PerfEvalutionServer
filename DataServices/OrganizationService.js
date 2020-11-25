@@ -91,7 +91,7 @@ try {
             userRecord.Email,
                   "Organization Created-Temporary Password",
 
-                  `Dear ${userRecord.FirstName},
+                  `Dear ${userRecord.FirstName}, <br>
 
                   Please use below temporary password to login into portal. 
                   Password: ${_temppwd}
@@ -101,7 +101,7 @@ try {
                   
                   Please click here to login.
                   
-                  Thank you,
+                  <br> Thank you,
                   Administrator
                   `,
                   null,
@@ -148,7 +148,7 @@ exports.UpdateOrganization = async (organization) => {
         var mailObject = SendMail.GetMailObject(
             userRecord.Email,
                   "Oraganization Updated",
-                  "Thank you",
+                  "Oraganization updated successfully <br> Thank you",
                   null,
                   null
                 );
@@ -318,7 +318,7 @@ exports.AddReseller = async (organization) => {
             userRecord.Email,
                   "Organization Created-Temporary Password",
 
-                  `Dear ${userRecord.FirstName},
+                  `Dear ${userRecord.FirstName}, <br>
 
                   Please use below temporary password to login into portal. 
                   Password: ${_temppwd}
@@ -328,7 +328,7 @@ exports.AddReseller = async (organization) => {
                   
                   Please click here to login.
                   
-                  Thank you,
+                  <br> Thank you,
                   Administrator
                   `,
                   null,

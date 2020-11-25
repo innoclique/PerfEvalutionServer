@@ -175,7 +175,7 @@ exports.SendResetPsw = async (LoginModel) => {
         mailObject = SendMail.GetMailObject(
             Email,
             "Password Reset",
-            `Hey!  Your password has been updated.
+            `Hey!  Your password has been updated. <br>
             Here are the details of Password : ${User.Password}    `,
             null,
             null
@@ -401,13 +401,13 @@ exports.sendEmpCreateEamils = async (newemp,_temppwd) =>{
 
               `Dear ${newemp.FirstName},
 
-              Congratulations, Employee account has been created. Your login id is your email. You will receive a separate email for password. Please change your password when you login first time.
+              <br> Congratulations, Employee account has been created. Your login id is your email. You will receive a separate email for password. Please change your password when you login first time.
               
               Email: ${newemp.Email},
               
-              Please click here to login.
+              <br> Please click here to login.
               
-              Thank you,
+              <br> Thank you,
               Administrator
               `,
               null,
@@ -426,13 +426,13 @@ exports.sendEmpCreateEamils = async (newemp,_temppwd) =>{
 
               `Dear ${newemp.FirstName},
 
-              Congratulations, Employee account has been created. Please change your password when you login first time.
+              <br>  Congratulations, Employee account has been created. Please change your password when you login first time.
               
               Password: ${_temppwd},
               
-              Please click here to login.
+              <br> Please click here to login.
               
-              Thank you,
+              <br> Thank you,
               Administrator
               `,
               null,

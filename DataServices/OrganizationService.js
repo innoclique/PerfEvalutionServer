@@ -153,7 +153,7 @@ exports.UpdateOrganization = async (organization) => {
                   null
                 );
 
-        SendMail.sendEmail(mailObject, function (res) {
+        SendMail.SendEmail(mailObject, function (res) {
             console.log(res);
         });
         return true;

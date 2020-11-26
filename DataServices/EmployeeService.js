@@ -162,9 +162,10 @@ exports.AddKpi = async (kpiModel) => {
         Kpi = await Kpi.save();
 
         //Updateing other kpis waiting 
-        if (!kpiModel.IsDraft) {
+        if (kpiModel.IsDraft=='false') {
             let updatedKPIs = await KpiRepo.updateMany({
                 'Owner': Mongoose.Types.ObjectId(kpiModel.CreatedBy),
+                'EvaluationYear': new Date().getFullYear(),
                 'IsDraft': false,
             },
                 { $set: { 'Weighting': kpiModel.Weighting } });

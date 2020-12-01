@@ -307,6 +307,13 @@ exports.SubmitAllKpis = async (empId) => {
         const User = await UserRepo.find({ "_id": empId })
             .populate('Manager');
 
+            let kpis = await KpiRepo.find({
+                'Owner': Mongoose.Types.ObjectId(empId),
+                'IsDraft': false,
+                'EvaluationYear': new Date().getFullYear(),
+                'IsSubmitedKPIs': false
+            } );
+
         let submitedKPIs = await KpiRepo.updateMany({
             'Owner': Mongoose.Types.ObjectId(empId),
             'IsDraft': false,
@@ -321,7 +328,7 @@ exports.SubmitAllKpis = async (empId) => {
                 }
             });
 
-        if (submitedKPIs) {
+        if (submitedKPIs.nModified>0) {
             // send email to manager 
             if (User[0].Manager) {
                 var mailObject = SendMail.GetMailObject(
@@ -341,7 +348,7 @@ exports.SubmitAllKpis = async (empId) => {
                     null
                 );
 
-                SendMail.SendEmail(mailObject, function (res) {
+                await   SendMail.SendEmail(mailObject, function (res) {
                     console.log(res);
                 });
             }
@@ -363,9 +370,18 @@ exports.SubmitAllKpis = async (empId) => {
                 null
             );
 
-            SendMail.SendEmail(mailObject, function (res) {
+         await   SendMail.SendEmail(mailObject, function (res) {
                 console.log(res);
             });
+        }
+
+        if (submitedKPIs.nModified >0 && kpis.length>0) {
+            kpis.forEach(e=> {
+                e.UpdatedBy=empId;
+                e.kpiId=e._id;
+                e.Action="Submitted"
+                this.addKpiTrack(e)
+            })
         }
 
         return true
@@ -382,7 +398,7 @@ exports.SubmitAllKpis = async (empId) => {
 
 exports.UpdateKpi = async (kpi) => {
     try {
-
+        kpi.Action = 'Updated';
         if (kpi.IsManaFTSubmited) {
             const Manager = await UserRepo.findById(kpi.UpdatedBy);
             kpi.ManagerFTSubmitedOn = new Date()
@@ -397,6 +413,7 @@ exports.UpdateKpi = async (kpi) => {
         if (kpi.ViewedByEmpOn) {
 
             kpi.ViewedByEmpOn = new Date();
+            kpi.Action = 'Viewed By Employee';
         }
 
         kpi.UpdatedOn = new Date();
@@ -447,6 +464,15 @@ exports.SubmitAllKpisByManager = async (empId) => {
             const User = await UserRepo.find({ "_id": empId })
             .populate('Manager');
 
+            let submitingKpis = await KpiRepo.find({
+                'Owner': Mongoose.Types.ObjectId(empId),
+                'IsDraft': false,
+                'IsDraftByManager': false,
+                'EvaluationYear': new Date().getFullYear(),
+                'IsSubmitedKPIs': true,
+                'ManagerSignOff': {submited:false}
+            });
+
         let submitedKPIs = await KpiRepo.updateMany({
             'Owner': Mongoose.Types.ObjectId(empId),
             'IsDraft': false,
@@ -466,6 +492,14 @@ exports.SubmitAllKpisByManager = async (empId) => {
             // send email to manager 
             this.sendEmailOnManagerSignoff(User[0].Manager, User[0]);
            
+        }
+        if (submitedKPIs.nModified >0 && submitingKpis.length>0) {
+            submitingKpis.forEach(e=> {
+                e.UpdatedBy=e.ManagerId;
+                e.kpiId=e._id;
+                e.Action="Sign-off"
+                this.addKpiTrack(e)
+            })
         }
 
         return true
@@ -505,7 +539,7 @@ exports.sendEmailOnManagerSignoff = async (manager, kpiOwnerInfo) => {
             null
         );
 
-        SendMail.SendEmail(mailObject, function (res) {
+    await    SendMail.SendEmail(mailObject, function (res) {
             console.log(res);
         });
 
@@ -528,7 +562,7 @@ exports.sendEmailOnManagerSignoff = async (manager, kpiOwnerInfo) => {
             null
         );
 
-        SendMail.SendEmail(mailObject, function (res) {
+   await     SendMail.SendEmail(mailObject, function (res) {
             console.log(res);
         });
     }

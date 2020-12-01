@@ -11,6 +11,7 @@ const KpiSchema = new mongoose.Schema({
     TargetCompletionDate: { type: Date },
     Score: {type: String},
     YECommManager:{ type: String },
+    ManagerComments:{ type: String },
     ManagerScore: {type: String},
     CoachingReminder: {type: String},
     YearEndComments:{ type: String },

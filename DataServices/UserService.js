@@ -366,7 +366,7 @@ exports.UpdateEmployee = async (employee) => {
 
        // if (EmployeeName !== null && EmployeeName._id != employee._id) { throw Error("Employee Name Already Exist"); }
 
-        if (EmployeePhone !== null && EmployeePhone._id != employee._id) { throw Error("Employee Phone Number Already Exist"); }
+        if (employee.PhoneNumber!="" && EmployeePhone !== null && EmployeePhone._id != employee._id) { throw Error("Employee Phone Number Already Exist"); }
 
       
 

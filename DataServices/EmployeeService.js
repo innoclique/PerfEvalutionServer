@@ -1067,7 +1067,9 @@ exports.GetPendingPeerReviewsToSubmit = async (emp) => {
                             as: "self",
                             cond: { $eq: ['$$self.EmployeeId', ObjectId(emp.PeerId)] }
                         },
-                    }
+                    },
+                    EvaluationPeriod:1,
+                    EvaluationDuration:1
                 }
             },
             {
@@ -1086,6 +1088,15 @@ exports.GetPendingPeerReviewsToSubmit = async (emp) => {
                     localField: "Competencies.Questions",
                     foreignField: "_id",
                     as: "Questions"
+                }
+            },
+            {
+                $lookup:
+                {
+                    from: "users",
+                    localField: "Employees._id",
+                    foreignField: "_id",
+                    as: "ForEmployee"
                 }
             }
 
@@ -1719,7 +1730,9 @@ exports.GetPendingDRReviewsToSubmit = async (emp) => {
                             as: "self",
                             cond: { $eq: ['$$self.EmployeeId', ObjectId(emp.DirectReport)] }
                         },
-                    }
+                    },
+                    'EvaluationPeriod':1,
+                    EvaluationDuration:1
                 }
             },
             {
@@ -1738,6 +1751,15 @@ exports.GetPendingDRReviewsToSubmit = async (emp) => {
                     localField: "Competencies.Questions",
                     foreignField: "_id",
                     as: "Questions"
+                }
+            },
+            {
+                $lookup:
+                {
+                    from: "users",
+                    localField: "Employees._id",
+                    foreignField: "_id",
+                    as: "ForEmployee"
                 }
             }
 

@@ -702,17 +702,22 @@ exports.DashboardData = async (employee) => {
     let peerReviewList = [];
     if (evaluationRepo && evaluationRepo.length > 0 && evaluationRepo[0].Employees) {
         evaluationRepo.forEach(element => {
-            let { Employees } = element;
+            let { Employees,Company } = element;
+            let evaluationId = element._id;
+            let daysRemaining = caluculateDaysRemaining(Company.EvaluationPeriod,Company.EndMonth);
             Employees.forEach(employeeObj => {
                 let { Peers, _id } = employeeObj;
                 let peerList = Peers.filter(peerObj => peerObj.EmployeeId == userId);
                 let peerReviewObj = {};
-                peerReviewObj.title = _id.FirstName +" "+_id.LastName;
+                peerReviewObj.EvaluationId = evaluationId;
+                peerReviewObj.employeeId = _id._id;
+                peerReviewObj.peer = _id.FirstName +" "+_id.LastName;
+                peerReviewObj.title = _id.Title || "";
                 if(peerList && peerList.length>0)
                     peerReviewObj.rating = peerList[0].CompetencyOverallRating;
                 else
-                peerReviewObj.rating = 'N/A';
                 peerReviewObj.deparment = _id.Department || 'N/A';
+                peerReviewObj.daysRemaining = daysRemaining;
                 peerReviewList.push(peerReviewObj);
             });
         });
@@ -724,6 +729,25 @@ exports.DashboardData = async (employee) => {
     }
     
     return response;
+}
+
+const caluculateDaysRemaining = (evaluationPeriod,endMonth) =>{
+    endMonth = "January";
+    let remainingDays = "N/A";
+    if(evaluationPeriod === 'CalendarYear'){
+        let momentNextEvlDate = moment().add(1, 'years').startOf('year');
+        remainingDays = momentNextEvlDate.diff(moment(), 'days');
+    }else if(evaluationPeriod === 'FiscalYear'){
+        let currentMonth= moment().format('M');
+        let endMonthVal = moment().month(endMonth).format("M");
+        let nextYear = moment().add(1, 'years').month(endMonthVal-1).endOf('month');
+    if(currentMonth === endMonthVal){
+        nextYear = moment().endOf('month');
+    }
+    remainingDays = nextYear.diff(moment(), 'days');
+    }
+    return remainingDays;
+    
 }
 const currentEvaluationProgress = async (userId) => {
     console.log("currentEvaluationProgress");
@@ -862,7 +886,7 @@ const peerInfo = async (userId) => {
                 $elemMatch:
                     { "EmployeeId": Mongoose.Types.ObjectId(userId) }
             }
-        }).populate("Employees._id");
+        }).populate("Employees._id").populate("Company");
 }
 
 
@@ -1480,7 +1504,6 @@ exports.SaveEmployeeFinalRating = async (finalRating) => {
 
                 }
             ])
-            console.log('ccc', c);
             if (c && c[0] && c[0].CurrentEmployee[0]) {
                 var employee = c[0].CurrentEmployee[0];
                 var manager = c[0].CurrentEmployeeManager[0];

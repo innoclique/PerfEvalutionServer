@@ -632,6 +632,7 @@ if (data.Action=='Active' || data.Action=='DeActive') {
    const schema = Joi.object().keys({
       kpiId: Joi.required(),
       ViewedByEmpOn: Joi.required(),
+      UpdatedBy: Joi.string().required(),
       Action: Joi.string().required(),
       });
    return schema;

@@ -158,7 +158,7 @@ exports.UpdateDevGoalById = async (devGoalData) => {
         if (devGoalData.IsManaFTSubmited) {
             const Manager = await UserRepo.findById(devGoalData.UpdatedBy);
            devGoalData.ManagerFTSubmitedOn=new Date()
-            devGoalData.ManagerSignOff={SignOffBy:Manager.FirstName,SignOffOn:new Date()}
+            devGoalData.ManagerSignOff={SignOffBy:Manager.FirstName+" "+Manager.LastName,SignOffOn:new Date()}
 
           const kpiOwnerInfo=  await UserRepo.findById(devGoalData.empId);
               this.sendEmailOnManagerSignoff(Manager,kpiOwnerInfo);
@@ -212,7 +212,7 @@ exports.SubmitAllActionPlan = async (data) => {
                 $set: {
                     'IsGoalSubmited': true,
                     'EmpFTSubmitedOn': new Date(),
-                    'Signoff': { SignOffBy: User[0].FirstName, SignOffOn: new Date() }
+                    'Signoff': { SignOffBy: User[0].FirstName+" "+User[0].LastName, SignOffOn: new Date() }
                 }
             });
 
@@ -227,7 +227,7 @@ exports.SubmitAllActionPlan = async (data) => {
                     $set: {
                         'IsStrengthSubmited': true,
                         'EmpFTSubmitedOn': new Date(),
-                        'Signoff': { SignOffBy: User[0].FirstName, SignOffOn: new Date() }
+                        'Signoff': { SignOffBy: User[0].FirstName+" "+User[0].LastName, SignOffOn: new Date() }
                     }
                 });
 
@@ -257,7 +257,7 @@ exports.UpdateStrengthById = async (strenthData) => {
         if (strenthData.IsManaFTSubmited) {
             const Manager = await UserRepo.findById(strenthData.UpdatedBy);
            strenthData.ManagerFTSubmitedOn=new Date()
-            strenthData.ManagerSignOff={SignOffBy:Manager.FirstName,SignOffOn:new Date()}
+            strenthData.ManagerSignOff={SignOffBy:Manager.FirstName+" "+Manager.LastName,SignOffOn:new Date()}
 
           const kpiOwnerInfo=  await UserRepo.findById(strenthData.empId);
               this.sendEmailOnManagerSignoff(Manager,kpiOwnerInfo);

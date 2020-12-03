@@ -162,11 +162,11 @@ exports.AddKpi = async (kpiModel) => {
         Kpi = await Kpi.save();
 
         //Updateing other kpis waiting 
-        if (kpiModel.IsDraft=='false') {
+        if (kpiModel.Weighting!='') {
             let updatedKPIs = await KpiRepo.updateMany({
                 'Owner': Mongoose.Types.ObjectId(kpiModel.CreatedBy),
                 'EvaluationYear': new Date().getFullYear(),
-                'IsDraft': false,
+               // 'IsDraft': false,
             },
                 { $set: { 'Weighting': kpiModel.Weighting } });
         }
@@ -324,7 +324,7 @@ exports.SubmitAllKpis = async (empId) => {
                 $set: {
                     'IsSubmitedKPIs': true,
                     'EmpFTSubmitedOn': new Date(),
-                    'Signoff': { SignOffBy: User[0].FirstName, SignOffOn: new Date() }
+                    'Signoff': { SignOffBy: User[0].FirstName+" "+User[0].LastName, SignOffOn: new Date() }
                 }
             });
 
@@ -402,7 +402,7 @@ exports.UpdateKpi = async (kpi) => {
         if (kpi.IsManaFTSubmited) {
             const Manager = await UserRepo.findById(kpi.UpdatedBy);
             kpi.ManagerFTSubmitedOn = new Date()
-            kpi.ManagerSignOff = { SignOffBy: Manager.FirstName, SignOffOn: new Date() }
+            kpi.ManagerSignOff = { SignOffBy: Manager.FirstName+" "+Manager.LastName, SignOffOn: new Date() }
 
             const kpiOwnerInfo = this.GetKpiDataById(kpi.kpiId)
             this.sendEmailOnManagerSignoff(Manager, kpiOwnerInfo);
@@ -484,7 +484,7 @@ exports.SubmitAllKpisByManager = async (empId) => {
             {
                 $set: {
                     'ManagerFTSubmitedOn': new Date(),
-                    'ManagerSignOff': { SignOffBy: User[0].Manager.FirstName, SignOffOn: new Date() }
+                    'ManagerSignOff': { SignOffBy: User[0].Manager.FirstName+" "+User[0].Manager.LastName, SignOffOn: new Date() }
                 }
             });
 

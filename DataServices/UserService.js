@@ -312,9 +312,9 @@ exports.CreateEmployee = async (employee) => {
 
       //  if (EmployeeName !== null) { throw Error("Employee Name Already Exist"); }
 
-        if (EmployeeEmail !== null) { throw Error("Employee Email Already Exist "); }
+        if (employee.Email!="" && EmployeeEmail !== null) { throw Error("Employee Email Already Exist "); }
 
-        if (EmployeePhone !== null) { throw Error("Employee Phone Number Already Exist"); }
+        if (employee.PhoneNumber!="" && EmployeePhone !== null) { throw Error("Employee Phone Number Already Exist"); }
 
         // need to do some other impl should not use ids
         const EvalAdminFound = await UserRepo.findOne({ ParentUser: employee.ParentUser, ApplicationRole: Messages.constants.EA_ID });

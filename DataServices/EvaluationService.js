@@ -426,7 +426,7 @@ exports.GetEmpCurrentEvaluation = async (emp) => {
     returnObject["PeerScoreCard"] = {}
     returnObject["DirectReporteeScoreCard"] = {}
     returnObject["OverallCompetencyRatings"] = []
-    let status = ['Active', 'InProgress'];
+    let status = ['Active', 'InProgress','Completed'];
     try {
         const evaluationForm = await EvaluationRepo.findOne(
             {
@@ -729,7 +729,7 @@ exports.GetDirectReporteeAvgRating = async (emp) => {
 exports.GetTSReporteeEvaluations = async (ts) => {
     try {
         const reportees = await UserRepo.aggregate([
-            { $match: { ThirdSignatory: ObjectId(ts.id), "HasActiveEvaluation": "Yes" } },
+            { $match: { ThirdSignatory: ObjectId(ts.id) } },
             { $addFields: { EmployeeId: "$_id" } },
             {
                 $project: {

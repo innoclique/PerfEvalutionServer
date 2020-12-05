@@ -1,7 +1,7 @@
 const Express = require("express");
 const router = Express.Router();
-const {DashBoradCtrl} = require('../Controller/PSAController');
+const {ClientChartsSummaryCtrl} = require('../Controller/PSAController');
 
-router.post("/dashboard", DashBoradCtrl);
+router.post("/dashboard/client/summary", ClientChartsSummaryCtrl);
 
 module.exports = router;

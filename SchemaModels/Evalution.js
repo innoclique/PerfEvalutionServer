@@ -6,11 +6,7 @@ const mongoose = require("mongoose");
 
 const Evalution = new mongoose.Schema({
     Employees: [{
-        Status:{
-                    type: String,
-                    enum: [ 'Active', 'Completed'],
-                    default: 'Active'
-                },
+        Status:{ type: mongoose.Schema.Types.ObjectId, ref: 'statuses', default: null },
         _id: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
         Manager:{
             Id: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },

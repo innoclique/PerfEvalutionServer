@@ -7,16 +7,18 @@ const UserRepo = require('../SchemaModels/UserSchema');
 const AuthHelper = require('../Helpers/Auth_Helper');
 const SendMail = require("../Helpers/mail.js");
 const logger = require('../logger');
-const ObjectId=Mongoose.Types.ObjectId;
+const ObjectId = Mongoose.Types.ObjectId;
+var env = process.env.NODE_ENV || "dev";
+var config = require(`../Config/${env}.config`);
 exports.CreateOrganization = async (organization) => {
     try {
         //save user account for this organization
-        const _temppwd=AuthHelper.GenerateRandomPassword();
+        const _temppwd = AuthHelper.GenerateRandomPassword();
         const pwd = Bcrypt.hashSync(_temppwd, 10);
         const userRecord = {
             Email: organization.AdminEmail,
             ContactPhone: organization.AdminPhone,
-            Role: organization.ClientType==='Client'?'CSA':'RSA',
+            Role: organization.ClientType === 'Client' ? 'CSA' : 'RSA',
             Password: pwd,
             FirstName: organization.AdminFirstName,
             LastName: organization.AdminLastName,
@@ -27,7 +29,7 @@ exports.CreateOrganization = async (organization) => {
             State: organization.State,
             ZipCode: organization.ZipCode,
             City: organization.City,
-            IsActive:true
+            IsActive: true
         }
         // const UserNameUser = await UserRepo.findOne({ Email: UserModel.Username });
         const EmailUser = await UserRepo.findOne({ Email: userRecord.Email });
@@ -44,76 +46,118 @@ exports.CreateOrganization = async (organization) => {
         if (organizationName !== null) { throw Error("Organization Name Already Exist"); }
         if (organizationEmail !== null) { throw Error("Organization Email Already Exist "); }
         if (organizationPhone !== null) { throw Error("Organization Phone Number Already Exist"); }
-        const session =await Mongoose.startSession();
-    session.startTransaction();
-try {
-    const user = new UserRepo(userRecord)
-        var createdUser = await user.save()
-        organization.Admin = createdUser.id;
+        const session = await Mongoose.startSession();
+        session.startTransaction();
+        try {
+            const user = new UserRepo(userRecord)
+            var createdUser = await user.save()
+            organization.Admin = createdUser.id;
 
-        const Organization = new OrganizationRepo(organization);
-        await Organization.save();
-        const userObj = await UserRepo.findByIdAndUpdate( createdUser.id , {  'Organization':Organization._id});
+            const Organization = new OrganizationRepo(organization);
+            await Organization.save();
+            const userObj = await UserRepo.findByIdAndUpdate(createdUser.id, { 'Organization': Organization._id });
 
-        // If all queries are successfully executed then session commit the transactions and changes get refelected
-        await session.commitTransaction();
-        
-        // After the successfull transaction sesstion gets ended and connection must be closed
-        session.endSession();
-   
-        
-} catch (error) {
-    console.log('came here samba',error)
-    // If an error occurred, abort the whole transaction and undo any changes that might have happened
-    await session.abortTransaction();
-    session.endSession();
-   
-    throw error; // Rethrow so calling function sees error
-}
+            // If all queries are successfully executed then session commit the transactions and changes get refelected
+            await session.commitTransaction();
+
+            // After the successfull transaction sesstion gets ended and connection must be closed
+            session.endSession();
+
+
+        } catch (error) {
+            console.log('came here samba', error)
+            // If an error occurred, abort the whole transaction and undo any changes that might have happened
+            await session.abortTransaction();
+            session.endSession();
+
+            throw error; // Rethrow so calling function sees error
+        }
+        if (organization.IsDraft) {
+            return true;
+        }
+
+
+        fs.readFile("./EmailTemplates/EmailTemplate.html", async function read(err, bufcontent) {
+            var content = bufcontent.toString();
+
+            var des = `Congratulations, you have successfully set up an account for ${organization.Name}
+    To view details, click here
+    `
+            content = content.replace("##FirstName##", "PSA");
+            content = content.replace("##ProductName##", config.ProductName);
+            content = content.replace("##Description##", des);
+            content = content.replace("##Title##", "New Organization added");
+
+            var mailObject = SendMail.GetMailObject(
+                config.PSAEmail,
+                "New Organization added",
+                content,
+                null,
+                null
+            );
+
+            SendMail.SendEmail(mailObject, function (res) {
+                console.log(res);
+            });
+
+            var content = bufcontent.toString();
+
+            des = `Congratulations, Organization:  ${organization.Name} has been added successfully. 
+    Email: ${userRecord.Email}
+    You will receive another email having temporary password to login.
+    `
+
+            content = content.replace("##FirstName##", userRecord.FirstName);
+            content = content.replace("##ProductName##", config.ProductName);
+            content = content.replace("##Description##", des);
+            content = content.replace("##Title##", "New Organization added");
+
+
+            var mailObject = SendMail.GetMailObject(
+                userRecord.Email,
+                "Oraganization Added",
+                content,
+                null,
+                null
+            );
+
+            SendMail.SendEmail(mailObject, function (res) {
+                console.log(res);
+            });
+
+            des = `Dear ${userRecord.FirstName}, <br>
+
+    Please use below temporary password to login into portal. 
+    Password: ${_temppwd}
+    <br/>
+    You will be redirected to change password upon your First Login.
+
     
-        
-        var mailObject = SendMail.GetMailObject(
-            userRecord.Email,
-                  "Oraganization Added",
-                  `Your Organization has been added successfully.
-                  Email: ${userRecord.Email}                  
-                  <br/>
-                  You will receive another email having temporary password to login.
-                  `,
-                  null,
-                  null
-                );
+    Please click here to login.
+    
+    <br> Thank you,
+    Administrator
+    `
 
-        SendMail.SendEmail(mailObject, function (res) {
-            console.log(res);
+            content = content.replace("##FirstName##", userRecord.FirstName);
+            content = content.replace("##ProductName##", config.ProductName);
+            content = content.replace("##Description##", des);
+            content = content.replace("##Title##", "New Organization added");
+
+
+            var mailObject = SendMail.GetMailObject(
+                userRecord.Email,
+                "Organization Created-Temporary Password",
+                content,
+                null,
+                null
+            );
+            SendMail.SendEmail(mailObject, function (res) {
+                console.log(res);
+            });
+
         });
-        var mailObject = SendMail.GetMailObject(
-            userRecord.Email,
-                  "Organization Created-Temporary Password",
 
-                  `Dear ${userRecord.FirstName}, <br>
-
-                  Please use below temporary password to login into portal. 
-                  Password: ${_temppwd}
-                  <br/>
-                  You will be redirected to change password upon your First Login.
-
-                  
-                  Please click here to login.
-                  
-                  <br> Thank you,
-                  Administrator
-                  `,
-                  null,
-                  null
-                );
-
-
-        SendMail.SendEmail(mailObject, function (res) {
-            console.log(res);
-        });
-        
-        //send email to admin user
         return true;
     }
     catch (err) {
@@ -132,7 +176,7 @@ exports.UpdateOrganization = async (organization) => {
         const userRecord = {
             Email: organization.AdminEmail,
             ContactPhone: organization.AdminPhone,
-            Role: organization.ClientType==='Client'?'CSA':'RSA',
+            Role: organization.ClientType === 'Client' ? 'CSA' : 'RSA',
             FirstName: organization.AdminFirstName,
             LastName: organization.AdminLastName,
             MiddleName: organization.AdminMiddleName,
@@ -142,16 +186,16 @@ exports.UpdateOrganization = async (organization) => {
             State: organization.State,
             ZipCode: organization.ZipCode,
             City: organization.City
-            
+
         }
         const user = await UserRepo.findOneAndUpdate({ id: ff.Admin }, { userRecord });
         var mailObject = SendMail.GetMailObject(
             userRecord.Email,
-                  "Oraganization Updated",
-                  "Oraganization updated successfully <br> Thank you",
-                  null,
-                  null
-                );
+            "Oraganization Updated",
+            "Oraganization updated successfully <br> Thank you",
+            null,
+            null
+        );
 
         SendMail.SendEmail(mailObject, function (res) {
             console.log(res);
@@ -173,38 +217,38 @@ exports.GetAllOrganizations = async () => {
     return Organizations;
 };
 exports.GetAllOrganizationsForReseller = async (parent) => {
-    const Organizations = await OrganizationRepo.find({ParentOrganization:ObjectId(parent.companyId)}).sort({ CreatedOn: -1 });
+    const Organizations = await OrganizationRepo.find({ ParentOrganization: ObjectId(parent.companyId) }).sort({ CreatedOn: -1 });
     return Organizations;
 };
 exports.SuspendOrg = async (client) => {
-    const Organization = await OrganizationRepo.findByIdAndUpdate({_id: Mongoose.Types.ObjectId(client.id)},{IsActive:false})
+    const Organization = await OrganizationRepo.findByIdAndUpdate({ _id: Mongoose.Types.ObjectId(client.id) }, { IsActive: false })
     var mailObject = SendMail.GetMailObject(
         Organization.Email,
-              "Oraganization Suspended",
-              "Thank you",
-              null,
-              null
-            );
+        "Oraganization Suspended",
+        "Thank you",
+        null,
+        null
+    );
 
     SendMail.SendEmail(mailObject, function (res) {
         console.log(res);
     });
-    return {Success:true};
+    return { Success: true };
 };
 exports.ActivateOrg = async (client) => {
-    const Organization = await OrganizationRepo.findByIdAndUpdate({_id:Mongoose.Types.ObjectId(client.id)},{IsActive:true})
+    const Organization = await OrganizationRepo.findByIdAndUpdate({ _id: Mongoose.Types.ObjectId(client.id) }, { IsActive: true })
     var mailObject = SendMail.GetMailObject(
         Organization.Email,
-              "Oraganization Activated",
-              "Thank you",
-              null,
-              null
-            );
+        "Oraganization Activated",
+        "Thank you",
+        null,
+        null
+    );
 
     SendMail.SendEmail(mailObject, function (res) {
         console.log(res);
     });
-    return {Success:true};
+    return { Success: true };
 };
 
 exports.AddNotes = async (note) => {
@@ -252,12 +296,12 @@ exports.IsOrgExist = async (orgName) => {
 exports.AddReseller = async (organization) => {
     try {
         //save user account for this organization
-        const _temppwd=AuthHelper.GenerateRandomPassword();
+        const _temppwd = AuthHelper.GenerateRandomPassword();
         const pwd = Bcrypt.hashSync(_temppwd, 10);
         const userRecord = {
             Email: organization.AdminEmail,
             ContactPhone: organization.AdminPhone,
-            Role: organization.ClientType==='Client'?'CSA':'RSA',
+            Role: 'RSA',
             Password: pwd,
             FirstName: organization.AdminFirstName,
             LastName: organization.AdminLastName,
@@ -268,7 +312,7 @@ exports.AddReseller = async (organization) => {
             State: organization.State,
             ZipCode: organization.ZipCode,
             City: organization.City,
-            IsActive:true
+            IsActive: true
         }
         // const UserNameUser = await UserRepo.findOne({ Email: UserModel.Username });
         const EmailUser = await UserRepo.findOne({ Email: userRecord.Email });
@@ -285,61 +329,119 @@ exports.AddReseller = async (organization) => {
         if (organizationName !== null) { throw Error("Organization Name Already Exist"); }
         if (organizationEmail !== null) { throw Error("Organization Email Already Exist "); }
         if (organizationPhone !== null) { throw Error("Organization Phone Number Already Exist"); }
+        const session = await Mongoose.startSession();
+        session.startTransaction();
+        try {
+            const user = new UserRepo(userRecord)
+            var createdUser = await user.save()
+            organization.Admin = createdUser.id;
 
-        const user = new UserRepo(userRecord)
-        var createdUser = await user.save()
-        organization.Admin = createdUser.id;
+            const Organization = new OrganizationRepo(organization);
+            await Organization.save();
+            const userObj = await UserRepo.findByIdAndUpdate(createdUser.id, { 'Organization': Organization._id });
 
-        const Organization = new OrganizationRepo(organization);
-        await Organization.save();
+            // If all queries are successfully executed then session commit the transactions and changes get refelected
+            await session.commitTransaction();
 
-        const userObj = await UserRepo.update( {_id:createdUser.id} ,{$set: {  'Organization':Organization._id}});
+            // After the successfull transaction sesstion gets ended and connection must be closed
+            session.endSession();
 
 
+        } catch (error) {
+            console.log('came here samba', error)
+            // If an error occurred, abort the whole transaction and undo any changes that might have happened
+            await session.abortTransaction();
+            session.endSession();
 
-        //send email to admin user
-        
-        var mailObject = SendMail.GetMailObject(
-            userRecord.Email,
-                  "Oraganization Added",
-                  `Your Organization has been added successfully.
-                  Email: ${userRecord.Email}                  
-                  <br/>
-                  You will receive another email having temporary password to login.
-                  `,
-                  null,
-                  null
-                );
+            throw error; // Rethrow so calling function sees error
+        }
+        if (organization.IsDraft) {
+            return true;
+        }
 
-        SendMail.SendEmail(mailObject, function (res) {
-            console.log(res);
+
+        fs.readFile("./EmailTemplates/EmailTemplate.html", async function read(err, bufcontent) {
+            var content = bufcontent.toString();
+
+            var des = `Congratulations, you have successfully set up an account for ${organization.Name}
+    To view details, click here
+    `
+            content = content.replace("##FirstName##", "PSA");
+            content = content.replace("##ProductName##", config.ProductName);
+            content = content.replace("##Description##", des);
+            content = content.replace("##Title##", "New Organization added");
+
+            var mailObject = SendMail.GetMailObject(
+                config.PSAEmail,
+                "New Organization added",
+                content,
+                null,
+                null
+            );
+
+            SendMail.SendEmail(mailObject, function (res) {
+                console.log(res);
+            });
+
+            var content = bufcontent.toString();
+
+            des = `Congratulations, Organization:  ${organization.Name} has been added successfully. 
+    Email: ${userRecord.Email}
+    You will receive another email having temporary password to login.
+    `
+
+            content = content.replace("##FirstName##", userRecord.FirstName);
+            content = content.replace("##ProductName##", config.ProductName);
+            content = content.replace("##Description##", des);
+            content = content.replace("##Title##", "New Organization added");
+
+
+            var mailObject = SendMail.GetMailObject(
+                userRecord.Email,
+                "Oraganization Added",
+                content,
+                null,
+                null
+            );
+
+            SendMail.SendEmail(mailObject, function (res) {
+                console.log(res);
+            });
+
+            des = `Dear ${userRecord.FirstName}, <br>
+
+    Please use below temporary password to login into portal. 
+    Password: ${_temppwd}
+    <br/>
+    You will be redirected to change password upon your First Login.
+
+    
+    Please click here to login.
+    
+    <br> Thank you,
+    Administrator
+    `
+
+            content = content.replace("##FirstName##", userRecord.FirstName);
+            content = content.replace("##ProductName##", config.ProductName);
+            content = content.replace("##Description##", des);
+            content = content.replace("##Title##", "New Organization added");
+
+
+            var mailObject = SendMail.GetMailObject(
+                userRecord.Email,
+                "Organization Created-Temporary Password",
+                content,
+                null,
+                null
+            );
+            SendMail.SendEmail(mailObject, function (res) {
+                console.log(res);
+            });
+
         });
-        var mailObject = SendMail.GetMailObject(
-            userRecord.Email,
-                  "Organization Created-Temporary Password",
 
-                  `Dear ${userRecord.FirstName}, <br>
-
-                  Please use below temporary password to login into portal. 
-                  Password: ${_temppwd}
-                  <br/>
-                  You will be redirected to change password upon your First Login.
-
-                  
-                  Please click here to login.
-                  
-                  <br> Thank you,
-                  Administrator
-                  `,
-                  null,
-                  null
-                );
-
-
-        SendMail.SendEmail(mailObject, function (res) {
-            console.log(res);
-        });
-
+        return true;
     }
     catch (err) {
         logger.error(err)
@@ -357,7 +459,7 @@ exports.UpdateReseller = async (organization) => {
         const userRecord = {
             Email: organization.AdminEmail,
             ContactPhone: organization.AdminPhone,
-            Role: organization.ClientType==='Client'?'CSA':'RSA',
+            Role: 'RSA',
             FirstName: organization.AdminFirstName,
             LastName: organization.AdminLastName,
             MiddleName: organization.AdminMiddleName,

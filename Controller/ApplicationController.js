@@ -6,20 +6,28 @@ const logger = require('../logger');
 
 
 exports.AddOrganization = async (req, res, next) => {
-    try{
+    try {
+        if (req.body.IsDraft) {
+            await OrganizaionService.CreateOrganization(req.body)
+                .then((Response) => {
+                    res.status(200).json({ message: " Organization added Succeesfully" });
+                })
+                .catch(err => { next(err) });
+        } else {
+            Joi.validate(req.body, Validation_Helper.OrganizationSchema(req.body), async (err, result) => {
+                if (err) { res.status(400).json({ message: err.details.map(i => i.message).join(" / ") }) }
+                else {
+                    await OrganizaionService.CreateOrganization(req.body)
+                        .then((Response) => {
+                            res.status(200).json({ message: " Organization added Succeesfully" });
+                        })
+                        .catch(err => { next(err) });
+                }
+            });
+        }
 
-        Joi.validate(req.body, Validation_Helper.OrganizationSchema(req.body), async (err, result) => {
-            if (err) { res.status(400).json({ message: err.details.map(i => i.message).join(" / ") }) }
-            else {
-                await OrganizaionService.CreateOrganization(req.body)
-                    .then((Response) => {
-                        res.status(200).json({ message: " Organization added Succeesfully" });
-                    })
-                    .catch(err => { next(err) });
-            }
-        });
-    }catch(error){
-         next(error) 
+    } catch (error) {
+        next(error)
     }
 }
 exports.UpdateOrganization = async (req, res, next) => {
@@ -59,31 +67,31 @@ exports.GetAllOrganizationsForReseller = async (req, res, next) => {
 
 }
 
-exports.SuspendOrg = async (req, res, next) => {    
-            await OrganizaionService.SuspendOrg(req.body)
-                .then(Response => Response ? res.status(200).json(Response) :
-                 res.status(404).json("Organization Suspended Successfully"))
-                .catch(err => next(err => {logger.error(err); next(err) }));
+exports.SuspendOrg = async (req, res, next) => {
+    await OrganizaionService.SuspendOrg(req.body)
+        .then(Response => Response ? res.status(200).json(Response) :
+            res.status(404).json("Organization Suspended Successfully"))
+        .catch(err => next(err => { logger.error(err); next(err) }));
 }
-exports.ActivateOrg = async (req, res, next) => {    
+exports.ActivateOrg = async (req, res, next) => {
     await OrganizaionService.ActivateOrg(req.body)
         .then(Response => Response ? res.status(200).json(Response) : res.status(404).json("Organization Activated Successfully"))
-        .catch(err => next(err => { logger.error(err);next(err) }));
+        .catch(err => next(err => { logger.error(err); next(err) }));
 }
 exports.AddNote = async (req, res, next) => {
-    
+
     Joi.validate(req.body, Validation_Helper.ValidateNote(req.body), async (err, result) => {
         if (err) { res.status(400).json({ message: err.details.map(i => i.message).join(" / ") }) }
         else {
             debugger
-            
+
             await OrganizaionService.AddNotes(req.body)
                 .then((Response) => {
                     res.status(200).json({ message: " Note added Succeesfully" });
                 })
                 .catch(err => { next(err) });
         }
-    
+
     });
 }
 exports.GetAllNotes = async (req, res, next) => {

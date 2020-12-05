@@ -18,7 +18,7 @@ const UserSchema = new mongoose.Schema({
     ZipCode:{ type: String },
     Title:{ type: String },
     MiddleName:{type:String},
-    FirstName: { type: String,required: true },
+    FirstName: { type: String },
     LastName: { type: String },
     ExtNumber: { type: String },
       AltPhoneNumber: { type: String },

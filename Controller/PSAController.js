@@ -1,9 +1,10 @@
-const {DashboardService} = require('../DataServices/PSAService');
-const dashBoradCtrl = async (req,res,next)=>{
-    let dashboardRes = await DashboardService();
+const {ClientChartSummaryService} = require('../DataServices/PSAService');
+
+const clientChartsSummaryCtrl = async (req,res,next)=>{
+    let dashboardRes = await ClientChartSummaryService(req.body);
     res.json(dashboardRes);
 }
 
 module.exports = {
-    DashBoradCtrl:dashBoradCtrl
+    ClientChartsSummaryCtrl:clientChartsSummaryCtrl
 }

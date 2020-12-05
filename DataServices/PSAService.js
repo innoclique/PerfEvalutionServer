@@ -1,65 +1,83 @@
 const userSchema = require("../SchemaModels/UserSchema");
 const organizationSchema = require("../SchemaModels/OrganizationSchema");
+const moment = require('moment');
+const Mongoose = require("mongoose");
 
-const dashboardService =  async ()=>{
+const clientChartSummaryService =  async (options)=>{
+    let {orgId,years,chartType,userType} = options
     let response = {};
-    response['ClientStatus']={
-        'active':0,
-        'inactive':0
-    };
-    response['ResellerStatus']={
-        'active':0,
-        'inactive':0
-    };
-    let statusResultInfo = await organizationSchema.aggregate([getStatusAggregateQuery()])
-    let {clientActive,clientInActive,resellerActive,resellerInActive} = statusResultInfo[0];
-    
-    if(clientActive && clientActive.length>0)
-        response['ClientStatus']['active']=clientActive[0].count;
-    if(clientInActive && clientInActive.length>0)
-        response['ClientStatus']['inactive']=clientInActive[0].count;
-    
-    response['ClientStatus']['total']=response['ClientStatus']['active']+response['ClientStatus']['inactive'];
-    
-    if(resellerActive && resellerActive.length>0)
-        response['ResellerStatus']['active']=resellerActive[0].count;
-    if(resellerInActive && resellerInActive.length>0)
-        response['ResellerStatus']['inactive']=resellerInActive[0].count;
-    
-    response['ResellerStatus']['total']=response['ResellerStatus']['active']+response['ResellerStatus']['inactive'];
-    
+    response['ClientSummary']={};
+    if(chartType === 'CLIENT_SUMMARY')
+        response['ClientSummary']['usage']=await clientSummaryUsage(orgId,userType,years);
+    else if(chartType === 'STATUS')
+        response['ClientSummary']['status']=await clientSummaryStatus(orgId,userType,years);
     return response;
 }
-const getStatusAggregateQuery = ()=>{
-    return {
-        $facet: {
-            "clientActive": [
-                { "$match": { "ClientType" : "Client","IsActive": true } },
-                {
-                    $count: "count"
-                }
-            ],
-             "clientInActive": [
-                { "$match": { "ClientType" : "Client","IsActive": false } },
-                {
-                    $count: "count"
-                }
-            ],
-            "resellerActive": [
-                { "$match": { "ClientType" : "Reseller","IsActive": true } },
-                {
-                    $count: "count"
-                }
-            ],
-            "resellerInActive": [
-                { "$match": { "ClientType" : "Reseller","IsActive": false } },
-                {
-                    $count: "count"
-                }
-            ]
+const clientSummaryUsage = async (ParentOrganization,ClientType,years)=>{
+    let clientSummaryResponse = [];
+    let licenseCount=[];
+    let employeesCount=[];
+    for(var i=0;i<years.length;i++){
+        var startDate = moment([years[i], 0]);
+        var endDate = moment(startDate).endOf('year');
+        let whereObj ={ClientType};
+        whereObj['CreatedOn']={
+            "$gt":startDate,
+            "$lte":endDate
         }
+        whereObj['ParentOrganization']=Mongoose.Types.ObjectId(ParentOrganization);
+        let clientSummaryArray = await organizationSchema.find(whereObj,{UsageType:1,ClientType:1});
+        let licenseArray = [];
+        let employeesArray = [];
+        if(clientSummaryArray.length>0){
+            licenseArray = clientSummaryArray.filter(summary=>summary.UsageType==='License');
+            employeesArray = clientSummaryArray.filter(summary=>summary.UsageType==='Employees');
+        }
+        licenseCount[i]=licenseArray.length;
+        employeesCount[i]=employeesArray.length;
+    }
+    clientSummaryResponse[0]={data:licenseCount,label:'License'};
+    clientSummaryResponse[1]={data:employeesCount,label:'Employees'};
+    return {
+        chartDataSets:clientSummaryResponse,
+        Label:years
+
     };
+    
+}
+
+const clientSummaryStatus = async (ParentOrganization,ClientType,years)=>{
+    let clientSummaryResponse = [];
+    let activeCount=[];
+    let inActiveCount=[];
+    for(var i=0;i<years.length;i++){
+        var startDate = moment([years[i], 0]);
+        var endDate = moment(startDate).endOf('year');
+        let whereObj ={ClientType};
+        whereObj['CreatedOn']={
+            "$gt":startDate,
+            "$lte":endDate
+        }
+        whereObj['ParentOrganization']=Mongoose.Types.ObjectId(ParentOrganization);
+        let clientSummaryArray = await organizationSchema.find(whereObj,{UsageType:1,ClientType:1,IsActive:1});
+        let activeList = [];
+        let inActiveList = [];
+        if(clientSummaryArray.length>0){
+            activeList = clientSummaryArray.filter(summary=>summary.IsActive);
+            inActiveList = clientSummaryArray.filter(summary=>!summary.IsActive);
+        }
+        activeCount[i]=activeList.length;
+        inActiveCount[i]=inActiveList.length;
+    }
+    clientSummaryResponse[0]={data:activeCount,label:'Active'};
+    clientSummaryResponse[1]={data:inActiveCount,label:'Inactive'};
+    return {
+        chartDataSets:clientSummaryResponse,
+        Label:years
+
+    };
+    
 }
 module.exports = {
-    DashboardService:dashboardService
+    ClientChartSummaryService:clientChartSummaryService
 }

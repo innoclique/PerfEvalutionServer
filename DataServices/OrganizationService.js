@@ -10,6 +10,7 @@ const logger = require('../logger');
 const ObjectId = Mongoose.Types.ObjectId;
 var env = process.env.NODE_ENV || "dev";
 var config = require(`../Config/${env}.config`);
+var fs = require("fs");
 exports.CreateOrganization = async (organization) => {
     try {
         //save user account for this organization
@@ -124,7 +125,7 @@ exports.CreateOrganization = async (organization) => {
             SendMail.SendEmail(mailObject, function (res) {
                 console.log(res);
             });
-
+            var content = bufcontent.toString();
             des = `Dear ${userRecord.FirstName}, <br>
 
     Please use below temporary password to login into portal. 
@@ -407,26 +408,21 @@ exports.AddReseller = async (organization) => {
             SendMail.SendEmail(mailObject, function (res) {
                 console.log(res);
             });
+            var content = bufcontent.toString();
 
             des = `Dear ${userRecord.FirstName}, <br>
-
     Please use below temporary password to login into portal. 
     Password: ${_temppwd}
     <br/>
     You will be redirected to change password upon your First Login.
-
-    
-    Please click here to login.
-    
+    Please click here to login.    
     <br> Thank you,
     Administrator
     `
-
             content = content.replace("##FirstName##", userRecord.FirstName);
             content = content.replace("##ProductName##", config.ProductName);
             content = content.replace("##Description##", des);
             content = content.replace("##Title##", "New Organization added");
-
 
             var mailObject = SendMail.GetMailObject(
                 userRecord.Email,

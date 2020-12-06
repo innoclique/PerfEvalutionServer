@@ -17,6 +17,7 @@ const ApplicationRoute=require('./Routes/ApplicationRoute');
 const EvaluationRoute=require('./Routes/EvaluationAdminRoute');
 const psaRoute=require('./Routes/PSARoute');
 const rsaARoute=require('./Routes/RSARoute');
+const chartsRoute=require('./Routes/ChartsRoute');
 const csaARoute=require('./Routes/CSARoute');
 const EmployeeManagerRouter=require('./Routes/EmployeeManagerRouter');
 /////////////////////////////////////////////////////
@@ -33,6 +34,7 @@ App.use("/api/shared", SharedRoute );
 App.use("/api/app", ApplicationRoute );
 App.use("/api/evaluation", EvaluationRoute );
 App.use("/api/psa", psaRoute );
+App.use("/api/chart",  chartsRoute);
 App.use("/api/rsa", rsaARoute );
 App.use("/api/csa", csaARoute );
 App.use("/api/em", EmployeeManagerRouter );

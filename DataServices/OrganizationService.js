@@ -213,8 +213,8 @@ exports.GetOrganizationDataById = async (Id) => {
     const Organization = await OrganizationRepo.findById(Id);
     return Organization;
 };
-exports.GetAllOrganizations = async () => {
-    const Organizations = await OrganizationRepo.find().sort({ CreatedOn: -1 });
+exports.GetAllOrganizations = async (parent) => {
+    const Organizations = await OrganizationRepo.find({ ParentOrganization: ObjectId(parent.companyId) }).sort({ CreatedOn: -1 });
     return Organizations;
 };
 exports.GetAllOrganizationsForReseller = async (parent) => {

@@ -54,7 +54,7 @@ exports.GetOrganizationDataById = async (req, res, next) => {
     });
 }
 exports.GetAllOrganizations = async (req, res, next) => {
-    await OrganizaionService.GetAllOrganizations()
+    await OrganizaionService.GetAllOrganizations(req.body)
         .then(Response => Response ? res.status(200).json(Response) : res.status(404).json("Organizations Not Found"))
         .catch(err => next(err => { next(err) }));
 

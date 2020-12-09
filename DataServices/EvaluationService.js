@@ -24,6 +24,14 @@ const statusRepo=require('../SchemaModels/Statuses');
 
 exports.AddEvaluation = async (evaluation) => {
     try {
+        const evalStatus = await statusRepo.findOne({Key:"init"});
+        let {Employees} = evaluation;
+        Employees = Employees.map(employee=>{
+            employee.Status=evalStatus._id;
+            console.log(JSON.stringify(employee))
+            return employee;
+        });
+        evaluation.Employees = Employees;
         const _evaluation = await EvaluationRepo(evaluation);
         var savedEvauation = await _evaluation.save();
         var _emps = evaluation.Employees.map(x => x._id);
@@ -101,13 +109,12 @@ exports.GetEvaluations = async (clientId) => {
     response["kpiList"] = []
     response["evaluations"] = []
     try {
-
         response["evaluations"] = await EvaluationRepo.find({
-            Company: Mongoose.Types.ObjectId(clientId.clientId)
+            Company: Mongoose.Types.ObjectId(clientId.clientId),
+            "Employees":{$exists: true, $ne: [null]}
         }).populate("Employees.Model")
             .populate({ path: 'Employees._id', populate: { path: 'Manager' } })
             .sort({ CreatedDate: -1 })
-
 
         response["kpiList"] = await KpiFormRepo.aggregate([
             { $match: { Company: Mongoose.Types.ObjectId(clientId.clientId) } },
@@ -441,7 +448,7 @@ exports.GetEmpCurrentEvaluation = async (emp) => {
     try {
         const evaluationForm = await EvaluationRepo.findOne(
             {
-                Employees: { $elemMatch: { _id: ObjectId(emp.EmployeeId), Status: { $in: status } } },
+                Employees: { $elemMatch: { _id: ObjectId(emp.EmployeeId) }},
                 EvaluationYear: new Date().getFullYear().toString()
             }
         ).populate("Employees.PeersCompetencyList._id").select({ "Employees.Peers": 0 });

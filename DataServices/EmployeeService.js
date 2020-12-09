@@ -62,7 +62,7 @@ exports.GetStrengthById = async (Id) => {
 exports.GetAllStrengths = async (empId) => {
 
     const Strengths = await StrengthRepo.find({ 'Employee': empId,
-    'CreatedYear': ""+new Date().getFullYear() });
+    'CreatedYear': ""+new Date().getFullYear() }).sort({ UpdatedOn: -1 });;
     return Strengths;
 };
 exports.AddAccomplishment = async (accomplishment) => {
@@ -78,6 +78,15 @@ exports.AddAccomplishment = async (accomplishment) => {
         // if (organizationPhone !== null) { throw Error("Organization Phone Number Already Exist"); }
         const Accomplishment = new AccomplishmentRepo(accomplishment);
         await Accomplishment.save();
+        if (accomplishment.IsDraft=='false') { 
+            const Manager = await UserRepo.findById(accomplishment.ManagerId);
+           const emp = await UserRepo.findById(accomplishment.Owner);
+           this.sendEmailOnAccompCreate(Manager,emp,accomplishment);
+           }
+
+           accomplishment.AccompId=Accomplishment._id;
+           accomplishment.Action=accomplishment.Action?accomplishment.Action:"Create";
+           this.addAccompTrack(accomplishment);
         return true;
     }
     catch (err) {
@@ -144,12 +153,39 @@ exports.GetAccomplishmentDataById = async (Id) => {
 
 
 };
-exports.GetAllAccomplishments = async (empId) => {
+exports.GetAllAccomplishments = async (data) => {
 
-    const Accomplishments = await AccomplishmentRepo.find({ 'Employee': empId });
+    const Accomplishments = await AccomplishmentRepo.find(
+      
+        { 'Owner': data.empId, EvaluationYear: new Date().getFullYear() }
+        
+        ).sort({ UpdatedOn: -1 });
     return Accomplishments;
+    
 };
-exports.UpdateAccomplishments = async (Id) => {
+exports.UpdateAccomplishmentDataById = async (accompModal) => {
+
+    try {
+    accompModal.Action = 'Updated';
+    accompModal.UpdatedOn = new Date();
+    const accomp= await AccomplishmentRepo.findByIdAndUpdate(accompModal.AccompId, accompModal);
+    if(accompModal.isFirstTimeCreateing){
+        const Manager = await UserRepo.findById(accomp.ManagerId);
+        const emp = await UserRepo.findById(accomp.Owner);
+        this.sendEmailOnAccompCreate(Manager,emp,accomp);
+    }
+
+    this.addAccompTrack(accompModal);
+
+
+    return true;
+}
+catch (err) {
+    logger.error(err)
+
+    console.log(err);
+    throw (err);
+}
 
 };
 
@@ -448,6 +484,28 @@ exports.addKpiTrack = async (kpi) => {
         actorId: kpi.UpdatedBy,
         action: kpi.Action,
         comment: actor.FirstName + " " + "has " + kpi.Action + " at " + new Date().toLocaleDateString()
+    }
+    reportOBJ.tracks.push(track);
+    return await reportOBJ.save();
+
+}
+
+
+
+
+exports.addAccompTrack = async (accomp) => {
+
+    var reportOBJ = await AccomplishmentRepo.findOne({
+        _id: Mongoose.Types.ObjectId(accomp.AccompId)
+    });
+    reportOBJ.tracks = reportOBJ.tracks || [];
+
+    const actor = await UserRepo.findOne({ "_id": accomp.UpdatedBy })
+
+    var track = {
+        actorId: accomp.UpdatedBy,
+        action: accomp.Action,
+        comment: actor.FirstName + " " + "has " + accomp.Action + " at " + new Date().toLocaleDateString()
     }
     reportOBJ.tracks.push(track);
     return await reportOBJ.save();
@@ -2126,6 +2184,209 @@ exports.GetOverallRatingByCompetency = async (emp) => {
     }
 
 }
+
+
+
+exports.GetReporteeAccomplishments = async (manager) => {
+    try {
+        const reportees = await UserRepo.aggregate([
+            { $match: { Manager: ObjectId(manager.id) } },
+            { $addFields: { EmployeeId: "$_id" } },
+            {
+                $project: {
+                    FirstName: 1,
+                    LastName: 1,
+                    Email: 1,
+                    EmployeeId: 1,
+                    Manager:1
+                }
+            }
+            ,
+           
+          
+            {
+                $lookup: {
+                    from: "accomplishments",
+                    localField: "EmployeeId",
+                    foreignField: "Owner",
+                    as: "AccompList",
+                }
+            },
+          
+            {
+                $project: {
+                  
+                     AccompList: {
+                        "$filter": {
+                            "input": "$AccompList",
+                            "as": "accompresult",
+                            "cond": {
+                                "$and": [
+                                    { "$eq": ["$$accompresult.EvaluationYear", new Date().getFullYear()+""] },
+                                    { "$eq": ["$$accompresult.IsDraft", false] },
+                                    { "$eq": ["$$accompresult.ShowToManager", true] }
+                                ]
+                            }
+                        }
+                    },
+                    Email: 1,
+                    FirstName: 1,
+                    LastName: 1,
+                    EmployeeId: 1,     
+                    Manager:1,               
+                   
+                }
+            }
+        ])
+
+
+       
+return reportees;
+   
+
+    } catch (error) {
+        console.log('error', error)
+        logger.error(error);
+    }
+}
+
+
+
+exports.GetTSReleasedAccomplishments = async (manager) => {
+    try {
+        const reportees = await UserRepo.aggregate([
+            { $match: { ThirdSignatory: ObjectId(manager.id) } },
+            { $addFields: { EmployeeId: "$_id" } },
+            {
+                $project: {
+                    FirstName: 1,
+                    LastName: 1,
+                    Email: 1,
+                    EmployeeId: 1,
+                    Manager:1
+                }
+            }
+            ,
+           
+          
+            {
+                $lookup: {
+                    from: "accomplishments",
+                    localField: "EmployeeId",
+                    foreignField: "Owner",
+                    as: "AccompList",
+                }
+            },
+          
+            {
+                $project: {
+                  
+                     AccompList: {
+                        "$filter": {
+                            "input": "$AccompList",
+                            "as": "accompresult",
+                            "cond": {
+                                "$and": [
+                                    { "$eq": ["$$accompresult.EvaluationYear", new Date().getFullYear()+""] },
+                                    { "$eq": ["$$accompresult.IsDraft", false] },
+                                    { "$eq": ["$$accompresult.ShowToManager", true] }
+                                ]
+                            }
+                        }
+                    },
+                    Email: 1,
+                    FirstName: 1,
+                    LastName: 1,
+                    EmployeeId: 1,     
+                    Manager:1,               
+                   
+                }
+            }
+        ])
+
+
+       
+return reportees;
+   
+
+    } catch (error) {
+        console.log('error', error)
+        logger.error(error);
+    }
+}
+
+
+
+
+
+
+exports.sendEmailOnAccompCreate = async (manager,OwnerInfo,accomplishment) => {
+
+    // if ( OwnerInfo) {
+    if (manager && OwnerInfo) {
+        
+        // send email to User 
+
+        fs.readFile("./EmailTemplates/EmailTemplate.html", async function read(err, bufcontent) {
+            var content = bufcontent.toString();
+    
+            let des= `The accomplishment has been added successfully. <br>
+            To view details, <a href="${config.APP_BASE_URL}#/employee/accomplishments-list">click here</a>.
+               `
+            content = content.replace("##FirstName##",OwnerInfo.FirstName);
+            content = content.replace("##ProductName##", config.ProductName);
+            content = content.replace("##Description##", des);
+            content = content.replace("##Title##", "Accomplishment added successfully");
+
+        var mailObject = SendMail.GetMailObject(
+            OwnerInfo.Email,
+                  "Accomplishment added successfully",
+                  content,
+                  null,
+                  null
+                );
+
+        SendMail.SendEmail(mailObject, function (res) {
+            console.log(res);
+        });
+
+    });
+
+
+        // send email to manager 
+        if(accomplishment.ShowToManager){
+       
+        fs.readFile("./EmailTemplates/EmailTemplate.html", async function read(err, bufcontent) {
+            var content = bufcontent.toString();
+    
+            let des= `Employee ${OwnerInfo.FirstName} ${OwnerInfo.LastName} has added accomplishments
+            To view details, <a href="${config.APP_BASE_URL}#/employee/review-accomplishments">click here</a>.
+               `
+            content = content.replace("##FirstName##",manager.FirstName);
+            content = content.replace("##ProductName##", config.ProductName);
+            content = content.replace("##Description##", des);
+            content = content.replace("##Title##", `Accomplishments`);
+
+      
+            var mailObject = SendMail.GetMailObject(
+            manager.Email,
+            `Employee ${OwnerInfo.FirstName} ${OwnerInfo.LastName} has added accomplishments`,
+                 content,
+                  null,
+                  null
+                );
+
+        SendMail.SendEmail(mailObject, function (res) {   });
+            
+    
+
+    });
+
+    }
+    }
+
+}
+
 
 function calcAverage(arr) {
     if(arr && arr.length===0){

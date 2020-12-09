@@ -599,15 +599,57 @@ exports.ValidateStrength = ( data)=>{
 
 exports.ValidateAccomplishment = ( data)=>{
 
+    if (data.Action=='Draft' ) {
+   
+
+      const schema = Joi.object().keys({
+         Accomplishment: Joi.string().required(),
+         Action: Joi.string().required(),
+         Owner:Joi.string().required(),
+         CreatedBy:Joi.string().required(),
+        
+      }).unknown(true);;
+      return schema;
+   
+   } 
+  else if (data.Action=='Update') {
+   
+
+      const schema = Joi.object().keys({
+         Accomplishment: Joi.string().required(),
+        // Action: Joi.string().required(),
+        isFirstTimeCreateing: Joi.optional(),
+         Action: Joi.string().required(),
+         AccompId:Joi.string().required(),
+         UpdatedBy:Joi.string().required(),
+        
+      }).unknown(true);;
+      return schema;
+   
+   }
+   
+   else {
+
    const schema = Joi.object().keys({
       Accomplishment: Joi.string().required(),
       CompletionDate: Joi.string().required(),
-      Comments: Joi.string().required(),
-      ShowToManager: Joi.bool().required(),
-      Employee:Joi.string().required(),
+      ManagerId: Joi.string().required(),
+      Comments: Joi.optional(),
+      AccompId:Joi.optional(),
+      ShowToManager: Joi.optional(),
+      IsDraft:Joi.optional(),
+      UpdatedBy:Joi.optional(),
+      Action: Joi.optional(),
+      
+     // Employee:Joi.string().required(),
+      Owner:Joi.string().required(),
       CreatedBy:Joi.string().required()
+      
   });
   return schema;
+
+   }
+
 }
 
 

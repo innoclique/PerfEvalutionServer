@@ -536,6 +536,14 @@ exports.GetReporteeReleasedKpiForm = async (manager) => {
             },
             {
                 $lookup: {
+                    from: "accomplishments",
+                    localField: "EmployeeId",
+                    foreignField: "Owner",
+                    as: "AccompList",
+                }
+            },
+            {
+                $lookup: {
                     from: "kpis",
                     localField: "EmployeeId",
                     foreignField: "Owner",
@@ -570,6 +578,19 @@ exports.GetReporteeReleasedKpiForm = async (manager) => {
                                     { "$eq": ["$$strresult.CreatedYear", new Date().getFullYear()+""] },
                                     { "$eq": ["$$strresult.IsDraft", false] },
                                     { "$eq": ["$$strresult.IsStrengthSubmited", true] }
+                                ]
+                            }
+                        }
+                    },
+                     AccompList: {
+                        "$filter": {
+                            "input": "$AccompList",
+                            "as": "accompresult",
+                            "cond": {
+                                "$and": [
+                                    { "$eq": ["$$accompresult.EvaluationYear", new Date().getFullYear()+""] },
+                                    { "$eq": ["$$accompresult.IsDraft", false] },
+                                    { "$eq": ["$$accompresult.ShowToManager", true] }
                                 ]
                             }
                         }
@@ -658,6 +679,14 @@ exports.GetTSReleasedKpiForm = async (manager) => {
             },
             {
                 $lookup: {
+                    from: "accomplishments",
+                    localField: "EmployeeId",
+                    foreignField: "Owner",
+                    as: "AccompList",
+                }
+            },
+            {
+                $lookup: {
                     from: "kpis",
                     localField: "EmployeeId",
                     foreignField: "Owner",
@@ -692,6 +721,19 @@ exports.GetTSReleasedKpiForm = async (manager) => {
                                     { "$eq": ["$$strresult.CreatedYear", new Date().getFullYear()+""] },
                                     { "$eq": ["$$strresult.IsDraft", false] },
                                     { "$eq": ["$$strresult.IsStrengthSubmited", true] }
+                                ]
+                            }
+                        }
+                    },
+                    AccompList: {
+                        "$filter": {
+                            "input": "$AccompList",
+                            "as": "accompresult",
+                            "cond": {
+                                "$and": [
+                                    { "$eq": ["$$accompresult.EvaluationYear", new Date().getFullYear()+""] },
+                                    { "$eq": ["$$accompresult.IsDraft", false] },
+                                    { "$eq": ["$$accompresult.ShowToManager", true] }
                                 ]
                             }
                         }

@@ -131,14 +131,14 @@ exports.AddAccomplishment = async (req, res, next) => {
             
             await EmployeeService.AddAccomplishment(req.body)
                 .then((Response) => {
-                    res.status(200).json({ message: " Accomplishment added Succeesfully" });
+                    res.status(200).json({ message: "Success" });
                 })
                 .catch(err => { next(err) });
         }
     });
 }
 exports.GetAllAccomplishments = async (req, res, next) => {
-    await EmployeeService.GetAllAccomplishments(req.body.empId)
+    await EmployeeService.GetAllAccomplishments(req.body)
         .then(Response => Response ? res.status(200).json(Response) : res.status(404).json("Accomplishments Not Found"))
         .catch(err => next(err => { next(err) }));
 
@@ -155,7 +155,35 @@ exports.GetAccomplishmentDataById = async (req, res, next) => {
     });
 }
 exports.UpdateAccomplishmentDataById = async (req, res, next) => {
+
+    Joi.validate(req.body, Validation_Helper.ValidateAccomplishment(req.body), async (err, result) => {
+        if (err) { res.status(400).json({ message: err.details.map(i => i.message).join(" / ") }) }
+        else {
+            
+            await EmployeeService.UpdateAccomplishmentDataById(req.body)
+                .then((Response) => {
+                    res.status(200).json({  message: "Success" });
+                })
+                .catch(err => { next(err) });
+        }
+    });
 }
+
+
+exports.GetReporteeAccomplishments= async (req, res, next) => {
+    await EmployeeService.GetReporteeAccomplishments(req.body)
+        .then(Response => Response ? res.status(200).json(Response) : res.status(404).json("No Accomplishments Review found"))
+        .catch(err => next(err));
+}
+
+
+exports.GetTSReleasedAccomplishments= async (req, res, next) => {
+    await EmployeeService.GetTSReleasedAccomplishments(req.body)
+        .then(Response => Response ? res.status(200).json(Response) : res.status(404).json("No Accomplishments Review found"))
+        .catch(err => next(err));
+}
+
+
 exports.AddKpi = async (req, res, next) => {
     
     Joi.validate(req.body, Validation_Helper.ValidateKpi(req.body), async (err, result) => {

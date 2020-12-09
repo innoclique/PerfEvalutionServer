@@ -24,6 +24,8 @@ route.post('/AddAccomplishment', EmployeeController.AddAccomplishment);
 route.post('/GetAccomplishmentDataById',EmployeeController.GetAccomplishmentDataById);
 route.post('/GetAllAccomplishments',EmployeeController.GetAllAccomplishments);
 route.post('/UpdateAccomplishmentDataById',EmployeeController.UpdateAccomplishmentDataById);
+route.post('/GetReporteeAccomplishments',EmployeeController.GetReporteeAccomplishments);
+route.post('/GetTSReleasedAccomplishments',EmployeeController.GetTSReleasedAccomplishments);
 
 route.post('/AddKpi', EmployeeController.AddKpi);
 route.post('/GetKpiDataById',EmployeeController.GetKpiDataById);

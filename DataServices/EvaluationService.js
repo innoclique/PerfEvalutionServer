@@ -314,7 +314,7 @@ exports.GetEvaluationDashboardData = async (request) => {
     let { userId } = request;
     let _userObj = await UserRepo.findOne({"_id":Mongoose.Types.ObjectId(userId)}).populate("Organization");
     let orgId = _userObj.Organization._id;
-    let { EvaluationPeriod } = _userObj.Organization;
+    let { EvaluationPeriod,StartMonth } = _userObj.Organization;
     /**
      * Start->Charts
      */
@@ -371,6 +371,13 @@ exports.GetEvaluationDashboardData = async (request) => {
         evalDashboardResponse['next_evaluation']['date'] = momentNextEvlDate.format("MMM Do YYYY");
         evalDashboardResponse['next_evaluation']['days'] = momentNextEvlDate.diff(moment(), 'days');
     }
+    if (EvaluationPeriod && EvaluationPeriod === 'FiscalYear') {
+        let momentNextEvlDate = moment().month(parseInt(StartMonth)-1);
+        evalDashboardResponse['next_evaluation']['date'] = momentNextEvlDate.format("MMM Do YYYY");
+        evalDashboardResponse['next_evaluation']['days'] = momentNextEvlDate.diff(moment(), 'days');
+    }
+    
+
     let totalEmployees = await UserRepo.countDocuments({ "Organization": orgId,"Role":"EO" });
 
     evalDashboardResponse['next_evaluation']['total_employees'] = totalEmployees
@@ -384,6 +391,10 @@ exports.GetEvaluationDashboardData = async (request) => {
      */
     let evalDate;
     if (EvaluationPeriod && EvaluationPeriod === 'CalendarYear') {
+        evalDate = moment().startOf('year');
+    }
+
+    if (EvaluationPeriod && EvaluationPeriod === 'FiscalYear') {
         evalDate = moment().startOf('year');
     }
 

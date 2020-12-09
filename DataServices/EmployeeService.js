@@ -766,7 +766,7 @@ exports.DashboardData = async (employee) => {
 }
 
 const caluculateDaysRemaining = (evaluationPeriod,endMonth) =>{
-    endMonth = "January";
+    //endMonth = "January";
     let remainingDays = "N/A";
     if(evaluationPeriod === 'CalendarYear'){
         let momentNextEvlDate = moment().add(1, 'years').startOf('year');
@@ -846,11 +846,8 @@ const previousEvaluationProgress = async (userId) => {
     previousEvaluation['period'] = prevYearStart.format("MMM") + " - " + prevYearEnd.format("MMM, YYYY");
     let whereObj = {
         "Employees._id": Mongoose.Types.ObjectId(userId),
-        "CreatedDate": {
-            "$gte": prevYearStart,
-            "$lt": prevYearEnd
-        },
-        "Employees.Status": "EvaluationComplete"
+        "EvaluationYear": prevYearStart.format('YYYY'),
+        //"Employees.Status": "EvaluationComplete"
 
 
     };
@@ -861,7 +858,7 @@ const previousEvaluationProgress = async (userId) => {
             }
         }
     };
-    let prevEvaluation = await EvaluationRepo.findOne(whereObj, project);
+    let prevEvaluation = await EvaluationRepo.findOne(whereObj, project).populate("Company");
     if (prevEvaluation) {
         let { Employees } = prevEvaluation;
         let { FinalRating, Peers } = Employees[0];
@@ -888,6 +885,7 @@ const previousEvaluationProgress = async (userId) => {
         }*/
         previousEvaluation['peer_review'] = getPeerInfo(Peers);
     } else {
+        previousEvaluation['period'] = "N/A";
         previousEvaluation['rating'] = "N/A";
         previousEvaluation['peer_review'] = "N/A";
     }

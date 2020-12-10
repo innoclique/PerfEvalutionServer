@@ -155,11 +155,20 @@ exports.GetAccomplishmentDataById = async (Id) => {
 };
 exports.GetAllAccomplishments = async (data) => {
 
-    const Accomplishments = await AccomplishmentRepo.find(
+    var Accomplishments;
+    if(data.reqFrom=='review'){
+    Accomplishments = await AccomplishmentRepo.find(
       
-        { 'Owner': data.empId, EvaluationYear: new Date().getFullYear() }
+        { 'Owner': data.empId, EvaluationYear: new Date().getFullYear(), ShowToManager:true }
         
         ).sort({ UpdatedOn: -1 });
+    }else{
+        Accomplishments = await AccomplishmentRepo.find(
+      
+            { 'Owner': data.empId, EvaluationYear: new Date().getFullYear() }
+            
+            ).sort({ UpdatedOn: -1 });
+    }
     return Accomplishments;
     
 };

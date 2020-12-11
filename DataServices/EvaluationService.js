@@ -476,6 +476,7 @@ exports.GetEmpCurrentEvaluation = async (emp) => {
             returnObject.DirectReporteeScoreCard = await this.GetDirectReporteeAvgRating({ EvaluationId: evaluationForm._id.toString(), EmployeeId: employee._id.toString() })
             returnObject.ManagerCompetencies = await this.GetEmpCompetenciesForManager({ EvaluationId: evaluationForm._id, employeeId: employee._id.toString() })
             returnObject.OverallCompetencyRating = await EmployeeService.GetOverallRatingByCompetency({ EvaluationId: evaluationForm._id, ForEmployeeId: employee._id.toString() })
+            returnObject.Employee_Evaluation = employee;
             return returnObject;
         }
     } catch (error) {
@@ -597,7 +598,72 @@ exports.GetPeerAvgRating = async (emp) => {
         return Error(error.message)
     }
 }
+exports.UpdateEvaluationStatus = async (empId,status) => {
+    let CompetencySubmitted = false;
+    let CompetencySubmittedByManager = false;
+    let score=0;
+    let empObj={"EmployeeId":empId}
+    let currentEmpEvaluation = await this.GetEmpCurrentEvaluation(empObj);
+    let {PeerScoreCard} = currentEmpEvaluation;
+    let _userObj = await UserRepo.findOne({"_id":Mongoose.Types.ObjectId(empId)});
+    if(currentEmpEvaluation && currentEmpEvaluation.Employee_Evaluation && currentEmpEvaluation.Employee_Evaluation.Status){
+        let {Employee_Evaluation} = currentEmpEvaluation;
+        let {Manager} = Employee_Evaluation;
+        const evalStatus = await statusRepo.findOne({_id:Mongoose.Types.ObjectId(Employee_Evaluation.Status)});
+        score = evalStatus.Percentage;
+        CompetencySubmitted = Employee_Evaluation.CompetencySubmitted;
+        CompetencySubmittedByManager = Manager.CompetencySubmitted;
+    }
+    if(status === "PG_SCORE_SUBMITTED" && !CompetencySubmitted){
+        status="EmployeeGoalsCompleted";
+    }
+    if(status === "COMPETENCY_SUBMITTED" && score == 10){
+        status="EmployeeCompetencyCompleted";
+    }
+    if(status === "COMPETENCY_SUBMITTED" && score == 25){
+        status="CompletedGoalsCompetency";
+    }
 
+    if(status === "MANAGER_SUBMITTED_PG_SCORE" && !CompetencySubmittedByManager){
+        status="ManagerPGCompleted";
+    }
+
+    if(status === "MANAGER_SUBMITTED_COMPETENCY" && score == 65){
+        status="ManagerGoalsCompetencyCompleted";
+        
+    }
+
+    if(status === "MANAGER_SUBMITTED_COMPETENCY" && score != 65){
+        status="ManagerCompetencyCompleted";
+    }
+
+    
+    if(status === "EmployeeRatingSubmission" && score > 45 && score<85){
+        status="EmployeeSignoff";
+        if(_userObj.ThirdSignatory.toString() === '5f60f96d08967f4688416a00'){
+            if(PeerScoreCard && PeerScoreCard.PeerList.length === 0){
+                status="EmployeeSignoffNoThirdSign";
+            }
+        }
+    }
+
+    if(status === "EmployeeRatingSubmission" && score > 85 && score<=95){
+        status="EmployeeReSign_off";
+    }
+
+    if(status === "EmployeeManagerSignOff" && score > 80){
+        status="RevisionSubmitted";
+    }
+    console.log("updating satus to "+status);
+    const evalStatus = await statusRepo.findOne({Key:status});
+    if(evalStatus){
+        await EvaluationRepo.update(
+            {"Employees._id":Mongoose.Types.ObjectId(empId)},
+            {$set:{'Employees.0.Status':evalStatus._id}}
+            );
+    }
+    
+}
 exports.GetDirectReporteeAvgRating = async (emp) => {
 
     try {

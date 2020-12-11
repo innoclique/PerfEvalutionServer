@@ -28,6 +28,7 @@ var fs = require("fs");
 var config = require(`../Config/${env}.config`);
 const EvaluationStatus = require('../common/EvaluationStatus');
 const { boolean } = require("joi");
+const EvaluationService = require('./EvaluationService');
 
 exports.AddStrength = async (strength) => {
     try {
@@ -205,7 +206,7 @@ exports.AddKpi = async (kpiModel) => {
 
         var Kpi = new KpiRepo(kpiModel);
         Kpi = await Kpi.save();
-
+        await EvaluationService.UpdateEvaluationStatus(kpiModel.CreatedBy,"InProgress");
         //Updateing other kpis waiting 
         if (kpiModel.Weighting!='') {
             let updatedKPIs = await KpiRepo.updateMany({
@@ -444,6 +445,9 @@ exports.SubmitAllKpis = async (empId) => {
 exports.UpdateKpi = async (kpi) => {
     try {
         kpi.Action = 'Updated';
+        if(kpi.UpdatedBy === kpi.Owner){
+            await EvaluationService.UpdateEvaluationStatus(kpi.Owner,"PG_SCORE_SUBMITTED");
+        }
         if (kpi.IsManaFTSubmited) {
             const Manager = await UserRepo.findById(kpi.UpdatedBy);
             kpi.ManagerFTSubmitedOn = new Date()
@@ -462,10 +466,13 @@ exports.UpdateKpi = async (kpi) => {
         }
 
         kpi.UpdatedOn = new Date();
-        await KpiRepo.findByIdAndUpdate(kpi.kpiId, kpi);
+        let empKpi = await KpiRepo.findByIdAndUpdate(kpi.kpiId, kpi);
+        if(kpi.ManagerScore && kpi.ManagerScore!=""){
+            await EvaluationService.UpdateEvaluationStatus(empKpi.Owner.toString(),"MANAGER_SUBMITTED_PG_SCORE");
+        }
 
         this.addKpiTrack(kpi);
-
+        
 
         return true;
     }
@@ -856,7 +863,8 @@ const currentEvaluationProgress = async (userId) => {
     let evaluationOb = {};
     let whereObj = {
         "Employees._id": Mongoose.Types.ObjectId(userId),
-        "EvaluationYear": currentYear
+        "EvaluationYear": currentYear,
+        "Employees.Status":{$exists:true,$ne:null}
 
     };
     let project = {
@@ -866,7 +874,8 @@ const currentEvaluationProgress = async (userId) => {
             }
         }
     };
-    let currentEvaluation = await EvaluationRepo.findOne(whereObj, project);
+    let currentEvaluation = await EvaluationRepo.findOne(whereObj, project).populate("Employees.Status");
+    console.log(JSON.stringify(currentEvaluation,null,5))
     let Employees = null;
     if (currentEvaluation && currentEvaluation.Employees) {
         Employees = currentEvaluation.Employees;
@@ -892,8 +901,8 @@ const currentEvaluationProgress = async (userId) => {
         } else {
             evaluationOb["FinalRating"] = "Pending";
         }
-        if (EvaluationStatus[Status]) {
-            evaluationOb["status"] = EvaluationStatus[Status];
+        if (Status) {
+            evaluationOb["status"] = Status.Percentage;
         } else {
             evaluationOb["status"] = 0;
         }
@@ -1052,7 +1061,12 @@ exports.SaveCompetencyQnA = async (qna) => {
                     { "e._id": ObjectId(qna.EmployeeId) }
                 ]
             }
-        )
+        );
+
+        if(!qna.IsDraft){
+            await EvaluationService.UpdateEvaluationStatus(qna.EmployeeId,"COMPETENCY_SUBMITTED");
+        }
+
         if (updateCompetencyList) {
             return { IsSuccess: true }
         } else {
@@ -1279,7 +1293,7 @@ exports.SaveTSFinalRating = async (finalRating) => {
                     "Employees.$[e].FinalRating.Manager.IsSubmitted": (finalRating.ReqRevision && !finalRating.FRReqRevision ) ? false : true,
                     "Employees.$[e].FinalRating.Status": `ThirdSignatory ${ (finalRating.ReqRevision && !finalRating.FRReqRevision)? 'Request Revision' : 'Submitted'}`,
                     "Employees.$[e].FinalRating.FRReqRevision": finalRating.FRReqRevision,
-                    "Employees.$[e].Status": (finalRating.IsDraft || finalRating.ReqRevision) ? 'InProgress' : 'Completed',
+                    //"Employees.$[e].Status": (finalRating.IsDraft || finalRating.ReqRevision) ? 'InProgress' : 'Completed',
                 }
             },
             {
@@ -1287,7 +1301,13 @@ exports.SaveTSFinalRating = async (finalRating) => {
                     { "e._id": ObjectId(finalRating.EmployeeId) }
                 ]
             }
-        )
+        );
+        
+        if(finalRating.ReqRevision && !finalRating.IsDraft){
+            await EvaluationService.UpdateEvaluationStatus(finalRating.EmployeeId,"RevisionProgress");
+        }else if(!finalRating.ReqRevision && !finalRating.IsDraft){
+            await EvaluationService.UpdateEvaluationStatus(finalRating.EmployeeId,"EvaluationComplete");
+        }
         if (_update.nModified) {
             var c = await EvaluationRepo.aggregate([
                 { $match: { _id: ObjectId(finalRating.EvaluationId) } },
@@ -1415,6 +1435,7 @@ exports.SaveTSFinalRating = async (finalRating) => {
 
 
             }
+            
             return { IsSuccess: true }
         }
         else
@@ -1427,6 +1448,7 @@ exports.SaveTSFinalRating = async (finalRating) => {
 }
 exports.SaveManagerFinalRating = async (finalRating) => {
     try {
+
         var _update = await EvaluationRepo.updateOne({
             _id: Mongoose.Types.ObjectId(finalRating.EvaluationId),
             "Employees._id": Mongoose.Types.ObjectId(finalRating.EmployeeId)
@@ -1456,7 +1478,10 @@ exports.SaveManagerFinalRating = async (finalRating) => {
                     { "e._id": ObjectId(finalRating.EmployeeId) }
                 ]
             }
-        )
+        );
+        if(!finalRating.IsDraft){
+            await EvaluationService.UpdateEvaluationStatus(finalRating.EmployeeId,"EmployeeManagerSignOff");
+        }
         if (_update.nModified) {
             var c = await EvaluationRepo.aggregate([
                 { $match: { _id: ObjectId(finalRating.EvaluationId) } },
@@ -1495,7 +1520,6 @@ exports.SaveManagerFinalRating = async (finalRating) => {
 
                 }
             ])
-            console.log('ccc', c);
             if (c && c[0] && c[0].CurrentEmployee[0]) {
                 var empoyee = c[0].CurrentEmployee[0];
                 var manager = c[0].CurrentEmployeeManager[0];
@@ -1576,6 +1600,9 @@ exports.SaveEmployeeFinalRating = async (finalRating) => {
                 ]
             }
         )
+        if(!finalRating.IsDraft){
+            await EvaluationService.UpdateEvaluationStatus(finalRating.EmployeeId,"EmployeeRatingSubmission");
+        }
         if (_update.nModified) {
             var c = await EvaluationRepo.aggregate([
                 { $match: { _id: ObjectId(finalRating.EvaluationId) } },
@@ -1656,6 +1683,7 @@ exports.SaveEmployeeFinalRating = async (finalRating) => {
                         console.log(res);
                     });
                 }
+                
             }
             return { IsSuccess: true }
         }
@@ -2074,7 +2102,10 @@ exports.SaveCompetencyQnAByManager = async (qna) => {
                     { "e._id": ObjectId(qna.EmployeeId) }
                 ]
             }
-        )
+        );
+        if(!qna.IsDraft){
+            await EvaluationService.UpdateEvaluationStatus(qna.EmployeeId,"MANAGER_SUBMITTED_COMPETENCY");
+        }
         if (updateCompetencyList) {
             return { IsSuccess: true }
         } else {

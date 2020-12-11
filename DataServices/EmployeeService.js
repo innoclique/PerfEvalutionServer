@@ -1292,7 +1292,7 @@ exports.SaveTSFinalRating = async (finalRating) => {
                     "Employees.$[e].FinalRating.ThirdSignatory.ReqRevision": finalRating.ReqRevision,
                     "Employees.$[e].FinalRating.Manager.IsSubmitted": (finalRating.ReqRevision && !finalRating.FRReqRevision ) ? false : true,
                     "Employees.$[e].FinalRating.Status": `ThirdSignatory ${ (finalRating.ReqRevision && !finalRating.FRReqRevision)? 'Request Revision' : 'Submitted'}`,
-                    "Employees.$[e].FinalRating.FRReqRevision": finalRating.FRReqRevision,
+                    "Employees.$[e].FinalRating.FRReqRevision": finalRating.ReqRevision,
                     //"Employees.$[e].Status": (finalRating.IsDraft || finalRating.ReqRevision) ? 'InProgress' : 'Completed',
                 }
             },
@@ -1590,7 +1590,7 @@ exports.SaveEmployeeFinalRating = async (finalRating) => {
                     "Employees.$[e].FinalRating.Self.SignOff": finalRating.SignOff,
                     "Employees.$[e].FinalRating.Status": 'Employee Submitted',
 
-                   // "Employees.$[e].FinalRating.Manager.IsSubmitted": false,
+                    "Employees.$[e].FinalRating.ThirdSignatory.IsSubmitted": false,
 
                 }
             },

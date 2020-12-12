@@ -28,7 +28,6 @@ exports.AddEvaluation = async (evaluation) => {
         let {Employees} = evaluation;
         Employees = Employees.map(employee=>{
             employee.Status=evalStatus._id;
-            console.log(JSON.stringify(employee))
             return employee;
         });
         evaluation.Employees = Employees;
@@ -336,7 +335,6 @@ exports.GetEvaluationDashboardData = async (request) => {
     groupObj['$group']['count'] = {};
     groupObj['$group']['count']['$sum'] = 1;
     aggregateArray[1] = groupObj;
-    console.log(aggregateArray)
     let chatArray = await EvaluationRepo.aggregate(aggregateArray);
     let status = ['Active', 'inprogress', 'Completed', 'not started'];
     if (chatArray && chatArray.length > 0) {
@@ -654,7 +652,6 @@ exports.UpdateEvaluationStatus = async (empId,status) => {
     if(status === "EmployeeManagerSignOff" && score > 80){
         status="RevisionSubmitted";
     }
-    console.log("updating satus to "+status);
     const evalStatus = await statusRepo.findOne({Key:status});
     if(evalStatus){
         await EvaluationRepo.update(

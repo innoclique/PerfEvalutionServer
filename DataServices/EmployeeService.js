@@ -858,7 +858,6 @@ const caluculateDaysRemaining = (evaluationPeriod,endMonth) =>{
     
 }
 const currentEvaluationProgress = async (userId) => {
-    console.log("currentEvaluationProgress");
     let currentYear = moment().format('YYYY');
     let evaluationOb = {};
     let whereObj = {
@@ -875,7 +874,6 @@ const currentEvaluationProgress = async (userId) => {
         }
     };
     let currentEvaluation = await EvaluationRepo.findOne(whereObj, project).populate("Employees.Status");
-    console.log(JSON.stringify(currentEvaluation,null,5))
     let Employees = null;
     if (currentEvaluation && currentEvaluation.Employees) {
         Employees = currentEvaluation.Employees;

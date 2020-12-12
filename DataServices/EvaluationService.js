@@ -836,6 +836,7 @@ exports.GetTSReporteeEvaluations = async (ts) => {
 
                 }
             },
+            { $unwind: "$EvaluationList" },
 
             {
                 $lookup: {

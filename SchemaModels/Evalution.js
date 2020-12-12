@@ -64,7 +64,6 @@ const Evalution = new mongoose.Schema({
                 SubmittedOn: { type: Date, default: Date() },
                 IsSubmitted: { type: Boolean, default: false },
                 SignOff:{ type: String, default: "" },
-                ReqRevision: { type: Boolean, default: false }
             },
             ThirdSignatory: {
                 YearEndComments: { type: String, default: "" },

@@ -28,7 +28,6 @@ exports.AddEvaluation = async (evaluation) => {
         let {Employees} = evaluation;
         Employees = Employees.map(employee=>{
             employee.Status=evalStatus._id;
-            console.log(JSON.stringify(employee))
             return employee;
         });
         evaluation.Employees = Employees;
@@ -336,7 +335,6 @@ exports.GetEvaluationDashboardData = async (request) => {
     groupObj['$group']['count'] = {};
     groupObj['$group']['count']['$sum'] = 1;
     aggregateArray[1] = groupObj;
-    console.log(aggregateArray)
     let chatArray = await EvaluationRepo.aggregate(aggregateArray);
     let status = ['Active', 'inprogress', 'Completed', 'not started'];
     if (chatArray && chatArray.length > 0) {
@@ -623,6 +621,7 @@ exports.UpdateEvaluationStatus = async (empId,status) => {
     if(status === "COMPETENCY_SUBMITTED" && score == 25){
         status="CompletedGoalsCompetency";
     }
+    
 
     if(status === "MANAGER_SUBMITTED_PG_SCORE" && !CompetencySubmittedByManager){
         status="ManagerPGCompleted";
@@ -641,9 +640,16 @@ exports.UpdateEvaluationStatus = async (empId,status) => {
     if(status === "EmployeeRatingSubmission" && score > 45 && score<85){
         status="EmployeeSignoff";
         if(_userObj.ThirdSignatory.toString() === '5f60f96d08967f4688416a00'){
-            if(PeerScoreCard && PeerScoreCard.PeerList.length === 0){
+            status = "EvaluationComplete";
+            /*if(PeerScoreCard && PeerScoreCard.PeerList.length === 0){
                 status="EmployeeSignoffNoThirdSign";
-            }
+            }else{
+                let {PeerList} = PeerScoreCard;
+                let submittedList = PeerList.filter(obj=>obj.CompetencySubmitted);
+                if(PeerList.length === submittedList.length){
+                    status = "EvaluationComplete";
+                }
+            }*/
         }
     }
 
@@ -654,13 +660,27 @@ exports.UpdateEvaluationStatus = async (empId,status) => {
     if(status === "EmployeeManagerSignOff" && score > 80){
         status="RevisionSubmitted";
     }
-    console.log("updating satus to "+status);
+    
+    if(status === "PeerReview" && score == 75){
+        let {PeerList} = PeerScoreCard;
+        let submittedList = PeerList.filter(obj=>obj.CompetencySubmitted);
+        if(PeerList.length === submittedList.length){
+            status = "AwaitingPeerReview";
+        }
+    }
+    if(status === "RevisionProgress" && score > 85){
+        status="EvaluationComplete";
+    }
+    
     const evalStatus = await statusRepo.findOne({Key:status});
     if(evalStatus){
+        console.log("Updating evaluation status = "+status);
         await EvaluationRepo.update(
             {"Employees._id":Mongoose.Types.ObjectId(empId)},
             {$set:{'Employees.0.Status':evalStatus._id}}
             );
+    }else{
+        console.log("Not Updating status  "+status);
     }
     
 }

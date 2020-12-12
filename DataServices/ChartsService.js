@@ -32,10 +32,12 @@ const evaluatonSummary = async (companyId,years)=>{
         let whereObj ={};
         whereObj['EvaluationYear']=`${years[i]}`;
         whereObj['Company']=Mongoose.Types.ObjectId(companyId);
-        console.log(whereObj)
-        let evaluationSummaryArray = await EvaluationRepo.find(whereObj,{EvaluationPeriod:1,EvaluationDuration:1});
-        yearEndCount[i]=evaluationSummaryArray.length;
-        
+        let numberOfEvaluation=0;
+        let evaluationSummaryArray = await EvaluationRepo.find(whereObj);
+        evaluationSummaryArray.forEach(evaluation=>{
+            numberOfEvaluation+=evaluation.Employees.length;
+        });
+        yearEndCount[i]=numberOfEvaluation;
     }
     clientSummaryResponse[0]={data:yearEndCount,label:'Year-end'};
     return {

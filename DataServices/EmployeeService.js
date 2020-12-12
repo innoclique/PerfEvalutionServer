@@ -858,7 +858,6 @@ const caluculateDaysRemaining = (evaluationPeriod,endMonth) =>{
     
 }
 const currentEvaluationProgress = async (userId) => {
-    console.log("currentEvaluationProgress");
     let currentYear = moment().format('YYYY');
     let evaluationOb = {};
     let whereObj = {
@@ -872,47 +871,61 @@ const currentEvaluationProgress = async (userId) => {
             "$elemMatch": {
                 "_id": Mongoose.Types.ObjectId(userId)
             }
-        }
+        },
+        status:1
     };
     let currentEvaluation = await EvaluationRepo.findOne(whereObj, project).populate("Employees.Status");
-    console.log(JSON.stringify(currentEvaluation,null,5))
     let Employees = null;
     if (currentEvaluation && currentEvaluation.Employees) {
         Employees = currentEvaluation.Employees;
+        evaluationOb["overall_status"] = currentEvaluation.status || "N/A";
+        evaluationOb["KPI_Status"] = await PerformanceGoalStatus(userId);
     } else {
         evaluationOb["status"] = 0;
-        evaluationOb["FinalRating"] = "N/A";
+        evaluationOb["status_title"] = "N/A";
+        evaluationOb["overall_status"] = "N/A";
     }
     if (Employees && Employees.length > 0) {
-        let { Status, FinalRating } = Employees[0];
-        let { Manager, ThirdSignatory } = FinalRating;
-        if (ThirdSignatory && ThirdSignatory.IsSubmitted) {
-            evaluationOb["ThirdSignatory"] = "Submitted";
-        } else {
-            evaluationOb["ThirdSignatory"] = "Pending";
-        }
-        if (Manager && Manager.IsSubmitted) {
-            evaluationOb["Manager"] = "Done";
-        } else {
-            evaluationOb["Manager"] = "Pending";
-        }
-        if (FinalRating && FinalRating.Status && FinalRating.Status != "") {
-            evaluationOb["FinalRating"] = FinalRating.Status;
-        } else {
-            evaluationOb["FinalRating"] = "Pending";
-        }
+        let { Status } = Employees[0];
         if (Status) {
             evaluationOb["status"] = Status.Percentage;
+            evaluationOb["status_title"] = Status.Status;
         } else {
             evaluationOb["status"] = 0;
+            evaluationOb["status_title"] = "N/A";
         }
     } else {
         evaluationOb["status"] = 0;
-        evaluationOb["FinalRating"] = "N/A";
-        evaluationOb["Manager"] = "N/A";
-        evaluationOb["ThirdSignatory"] = "N/A";
+        evaluationOb["status_title"] = "N/A";
     }
     return evaluationOb;
+}
+
+const PerformanceGoalStatus = async (employeeId) =>{
+    let kpiList = await KpiRepo.find({"Owner":Mongoose.Types.ObjectId(employeeId)}).sort({_id:-1});
+    if(kpiList && kpiList.length>0){
+        let latestKPI = kpiList[0];
+        if(!latestKPI.IsDraft && !latestKPI.IsSubmitedKPIs){
+            return "In Progress";
+        }
+        else if(latestKPI.IsDraft && !latestKPI.IsSubmitedKPIs){
+            return "Initiated";
+        }
+        else if(latestKPI.IsSubmitedKPIs){
+            let {ManagerSignOff} =  latestKPI;
+            if(!ManagerSignOff.SignOffBy){
+                return "Submitted for Sign-off";
+            }else{
+                return "Sign-off";
+            }
+            
+        }
+        else if(latestKPI.IsDraft && !latestKPI.IsSubmitedKPIs){
+            return "Initiated";
+        }
+    }else{
+        return "Not initiated"
+    }
 }
 
 const previousEvaluationProgress = async (userId) => {
@@ -1263,6 +1276,10 @@ exports.SavePeerReview = async (qna) => {
             return { IsSuccess: true }
 
         }
+
+        await EvaluationService.UpdateEvaluationStatus(qna.ForEmployeeId,"PeerReview");
+
+
 
 
     } catch (error) {

@@ -621,6 +621,7 @@ exports.UpdateEvaluationStatus = async (empId,status) => {
     if(status === "COMPETENCY_SUBMITTED" && score == 25){
         status="CompletedGoalsCompetency";
     }
+    
 
     if(status === "MANAGER_SUBMITTED_PG_SCORE" && !CompetencySubmittedByManager){
         status="ManagerPGCompleted";
@@ -639,9 +640,16 @@ exports.UpdateEvaluationStatus = async (empId,status) => {
     if(status === "EmployeeRatingSubmission" && score > 45 && score<85){
         status="EmployeeSignoff";
         if(_userObj.ThirdSignatory.toString() === '5f60f96d08967f4688416a00'){
-            if(PeerScoreCard && PeerScoreCard.PeerList.length === 0){
+            status = "EvaluationComplete";
+            /*if(PeerScoreCard && PeerScoreCard.PeerList.length === 0){
                 status="EmployeeSignoffNoThirdSign";
-            }
+            }else{
+                let {PeerList} = PeerScoreCard;
+                let submittedList = PeerList.filter(obj=>obj.CompetencySubmitted);
+                if(PeerList.length === submittedList.length){
+                    status = "EvaluationComplete";
+                }
+            }*/
         }
     }
 
@@ -652,12 +660,27 @@ exports.UpdateEvaluationStatus = async (empId,status) => {
     if(status === "EmployeeManagerSignOff" && score > 80){
         status="RevisionSubmitted";
     }
+    
+    if(status === "PeerReview" && score == 75){
+        let {PeerList} = PeerScoreCard;
+        let submittedList = PeerList.filter(obj=>obj.CompetencySubmitted);
+        if(PeerList.length === submittedList.length){
+            status = "AwaitingPeerReview";
+        }
+    }
+    if(status === "RevisionProgress" && score > 85){
+        status="EvaluationComplete";
+    }
+    
     const evalStatus = await statusRepo.findOne({Key:status});
     if(evalStatus){
+        console.log("Updating evaluation status = "+status);
         await EvaluationRepo.update(
             {"Employees._id":Mongoose.Types.ObjectId(empId)},
             {$set:{'Employees.0.Status':evalStatus._id}}
             );
+    }else{
+        console.log("Not Updating status  "+status);
     }
     
 }

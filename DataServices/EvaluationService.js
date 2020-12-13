@@ -484,6 +484,62 @@ exports.GetEmpCurrentEvaluation = async (emp) => {
 
 
 }
+
+exports.GetEmpEvaluationByEmpId = async (emp) => {
+    var returnObject = {};
+    returnObject["Competencies"] = {}
+    returnObject["ManagerCompetencies"] = {}
+    returnObject["FinalRating"] = {}
+    returnObject["KpiList"] = []
+    returnObject["PeerScoreCard"] = {}
+    returnObject["DirectReporteeScoreCard"] = {}
+    returnObject["OverallCompetencyRatings"] = []
+    let status = ['Active', 'InProgress','Completed'];
+    try {
+        const evaluationForm = await EvaluationRepo.findOne(
+            {
+                Employees: { $elemMatch: { _id: ObjectId(emp.EmployeeId) }},
+                EvaluationYear: new Date().getFullYear().toString()
+            }
+        ).populate("Employees.PeersCompetencyList._id").select({ "Employees.Peers": 0 });
+        if (!evaluationForm) {
+            console.log("No Evaluation Found");
+            return null;
+        }
+        var employee = await evaluationForm.Employees.find(x => x._id.toString() === emp.EmployeeId);
+        if (!employee) {
+            console.log("No Emploee Found");
+            return null;
+        }
+        var returnObject = {};
+        if (employee) {
+            const Kpi = await KpiRepo.find({
+                'Owner': emp.EmployeeId,
+                'IsDraftByManager': false,
+                'EvaluationYear': new Date().getFullYear(),
+                // 'EvaluationId': evaluationForm._id.toString()
+            }).populate('MeasurementCriteria.measureId Owner')
+                .sort({ UpdatedOn: -1 });
+            //this.GetCompetencyFormRatings({ EvaluationId: evaluationForm._id.toString(), EmployeeId: employee._id.toString() })// 
+            returnObject.KpiList = Kpi;
+            returnObject.Competencies = await this.GetCompetencyValues({ EvaluationId: evaluationForm._id, employeeId: employee._id.toString() });
+            returnObject.FinalRating = employee.FinalRating;
+            returnObject.PeerScoreCard = await this.GetPeerAvgRating({ EvaluationId: evaluationForm._id.toString(), EmployeeId: employee._id.toString() })
+            returnObject.DirectReporteeScoreCard = await this.GetDirectReporteeAvgRating({ EvaluationId: evaluationForm._id.toString(), EmployeeId: employee._id.toString() })
+            returnObject.ManagerCompetencies = await this.GetEmpCompetenciesForManager({ EvaluationId: evaluationForm._id, employeeId: employee._id.toString() })
+            returnObject.OverallCompetencyRating = await EmployeeService.GetOverallRatingByCompetency({ EvaluationId: evaluationForm._id, ForEmployeeId: employee._id.toString() })
+            returnObject.Employee_Evaluation = employee;
+            return returnObject;
+        }
+    } catch (error) {
+        logger.error('error occurred ', error)
+        throw error;
+    }
+
+
+}
+
+
 exports.GetEmployeePeersCompetencies = async (peer) => {
     const evaluationForm = await EvaluationRepo.findOne({ _id: Mongoose.Types.ObjectId(peer.evaluationId), "Employees.Peers._id": ObjectId(peer.peerId) });
     var returnObject = {}
@@ -601,88 +657,91 @@ exports.UpdateEvaluationStatus = async (empId,status) => {
     let CompetencySubmittedByManager = false;
     let score=0;
     let empObj={"EmployeeId":empId}
-    let currentEmpEvaluation = await this.GetEmpCurrentEvaluation(empObj);
-    let {PeerScoreCard} = currentEmpEvaluation;
-    let _userObj = await UserRepo.findOne({"_id":Mongoose.Types.ObjectId(empId)});
-    if(currentEmpEvaluation && currentEmpEvaluation.Employee_Evaluation && currentEmpEvaluation.Employee_Evaluation.Status){
-        let {Employee_Evaluation} = currentEmpEvaluation;
-        let {Manager} = Employee_Evaluation;
-        const evalStatus = await statusRepo.findOne({_id:Mongoose.Types.ObjectId(Employee_Evaluation.Status)});
-        score = evalStatus.Percentage;
-        CompetencySubmitted = Employee_Evaluation.CompetencySubmitted;
-        CompetencySubmittedByManager = Manager.CompetencySubmitted;
-    }
-    if(status === "PG_SCORE_SUBMITTED" && !CompetencySubmitted){
-        status="EmployeeGoalsCompleted";
-    }
-    if(status === "COMPETENCY_SUBMITTED" && score == 10){
-        status="EmployeeCompetencyCompleted";
-    }
-    if(status === "COMPETENCY_SUBMITTED" && score == 25){
-        status="CompletedGoalsCompetency";
-    }
-    
-
-    if(status === "MANAGER_SUBMITTED_PG_SCORE" && !CompetencySubmittedByManager){
-        status="ManagerPGCompleted";
-    }
-
-    if(status === "MANAGER_SUBMITTED_COMPETENCY" && score == 65){
-        status="ManagerGoalsCompetencyCompleted";
+    let currentEmpEvaluation = await this.GetEmpEvaluationByEmpId(empObj);
+    if(currentEmpEvaluation){
+        let {PeerScoreCard} = currentEmpEvaluation;
+        let _userObj = await UserRepo.findOne({"_id":Mongoose.Types.ObjectId(empId)});
+        if(currentEmpEvaluation && currentEmpEvaluation.Employee_Evaluation && currentEmpEvaluation.Employee_Evaluation.Status){
+            let {Employee_Evaluation} = currentEmpEvaluation;
+            let {Manager} = Employee_Evaluation;
+            const evalStatus = await statusRepo.findOne({_id:Mongoose.Types.ObjectId(Employee_Evaluation.Status)});
+            score = evalStatus.Percentage;
+            CompetencySubmitted = Employee_Evaluation.CompetencySubmitted;
+            CompetencySubmittedByManager = Manager.CompetencySubmitted;
+        }
+        if(status === "PG_SCORE_SUBMITTED" && !CompetencySubmitted){
+            status="EmployeeGoalsCompleted";
+        }
+        if(status === "COMPETENCY_SUBMITTED" && score == 10){
+            status="EmployeeCompetencyCompleted";
+        }
+        if(status === "COMPETENCY_SUBMITTED" && score == 25){
+            status="CompletedGoalsCompetency";
+        }
         
-    }
 
-    if(status === "MANAGER_SUBMITTED_COMPETENCY" && score != 65){
-        status="ManagerCompetencyCompleted";
-    }
-
-    
-    if(status === "EmployeeRatingSubmission" && score > 45 && score<85){
-        status="EmployeeSignoff";
-        if(_userObj.ThirdSignatory.toString() === '5f60f96d08967f4688416a00'){
-            status = "EvaluationComplete";
-            /*if(PeerScoreCard && PeerScoreCard.PeerList.length === 0){
-                status="EmployeeSignoffNoThirdSign";
-            }else{
-                let {PeerList} = PeerScoreCard;
-                let submittedList = PeerList.filter(obj=>obj.CompetencySubmitted);
-                if(PeerList.length === submittedList.length){
-                    status = "EvaluationComplete";
-                }
-            }*/
+        if(status === "MANAGER_SUBMITTED_PG_SCORE" && !CompetencySubmittedByManager){
+            status="ManagerPGCompleted";
         }
-    }
 
-    if(status === "EmployeeRatingSubmission" && score > 85 && score<=95){
-        status="EmployeeReSign_off";
-    }
-
-    if(status === "EmployeeManagerSignOff" && score > 80){
-        status="RevisionSubmitted";
-    }
-    
-    if(status === "PeerReview" && score == 75){
-        let {PeerList} = PeerScoreCard;
-        let submittedList = PeerList.filter(obj=>obj.CompetencySubmitted);
-        if(PeerList.length === submittedList.length){
-            status = "AwaitingPeerReview";
+        if(status === "MANAGER_SUBMITTED_COMPETENCY" && score == 65){
+            status="ManagerGoalsCompetencyCompleted";
+            
         }
-    }
-    if(status === "RevisionProgress" && score > 85){
-        status="EvaluationComplete";
-    }
-    
-    const evalStatus = await statusRepo.findOne({Key:status});
-    if(evalStatus){
-        console.log("Updating evaluation status = "+status);
-        await EvaluationRepo.update(
-            {"Employees._id":Mongoose.Types.ObjectId(empId)},
-            {$set:{'Employees.0.Status':evalStatus._id}}
-            );
+
+        if(status === "MANAGER_SUBMITTED_COMPETENCY" && score != 65){
+            status="ManagerCompetencyCompleted";
+        }
+
+        
+        if(status === "EmployeeRatingSubmission" && score > 45 && score<85){
+            status="EmployeeSignoff";
+            if(_userObj.ThirdSignatory.toString() === '5f60f96d08967f4688416a00'){
+                status = "EvaluationComplete";
+                /*if(PeerScoreCard && PeerScoreCard.PeerList.length === 0){
+                    status="EmployeeSignoffNoThirdSign";
+                }else{
+                    let {PeerList} = PeerScoreCard;
+                    let submittedList = PeerList.filter(obj=>obj.CompetencySubmitted);
+                    if(PeerList.length === submittedList.length){
+                        status = "EvaluationComplete";
+                    }
+                }*/
+            }
+        }
+
+        if(status === "EmployeeRatingSubmission" && score > 85 && score<=95){
+            status="EmployeeReSign_off";
+        }
+
+        if(status === "EmployeeManagerSignOff" && score > 80){
+            status="RevisionSubmitted";
+        }
+        
+        if(status === "PeerReview" && score == 75){
+            let {PeerList} = PeerScoreCard;
+            let submittedList = PeerList.filter(obj=>obj.CompetencySubmitted);
+            if(PeerList.length === submittedList.length){
+                status = "AwaitingPeerReview";
+            }
+        }
+        if(status === "RevisionProgress" && score > 85){
+            status="EvaluationComplete";
+        }
+        
+        const evalStatus = await statusRepo.findOne({Key:status});
+        if(evalStatus){
+            console.log("Updating evaluation status = "+status);
+            await EvaluationRepo.update(
+                {"Employees._id":Mongoose.Types.ObjectId(empId)},
+                {$set:{'Employees.0.Status':evalStatus._id}}
+                );
+        }else{
+            console.log("Not Updating status  "+status);
+        }
     }else{
-        console.log("Not Updating status  "+status);
+        console.log(`No Evaluation Found for the employee id : ${empId}`);
     }
-    
 }
 exports.GetDirectReporteeAvgRating = async (emp) => {
 

@@ -342,7 +342,7 @@ exports.sendEmailOnDevGoalSubmit = async (manager,devGoalOwnerInfo) => {
                   null
                 );
 
-        SendMail.SendEmail(mailObject, function (res) {
+        await SendMail.SendEmail(mailObject, function (res) {
             console.log(res);
         });
 
@@ -371,7 +371,7 @@ exports.sendEmailOnDevGoalSubmit = async (manager,devGoalOwnerInfo) => {
                   null
                 );
 
-        SendMail.SendEmail(mailObject, function (res) {   });
+        await SendMail.SendEmail(mailObject, function (res) {   });
     
 
     });
@@ -404,7 +404,7 @@ exports.sendEmailOnManagerSignoff = async (manager, kpiOwnerInfo) => {
             null
         );
 
-        SendMail.SendEmail(mailObject, function (res) {
+        await SendMail.SendEmail(mailObject, function (res) {
             console.log(res);
         });
 
@@ -425,7 +425,7 @@ exports.sendEmailOnManagerSignoff = async (manager, kpiOwnerInfo) => {
             null
         );
 
-        SendMail.SendEmail(mailObject, function (res) {
+        await SendMail.SendEmail(mailObject, function (res) {
             console.log(res);
         });
     }
@@ -455,7 +455,7 @@ exports.sendEmailEmpOnManagerViewed = async (manager, kpiOwnerInfo) => {
             null
         );
 
-        SendMail.SendEmail(mailObject, function (res) {
+        await SendMail.SendEmail(mailObject, function (res) {
             console.log(res);
         });
     }

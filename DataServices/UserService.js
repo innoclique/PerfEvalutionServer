@@ -181,7 +181,7 @@ exports.SendResetPsw = async (LoginModel) => {
             null
         );
 
-        // SendMail.SendEmail(mailObject, function (res) {
+        // await SendMail.SendEmail(mailObject, function (res) {
         //     console.log(res);
         // });
 
@@ -416,7 +416,7 @@ exports.sendEmpCreateEamils = async (newemp,_temppwd) =>{
 
             //Password: ${_temppwd}
 
-    SendMail.SendEmail(mailObject, function (res) {
+    await SendMail.SendEmail(mailObject, function (res) {
         console.log(res);
     });
 
@@ -440,7 +440,7 @@ exports.sendEmpCreateEamils = async (newemp,_temppwd) =>{
             );
 
 
-    SendMail.SendEmail(mailObject, function (res) {
+    await SendMail.SendEmail(mailObject, function (res) {
         console.log(res);
     });
 }

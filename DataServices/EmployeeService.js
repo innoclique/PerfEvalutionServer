@@ -394,7 +394,7 @@ exports.SubmitAllKpis = async (empId) => {
                     null
                 );
 
-                await   SendMail.SendEmail(mailObject, function (res) {
+               await SendMail.SendEmail(mailObject, function (res) {
                     console.log(res);
                 });
             }
@@ -416,7 +416,7 @@ exports.SubmitAllKpis = async (empId) => {
                 null
             );
 
-         await   SendMail.SendEmail(mailObject, function (res) {
+         await    SendMail.SendEmail(mailObject, function (res) {
                 console.log(res);
             });
         }
@@ -613,7 +613,7 @@ exports.sendEmailOnManagerSignoff = async (manager, kpiOwnerInfo) => {
             null
         );
 
-    await    SendMail.SendEmail(mailObject, function (res) {
+        await SendMail.SendEmail(mailObject, function (res) {
             console.log(res);
         });
 
@@ -636,7 +636,7 @@ exports.sendEmailOnManagerSignoff = async (manager, kpiOwnerInfo) => {
             null
         );
 
-   await     SendMail.SendEmail(mailObject, function (res) {
+        await SendMail.SendEmail(mailObject, function (res) {
             console.log(res);
         });
     }
@@ -1268,7 +1268,7 @@ exports.SavePeerReview = async (qna) => {
                     null
                 );
 
-                SendMail.SendEmail(mailObject, function (res) {
+                await SendMail.SendEmail(mailObject, function (res) {
                     console.log(res);
                 });
 
@@ -1405,7 +1405,7 @@ exports.SaveTSFinalRating = async (finalRating) => {
                         null
                     );
 
-                    SendMail.SendEmail(mailObject, function (res) {
+                    await SendMail.SendEmail(mailObject, function (res) {
                         console.log(res);
                     });
                 }
@@ -1424,7 +1424,7 @@ exports.SaveTSFinalRating = async (finalRating) => {
                         null
                     );
 
-                    SendMail.SendEmail(mailObject, function (res) {
+                    await SendMail.SendEmail(mailObject, function (res) {
                         console.log(res);
                     });
                 }
@@ -1445,7 +1445,7 @@ exports.SaveTSFinalRating = async (finalRating) => {
                         null
                     );
 
-                    SendMail.SendEmail(mailObject, function (res) {
+                    await SendMail.SendEmail(mailObject, function (res) {
                         console.log(res);
                     });
                 }
@@ -1556,7 +1556,7 @@ exports.SaveManagerFinalRating = async (finalRating) => {
                         null
                     );
 
-                    SendMail.SendEmail(mailObject, function (res) {
+                    await SendMail.SendEmail(mailObject, function (res) {
                         console.log(res);
                     });
                 }
@@ -1575,7 +1575,7 @@ exports.SaveManagerFinalRating = async (finalRating) => {
                         null
                     );
 
-                    SendMail.SendEmail(mailObject, function (res) {
+                    await SendMail.SendEmail(mailObject, function (res) {
                         console.log(res);
                     });
                 }
@@ -1677,7 +1677,7 @@ exports.SaveEmployeeFinalRating = async (finalRating) => {
                         null
                     );
 
-                    SendMail.SendEmail(mailObject, function (res) {
+                    await SendMail.SendEmail(mailObject, function (res) {
                         console.log(res);
                     });
                 }
@@ -1696,7 +1696,7 @@ exports.SaveEmployeeFinalRating = async (finalRating) => {
                         null
                     );
 
-                    SendMail.SendEmail(mailObject, function (res) {
+                    await SendMail.SendEmail(mailObject, function (res) {
                         console.log(res);
                     });
                 }
@@ -1947,7 +1947,7 @@ exports.SaveDRReview = async (qna) => {
                     null
                 );
 
-                SendMail.SendEmail(mailObject, function (res) {
+                await SendMail.SendEmail(mailObject, function (res) {
                     console.log(res);
                 });
 
@@ -2403,7 +2403,7 @@ exports.sendEmailOnAccompCreate = async (manager,OwnerInfo,accomplishment) => {
                   null
                 );
 
-        SendMail.SendEmail(mailObject, function (res) {
+        await SendMail.SendEmail(mailObject, function (res) {
             console.log(res);
         });
 
@@ -2433,7 +2433,7 @@ exports.sendEmailOnAccompCreate = async (manager,OwnerInfo,accomplishment) => {
                   null
                 );
 
-        SendMail.SendEmail(mailObject, function (res) {   });
+        await SendMail.SendEmail(mailObject, function (res) {   });
             
     
 

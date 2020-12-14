@@ -97,7 +97,7 @@ exports.CreateOrganization = async (organization) => {
                 null
             );
 
-            SendMail.SendEmail(mailObject, function (res) {
+            await SendMail.SendEmail(mailObject, function (res) {
                 console.log(res);
             });
 
@@ -122,7 +122,7 @@ exports.CreateOrganization = async (organization) => {
                 null
             );
 
-            SendMail.SendEmail(mailObject, function (res) {
+            await SendMail.SendEmail(mailObject, function (res) {
                 console.log(res);
             });
             var content = bufcontent.toString();
@@ -153,7 +153,7 @@ exports.CreateOrganization = async (organization) => {
                 null,
                 null
             );
-            SendMail.SendEmail(mailObject, function (res) {
+            await SendMail.SendEmail(mailObject, function (res) {
                 console.log(res);
             });
 
@@ -198,7 +198,7 @@ exports.UpdateOrganization = async (organization) => {
             null
         );
 
-        SendMail.SendEmail(mailObject, function (res) {
+        await SendMail.SendEmail(mailObject, function (res) {
             console.log(res);
         });
         return true;
@@ -231,7 +231,7 @@ exports.SuspendOrg = async (client) => {
         null
     );
 
-    SendMail.SendEmail(mailObject, function (res) {
+    await SendMail.SendEmail(mailObject, function (res) {
         console.log(res);
     });
     return { Success: true };
@@ -246,7 +246,7 @@ exports.ActivateOrg = async (client) => {
         null
     );
 
-    SendMail.SendEmail(mailObject, function (res) {
+    await SendMail.SendEmail(mailObject, function (res) {
         console.log(res);
     });
     return { Success: true };
@@ -380,7 +380,7 @@ exports.AddReseller = async (organization) => {
                 null
             );
 
-            SendMail.SendEmail(mailObject, function (res) {
+            await SendMail.SendEmail(mailObject, function (res) {
                 console.log(res);
             });
 
@@ -405,7 +405,7 @@ exports.AddReseller = async (organization) => {
                 null
             );
 
-            SendMail.SendEmail(mailObject, function (res) {
+            await SendMail.SendEmail(mailObject, function (res) {
                 console.log(res);
             });
             var content = bufcontent.toString();
@@ -431,7 +431,7 @@ exports.AddReseller = async (organization) => {
                 null,
                 null
             );
-            SendMail.SendEmail(mailObject, function (res) {
+            await SendMail.SendEmail(mailObject, function (res) {
                 console.log(res);
             });
 

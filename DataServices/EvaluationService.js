@@ -1049,7 +1049,7 @@ exports.sendmail = async (user) => {
             null
         );
 
-        SendMail.SendEmail(mailObject, function (res) {
+        await SendMail.SendEmail(mailObject, function (res) {
             console.log(res);
         });
     })

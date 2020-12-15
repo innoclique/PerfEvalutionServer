@@ -11,30 +11,47 @@ const dashboardService =  async (userId)=>{
     response['evaluation_summary']={};
     let userObj = await userSchema.findOne({ "_id": Mongoose.Types.ObjectId(userId)});
     let orgId = userObj.Organization;
-    let evaluationList = await EvaluationRepo.aggregate([
+    let evaluationAggregateList = await EvaluationRepo.aggregate([
         {$match: { Company: Mongoose.Types.ObjectId(orgId)}},
         {$group: { _id: "$EvaluationYear",
             list: {$addToSet :{ _id: "$_id",status:'$status'}}
         }}
       ]);
-      response['current_status'] = evaluationCurrentStatus(evaluationList);
-      response['evaluation_summary'] = evaluationChat(evaluationList);
+      let currentYear = moment().format('YYYY');
+      let evaluationList = await EvaluationRepo.find({Company: Mongoose.Types.ObjectId(orgId),EvaluationYear:currentYear});
+      response['current_status'] = await evaluationCurrentStatus(evaluationList,orgId);
+      response['evaluation_summary'] = evaluationChat(evaluationAggregateList);
       
     return response;
 }
-const evaluationCurrentStatus = (evaluationList)=>{
+const evaluationCurrentStatus = async (evaluationList,orgId)=>{
     let currentEvaluationObj = {};
-    let currentYear = moment().format('YYYY');
     let completed=0, inprogress=0;
-    let currentEvaluation = evaluationList.filter(obj => obj._id === currentYear);
-    console.log(JSON.stringify(currentEvaluation,null,5));
-    if(currentEvaluation){
-        let {list} = currentEvaluation[0];
-        completed = list.filter(obj => obj.status==='Completed').length;
-        inprogress = list.filter(obj => obj.status!=='Completed').length;
-        
+    let completedEvaluation = evaluationList.filter(obj => obj.status === 'Completed');
+    let inprogressEvaluation = evaluationList.filter(obj => obj.status !== 'Completed');
+    if(completedEvaluation && completedEvaluation.length>0){
+        completedEvaluation.forEach(evaluation=>{
+            let {Employees} = evaluation;
+            completed+=Employees.length;
+        })
     }
+    if(inprogressEvaluation && inprogressEvaluation.length>0){
+        inprogressEvaluation.forEach(evaluation=>{
+            let {Employees} = evaluation;
+            inprogress+=Employees.length;
+        })
+    }
+    
     currentEvaluationObj= {completed,inprogress};
+    currentEvaluationObj['evaluations_left']="N/A";
+    let orgnizationDomain = await organizationSchema.find({"_id":Mongoose.Types.ObjectId(orgId)});
+    if(orgnizationDomain.UsageType && orgnizationDomain.UsageType === "Employees"){
+        let {UsageCount} = orgnizationDomain;
+        UsageCount = parseInt(UsageCount);
+        UsageCount-=completed;
+        UsageCount-=inprogress;
+        currentEvaluationObj['evaluations_left']=UsageCount;
+    }
     return currentEvaluationObj;
 
 }

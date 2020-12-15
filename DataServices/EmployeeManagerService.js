@@ -90,15 +90,17 @@ const currentEvaluationProgress = async (orgId) => {
 
     };
     
-    let currentEvaluation = await EvaluationRepo.findOne(whereObj).populate("Employees._id");
+    let currentEvaluation = await EvaluationRepo.findOne(whereObj).populate("Employees._id").populate("Employees.Status");
     let {Employees} = currentEvaluation;
     let currentEvaluationList = [];
     if (Employees && Employees.length > 0) {
         Employees.forEach(employeeObj => {
+            console.log(JSON.stringify(employeeObj,null,5))
             let { Status, _id } = employeeObj;
             let evaluationEmpObj={};
             evaluationEmpObj.name = _id.FirstName + " " + _id.LastName;
-            evaluationEmpObj.status = Status;
+            evaluationEmpObj.status = !Status.Status?"":Status.Status;
+            //evaluationEmpObj.status = Status;
             evaluationEmpObj.employeeId = _id._id;
             currentEvaluationList.push(evaluationEmpObj);
         });

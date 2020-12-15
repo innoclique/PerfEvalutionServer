@@ -385,11 +385,19 @@ exports.GetEvaluationDashboardData = async (request) => {
 
     let totalEmployees = await UserRepo.countDocuments({ "Organization": orgId,"Role":"EO" });
 
-    evalDashboardResponse['next_evaluation']['total_employees'] = totalEmployees
-    let currPendingEval = await EvaluationRepo.countDocuments({
+    evalDashboardResponse['next_evaluation']['total_employees'] = totalEmployees;
+    let currPendingEval = 0;
+    let evaluationList = await EvaluationRepo.find({
         "Company":Mongoose.Types.ObjectId(orgId),
         "status":{ "$exists": true, "$ne": "Completed" }
+    });
+    evaluationList.forEach(evaluation=>{
+        let {Employees} = evaluation;
+        if(Employees && Employees.length>0){
+            currPendingEval+=Employees.length;
+        }
     })
+
     evalDashboardResponse['next_evaluation']['current_pending_evealuations'] = currPendingEval;
     /**
      * Start->Overdue Evaluations

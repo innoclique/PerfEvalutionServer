@@ -21,6 +21,7 @@ const chartsRoute=require('./Routes/ChartsRoute');
 const csaARoute=require('./Routes/CSARoute');
 const EmployeeManagerRouter=require('./Routes/EmployeeManagerRouter');
 const reportsRoute=require('./Routes/ReportsRoute');
+const paymentConfigRoute=require('./Routes/PaymentConfigRoute');
 /////////////////////////////////////////////////////
 var logger=require('./logger');
 App.use(Cors());
@@ -40,6 +41,7 @@ App.use("/api/rsa", rsaARoute );
 App.use("/api/csa", csaARoute );
 App.use("/api/em", EmployeeManagerRouter );
 App.use("/api/reports",  reportsRoute);
+App.use("/api/payments", paymentConfigRoute );
 App.use(Cookieparser());
 ////////////////////global error handler-------
 App.use(AuthHelper.ErrorHandler);  

@@ -666,6 +666,7 @@ exports.UpdateEvaluationStatus = async (empId,status) => {
     let score=0;
     let empObj={"EmployeeId":empId}
     let currentEmpEvaluation = await this.GetEmpEvaluationByEmpId(empObj);
+    console.log(`status: ${status}`);
     if(currentEmpEvaluation){
         let {PeerScoreCard} = currentEmpEvaluation;
         let _userObj = await UserRepo.findOne({"_id":Mongoose.Types.ObjectId(empId)});
@@ -678,16 +679,35 @@ exports.UpdateEvaluationStatus = async (empId,status) => {
             CompetencySubmittedByManager = Manager.CompetencySubmitted;
         }
         if(status === "PG_SCORE_SUBMITTED" && !CompetencySubmitted){
-            status="EmployeeGoalsCompleted";
+            let {KpiList} = currentEmpEvaluation;
+            let kpisScoreList = KpiList.filter(kpiObj => kpiObj.Score != "");
+            console.log(`kpisScoreList.length = ${kpisScoreList.length}`)
+            if(kpisScoreList.length === KpiList.length){
+                status="EmployeeGoalsCompleted";
+            }else{
+                status = "InProgress";
+            }
         }
-        if(status === "COMPETENCY_SUBMITTED" && score == 10){
+
+        if(status === "PG_SCORE_SUBMITTED" && CompetencySubmitted){
+            let {KpiList} = currentEmpEvaluation;
+            let kpisScoreList = KpiList.filter(kpiObj => kpiObj.Score != "");
+            if(kpisScoreList.length === KpiList.length){
+                status="CompletedGoalsCompetency";
+            }
+        }
+        if(status === "COMPETENCY_SAVED_EMP" && (score == 5 || score == 10)){
+            status = "InProgress";
+        }
+
+        if(status === "COMPETENCY_SUBMITTED" && score !== 25){
             status="EmployeeCompetencyCompleted";
         }
+
         if(status === "COMPETENCY_SUBMITTED" && score == 25){
             status="CompletedGoalsCompetency";
         }
         
-
         if(status === "MANAGER_SUBMITTED_PG_SCORE" && !CompetencySubmittedByManager){
             status="ManagerPGCompleted";
         }
@@ -706,15 +726,7 @@ exports.UpdateEvaluationStatus = async (empId,status) => {
             status="EmployeeSignoff";
             if(_userObj.ThirdSignatory.toString() === '5f60f96d08967f4688416a00'){
                 status = "EvaluationComplete";
-                /*if(PeerScoreCard && PeerScoreCard.PeerList.length === 0){
-                    status="EmployeeSignoffNoThirdSign";
-                }else{
-                    let {PeerList} = PeerScoreCard;
-                    let submittedList = PeerList.filter(obj=>obj.CompetencySubmitted);
-                    if(PeerList.length === submittedList.length){
-                        status = "EvaluationComplete";
-                    }
-                }*/
+                
             }
         }
 

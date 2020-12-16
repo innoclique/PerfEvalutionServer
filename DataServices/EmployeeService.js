@@ -202,11 +202,8 @@ catch (err) {
 
 exports.AddKpi = async (kpiModel) => {
     try {
-
-
         var Kpi = new KpiRepo(kpiModel);
         Kpi = await Kpi.save();
-        await EvaluationService.UpdateEvaluationStatus(kpiModel.CreatedBy,"InProgress");
         //Updateing other kpis waiting 
         if (kpiModel.Weighting!='') {
             let updatedKPIs = await KpiRepo.updateMany({
@@ -445,9 +442,7 @@ exports.SubmitAllKpis = async (empId) => {
 exports.UpdateKpi = async (kpi) => {
     try {
         kpi.Action = 'Updated';
-        if(kpi.UpdatedBy === kpi.Owner){
-            await EvaluationService.UpdateEvaluationStatus(kpi.Owner,"PG_SCORE_SUBMITTED");
-        }
+        console.log(`kpi.Score = ${kpi.Score}`);
         if (kpi.IsManaFTSubmited) {
             const Manager = await UserRepo.findById(kpi.UpdatedBy);
             kpi.ManagerFTSubmitedOn = new Date()
@@ -472,7 +467,9 @@ exports.UpdateKpi = async (kpi) => {
         }
 
         this.addKpiTrack(kpi);
-        
+        if(kpi.UpdatedBy === kpi.Owner && kpi.Score!=""){
+            await EvaluationService.UpdateEvaluationStatus(kpi.Owner,"PG_SCORE_SUBMITTED");
+        }
 
         return true;
     }
@@ -1080,6 +1077,8 @@ exports.SaveCompetencyQnA = async (qna) => {
 
         if(!qna.IsDraft){
             await EvaluationService.UpdateEvaluationStatus(qna.EmployeeId,"COMPETENCY_SUBMITTED");
+        }else{
+            await EvaluationService.UpdateEvaluationStatus(qna.EmployeeId,"COMPETENCY_SAVED_EMP");
         }
 
         if (updateCompetencyList) {
@@ -1098,7 +1097,8 @@ exports.SaveCompetencyQnA = async (qna) => {
 exports.GetPendingPeerReviewsList = async (emp) => {
     try {
         var list = await EvaluationRepo.aggregate([
-            { $match: { "Employees.Peers.EmployeeId": ObjectId(emp.EmployeeId), "Employees.Status": "Active" } },
+            //{ $match: { "Employees.Peers.EmployeeId": ObjectId(emp.EmployeeId), "Employees.Status": "Active" } },
+            { $match: { "Employees.Peers.EmployeeId": ObjectId(emp.EmployeeId),"Employees.FinalRating.SignOff":null } },
             {
                 $addFields: {
                     EvaluationId: "$_id"
@@ -1106,7 +1106,7 @@ exports.GetPendingPeerReviewsList = async (emp) => {
             },
             { $unwind: '$Employees' },
             { $unwind: '$Employees.Peers' },
-            { $match: { "Employees.Peers.EmployeeId": ObjectId(emp.EmployeeId), "Employees.Status": "Active" } },
+            { $match: { "Employees.Peers.EmployeeId": ObjectId(emp.EmployeeId), "Employees.FinalRating.SignOff":null } },
             {
                 $project: {
                     _id: 0,

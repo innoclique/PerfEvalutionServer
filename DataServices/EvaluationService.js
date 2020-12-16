@@ -753,8 +753,8 @@ exports.UpdateEvaluationStatus = async (empId,status) => {
         if(evalStatus){
             console.log("Updating evaluation status = "+status);
             await EvaluationRepo.update(
-                {"Employees._id":Mongoose.Types.ObjectId(empId)},
-                {$set:{'Employees.0.Status':evalStatus._id}}
+                {"status" : "Active","Employees._id":Mongoose.Types.ObjectId(empId)},
+                {$set:{'Employees.$.Status':evalStatus._id}}
                 );
         }else{
             console.log("Not Updating status  "+status);

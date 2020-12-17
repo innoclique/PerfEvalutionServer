@@ -324,43 +324,30 @@ exports.GetEvaluationDashboardData = async (request) => {
     /**
      * Start->Charts
      */
-    let matchObject = {};
-    matchObject['$match'] = {};
-    matchObject['$match']["Company"] = orgId;
-    matchObject['$match']["EvaluationYear"] = moment().format("YYYY");
-    aggregateArray[0] = matchObject;
-    let groupObj = {};
-    groupObj['$group'] = {};
-    groupObj['$group']['_id'] = "$status";
-    groupObj['$group']['count'] = {};
-    groupObj['$group']['count']['$sum'] = 1;
-    aggregateArray[1] = groupObj;
-    let chatArray = await EvaluationRepo.aggregate(aggregateArray);
-    let status = ['Active', 'inprogress', 'Completed', 'not started'];
-    if (chatArray && chatArray.length > 0) {
-        status.forEach(s => {
-            const flag = chatArray.find(element => element._id !== s);
-            //console.log(`${flag}-${element.status}-${s}`)
-            if (flag) {
-                let statusObj = {
-                    "_id": s,
-                    "count": 0
+    let pieObject={};
+    let evaluationArray = await EvaluationRepo.find(
+        {"EvaluationYear" : moment().format("YYYY"), 
+        "Company": ObjectId(orgId) }).populate("Employees.Status");
+    evaluationArray.forEach(evaluation=>{
+        let {Employees} = evaluation;
+        Employees.forEach(employee=>{
+            let {Status} = employee;
+            if(Status){
+                let key = Status.Status;
+                if(pieObject[key]){
+                    pieObject[key]+=pieObject[key]
+                }else{
+                    pieObject[key]=1;
                 }
-                chatArray.push(statusObj);
             }
-        });
-        evalDashboardResponse['chart'] = chatArray;
-    } else {
-        let _cArray = [];
-        status.forEach(s => {
-            let statusObj = {
-                "_id": s,
-                "count": 0
-            }
-            _cArray.push(statusObj);
         })
-        evalDashboardResponse['chart'] = status;
-    }
+    });
+    evalDashboardResponse['pieChart'] = {
+        labels:Object.keys(pieObject),
+        numbers:Object.values(pieObject)
+    };
+
+
     //evalDashboardResponse['chart'] = await EvaluationRepo.aggregate(aggregateArray);
     /**
      * End->Chart

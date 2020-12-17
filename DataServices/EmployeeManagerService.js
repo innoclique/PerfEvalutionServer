@@ -89,22 +89,22 @@ const currentEvaluationProgress = async (orgId) => {
         "EvaluationYear": currentYear
 
     };
-    
-    let currentEvaluation = await EvaluationRepo.findOne(whereObj).populate("Employees._id").populate("Employees.Status");
-    let {Employees} = currentEvaluation;
+    let currentEvaluation = await EvaluationRepo.find(whereObj).populate("Employees._id").populate("Employees.Status");
     let currentEvaluationList = [];
-    if (Employees && Employees.length > 0) {
-        Employees.forEach(employeeObj => {
-            console.log(JSON.stringify(employeeObj,null,5))
-            let { Status, _id } = employeeObj;
-            let evaluationEmpObj={};
-            evaluationEmpObj.name = _id.FirstName + " " + _id.LastName;
-            evaluationEmpObj.status = !Status.Status?"":Status.Status;
-            //evaluationEmpObj.status = Status;
-            evaluationEmpObj.employeeId = _id._id;
-            currentEvaluationList.push(evaluationEmpObj);
-        });
-    } 
+    currentEvaluation.forEach(evaluationObj=>{
+        let {Employees} = evaluationObj;
+        if (Employees && Employees.length > 0) {
+            Employees.forEach(employeeObj => {
+                let { Status, _id } = employeeObj;
+                let evaluationEmpObj={};
+                evaluationEmpObj.name = _id.FirstName + " " + _id.LastName;
+                evaluationEmpObj.status = !Status.Status?"":Status.Status;
+                //evaluationEmpObj.status = Status;
+                evaluationEmpObj.employeeId = _id._id;
+                currentEvaluationList.push(evaluationEmpObj);
+            });
+        }
+    })
     evaluationObj['list']=currentEvaluationList;
     return evaluationObj;
 }

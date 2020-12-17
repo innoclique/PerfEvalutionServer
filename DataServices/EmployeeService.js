@@ -1098,7 +1098,7 @@ exports.GetPendingPeerReviewsList = async (emp) => {
     try {
         var list = await EvaluationRepo.aggregate([
             //{ $match: { "Employees.Peers.EmployeeId": ObjectId(emp.EmployeeId), "Employees.Status": "Active" } },
-            { $match: { "Employees.Peers.EmployeeId": ObjectId(emp.EmployeeId),"Employees.FinalRating.SignOff":null } },
+            { $match: { "Employees.Peers.EmployeeId": ObjectId(emp.EmployeeId),"Employees.FinalRating.Manager.SignOff":{$exists:true,$eq:""} } },
             {
                 $addFields: {
                     EvaluationId: "$_id"
@@ -1106,7 +1106,7 @@ exports.GetPendingPeerReviewsList = async (emp) => {
             },
             { $unwind: '$Employees' },
             { $unwind: '$Employees.Peers' },
-            { $match: { "Employees.Peers.EmployeeId": ObjectId(emp.EmployeeId), "Employees.FinalRating.SignOff":null } },
+            { $match: { "Employees.Peers.EmployeeId": ObjectId(emp.EmployeeId), "Employees.FinalRating.Manager.SignOff":{$exists:true,$eq:""} } },
             {
                 $project: {
                     _id: 0,
@@ -1779,7 +1779,7 @@ exports.GetDRReviewsList = async (emp) => {
     try {
         var list =
             await EvaluationRepo.aggregate([
-                { $match: { "Employees.DirectReportees.EmployeeId": ObjectId(emp.EmployeeId), "Employees.Status": "Active", "EvaluationYear": new Date().getFullYear().toString() } },
+                { $match: { "Employees.DirectReportees.EmployeeId": ObjectId(emp.EmployeeId), "Employees.FinalRating.Manager.SignOff":{$exists:true,$eq:""}, "EvaluationYear": new Date().getFullYear().toString() } },
                 {
                     $addFields: {
                         EvaluationId: "$_id"

@@ -302,7 +302,7 @@ exports.ConfirmTnC = async (id) => {
         //userTnC.TnCAccepted = true;
         //userTnC.TnCAcceptedOn = new Date();
        //await userTnC.save();
-        return (true);
+        return await UserRepo.findById(id);
     }
 
 }

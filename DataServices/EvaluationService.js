@@ -328,6 +328,7 @@ exports.GetEvaluationDashboardData = async (request) => {
     let evaluationArray = await EvaluationRepo.find(
         {"EvaluationYear" : moment().format("YYYY"), 
         "Company": ObjectId(orgId) }).populate("Employees.Status");
+        
     evaluationArray.forEach(evaluation=>{
         let {Employees} = evaluation;
         Employees.forEach(employee=>{
@@ -335,13 +336,14 @@ exports.GetEvaluationDashboardData = async (request) => {
             if(Status){
                 let key = Status.Status;
                 if(pieObject[key]){
-                    pieObject[key]+=pieObject[key]
+                    pieObject[key]+=1;
                 }else{
                     pieObject[key]=1;
                 }
             }
         })
     });
+    
     evalDashboardResponse['pieChart'] = {
         labels:Object.keys(pieObject),
         numbers:Object.values(pieObject)
@@ -365,8 +367,9 @@ exports.GetEvaluationDashboardData = async (request) => {
     }
     if (EvaluationPeriod && EvaluationPeriod === 'FiscalYear') {
         let momentNextEvlDate = moment().month(parseInt(StartMonth)-1);
+        let fiscalEndMonth = moment().add(1, 'years').month(parseInt(StartMonth)-1);
         evalDashboardResponse['next_evaluation']['date'] = momentNextEvlDate.format("MMM Do YYYY");
-        evalDashboardResponse['next_evaluation']['days'] = momentNextEvlDate.diff(moment(), 'days');
+        evalDashboardResponse['next_evaluation']['days'] = fiscalEndMonth.diff(moment(), 'days');
     }
     
 
@@ -626,6 +629,7 @@ exports.GetPeerAvgRating = async (emp) => {
 
             {
                 $project: {
+                    "Employees":1,
                     "PeerList._id": 1,
                     "PeerList.FirstName": 1,
                     "PeerList.LastName": 1,
@@ -640,8 +644,9 @@ exports.GetPeerAvgRating = async (emp) => {
             }
         ]
 
-        )
-        return list[0];
+        );
+        let peerList = list.find(peerInfo=>peerInfo.Employees._id==emp.EmployeeId);
+        return peerList;
     } catch (error) {
         logger.error('Error Occurred while getting data for Peer Review list:', error)
         return Error(error.message)
@@ -668,7 +673,6 @@ exports.UpdateEvaluationStatus = async (empId,status) => {
         if(status === "PG_SCORE_SUBMITTED" && !CompetencySubmitted){
             let {KpiList} = currentEmpEvaluation;
             let kpisScoreList = KpiList.filter(kpiObj => kpiObj.Score != "");
-            console.log(`kpisScoreList.length = ${kpisScoreList.length}`)
             if(kpisScoreList.length === KpiList.length){
                 status="EmployeeGoalsCompleted";
             }else{

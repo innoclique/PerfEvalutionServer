@@ -104,7 +104,8 @@ const currentEvaluationProgress = async (orgId) => {
                 currentEvaluationList.push(evaluationEmpObj);
             });
         }
-    })
+    });
+    currentEvaluationList = currentEvaluationList.sort((a,b)=> (a.name > b.name ? 1 : -1))
     evaluationObj['list']=currentEvaluationList;
     return evaluationObj;
 }

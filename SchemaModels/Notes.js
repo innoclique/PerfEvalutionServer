@@ -6,14 +6,37 @@ const mongoose = require("mongoose");
 
 const NotesSchema = new mongoose.Schema({
 
-    Discussedwith: { type: String, required: true },
-    Notes: { type: Date(), required: true },
-    Comments: { type: String },
-    user:{ type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-    CreatedOn:  { type: Date() },
+   
+
+    Note: { type: String, required: true },
+    CompletionDate: { type: Date },
+   
+    IsActive: { type: Boolean, default: true },
+    IsDraft:{ type: Boolean, default:false },
+    CreatedOn:  { type: Date,default:Date() },
     CreatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    UpdatedOn:  { type: Date() },
+    Owner: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    DiscussedWith:{ type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    EvaluationYear: { type: String, default: new Date().getFullYear() },
+    UpdatedOn:  { type: Date ,default:Date()},
     UpdatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    tracks: [{
+        actorId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User'
+        },
+        action: {
+            type: String,
+        },
+        comment: String,
+        CreatedOn: {
+            type: Date,
+            default: Date.now
+        }
+       
+    }],
+
+
 });
 
 NotesSchema.set('toJSON', { versionKey: false });

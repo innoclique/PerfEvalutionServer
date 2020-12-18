@@ -51,6 +51,7 @@ route.post('/AddReseller', ApplicationController.AddReseller);
 route.post('/UpdateReseller', ApplicationController.UpdateReseller);
 route.post('/GetUnlistedEmployees', EmployeeController.GetUnlistedEmployees);
 route.post('/GetManagers', EmployeeController.GetManagers);
+route.post('/GetImmediateApprCircle', EmployeeController.GetImmediateApprCircle);
 route.post('/GetThirdSignatorys', EmployeeController.GetThirdSignatorys);
 route.post('/GetDirectReporteesOfManager', EmployeeController.GetDirectReporteesOfManager);
 route.post('/GetPeers', EmployeeController.GetPeers);

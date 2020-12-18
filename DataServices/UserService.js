@@ -111,9 +111,13 @@ exports.Authenticate = async (LoginModel) => {
             
             var permissions=await RoleRepo.findOne({RoleCode:User.Role}).populate("Permissions")
             const adminId=User.ParentUser?User.ParentUser:User._id;
-
-            var OrganizationData=await OrganizationRepo.findOne({Admin:adminId})
-
+            var OrganizationData;
+            if(User.Role=='PSA'){
+             OrganizationData=await OrganizationRepo.findOne({Admin:adminId})
+            }else{
+             OrganizationData=await OrganizationRepo.findOne({Admin:adminId, IsActive:true})
+            }
+            if (User.Role!='PSA' && OrganizationData==null)  throw "User not found";
             return {
                 ID: User._id,SelectedRoles:User.SelectedRoles, Role: User.Role, Email: User.Email,
                 UserName: User.UserName, AccessToken: AccesToken,

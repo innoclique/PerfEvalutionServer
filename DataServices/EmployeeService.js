@@ -207,7 +207,7 @@ exports.AddKpi = async (kpiModel) => {
         //Updateing other kpis waiting 
         if (kpiModel.Weighting!='') {
             let updatedKPIs = await KpiRepo.updateMany({
-                'Owner': Mongoose.Types.ObjectId(kpiModel.CreatedBy),
+                'Owner': Mongoose.Types.ObjectId(kpiModel.Owner),
                 'EvaluationYear': new Date().getFullYear(),
                // 'IsDraft': false,
             },
@@ -496,7 +496,7 @@ exports.addKpiTrack = async (kpi) => {
     var track = {
         actorId: kpi.UpdatedBy,
         action: kpi.Action,
-        comment: actor.FirstName + " " + "has " + kpi.Action + " at " + new Date().toLocaleDateString()
+        comment: actor.FirstName + " " + "has " + kpi.Action + " at "  + moment().format('lll')
     }
     reportOBJ.tracks.push(track);
     return await reportOBJ.save();
@@ -518,7 +518,7 @@ exports.addAccompTrack = async (accomp) => {
     var track = {
         actorId: accomp.UpdatedBy,
         action: accomp.Action,
-        comment: actor.FirstName + " " + "has " + accomp.Action + " at " + new Date().toLocaleDateString()
+        comment: actor.FirstName + " " + "has " + accomp.Action + " at " + moment().format('lll')
     }
     reportOBJ.tracks.push(track);
     return await reportOBJ.save();
@@ -661,6 +661,25 @@ exports.GetManagers = async (data) => {
     return managers;
 }
 
+
+
+exports.GetImmediateApprCircle = async (data) => {
+
+    let circle=[];
+    const emp = await UserRepo.findById(data.empId).populate("Manager ThirdSignatory"); 
+
+    const csa = await UserRepo.findOne(
+        {
+            Organization: Mongoose.Types.ObjectId(data.companyId),
+            Role: 'CSA'
+        })
+    circle.push(csa);
+    if(csa._id.toString() != emp.Manager._id.toString())
+    circle.push(emp.Manager);
+    if(emp.ThirdSignatory)
+    circle.push(emp.ThirdSignatory || {});
+    return circle;
+}
 
 
 exports.GetThirdSignatorys = async (data) => {

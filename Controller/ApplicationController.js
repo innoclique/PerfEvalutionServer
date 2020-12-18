@@ -83,11 +83,11 @@ exports.AddNote = async (req, res, next) => {
     Joi.validate(req.body, Validation_Helper.ValidateNote(req.body), async (err, result) => {
         if (err) { res.status(400).json({ message: err.details.map(i => i.message).join(" / ") }) }
         else {
-            debugger
+            
 
             await OrganizaionService.AddNotes(req.body)
                 .then((Response) => {
-                    res.status(200).json({ message: " Note added Succeesfully" });
+                    res.status(200).json({ message: "Success" });
                 })
                 .catch(err => { next(err) });
         }
@@ -95,7 +95,7 @@ exports.AddNote = async (req, res, next) => {
     });
 }
 exports.GetAllNotes = async (req, res, next) => {
-    await OrganizationService.GetAllNotes(req.body.empId)
+    await OrganizaionService.GetAllNotes(req.body)
         .then(Response => Response ? res.status(200).json(Response) : res.status(404).json("Note Not Found"))
         .catch(err => next(err => { next(err) }));
 
@@ -105,13 +105,25 @@ exports.GetNoteDataById = async (req, res, next) => {
         if (err) { res.status(442).json({ mgs: err.details.map(i => i.message).join(" / ") }) }
         else {
             const Id = req.body.id;
-            await OrganizationService.GetNoteDataById(Id)
+            await OrganizaionService.GetNoteDataById(Id)
                 .then(Response => Response ? res.status(200).json(Response) : res.status(404).json("Note Not Found"))
                 .catch(err => next(err => { next(err) }));
         }
     });
 }
 exports.UpdateNoteDataById = async (req, res, next) => {
+
+    Joi.validate(req.body, Validation_Helper.ValidateNote(req.body), async (err, result) => {
+        if (err) { res.status(400).json({ message: err.details.map(i => i.message).join(" / ") }) }
+        else {
+            
+            await OrganizaionService.UpdateNote(req.body)
+                .then((Response) => {
+                    res.status(200).json({  message: "Success" });
+                })
+                .catch(err => { next(err) });
+        }
+    });
 }
 
 

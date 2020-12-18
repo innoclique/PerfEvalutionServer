@@ -4,6 +4,7 @@ const Mongoose = require("mongoose");
 const Bcrypt = require('bcrypt');
 const OrganizationRepo = require('../SchemaModels/OrganizationSchema');
 const UserRepo = require('../SchemaModels/UserSchema');
+const NoteRepo = require('../SchemaModels/Notes');
 const AuthHelper = require('../Helpers/Auth_Helper');
 const SendMail = require("../Helpers/mail.js");
 const logger = require('../logger');
@@ -254,17 +255,15 @@ exports.ActivateOrg = async (client) => {
 
 exports.AddNotes = async (note) => {
     try {
-        // const organizationName = await strengthRepo.findOne({ Name: organization.Name });
-        // const organizationEmail = await strengthRepo.findOne({ Email: organization.Email });
-        // const organizationPhone = await OrganizationRepo.findOne({ Phone: organization.Phone });
-
-        // if (organizationName !== null) { throw Error("Organization Name Already Exist"); }
-
-        // if (organizationEmail !== null) { throw Error("Organization Email Already Exist "); }
-
-        // if (organizationPhone !== null) { throw Error("Organization Phone Number Already Exist"); }
         const Note = new NoteRepo(note);
         await Note.save();
+        if (note.IsDraft=='false') { 
+           // const Manager = await UserRepo.findById(accomplishment.ManagerId);
+           const emp = await UserRepo.findById(note.Owner);
+           this.sendEmailOnNoteCreate(emp);
+           }
+
+        
         return true;
     }
     catch (err) {
@@ -280,12 +279,39 @@ exports.GetNoteDataById = async (Id) => {
     const Note = await NoteRepo.findById(Id);
     return Note;
 };
-exports.GetAllNotes = async (empId) => {
+exports.GetAllNotes = async (data) => {
+    
 
-    const Note = await NoteRepo.find({ 'Employee': empId });
+    const Note = await NoteRepo.find(
+        { 'Owner': data.empId }
+    ).populate('DiscussedWith')
+    .sort({ UpdatedOn: -1 });
     return Note;
 };
-exports.UpdateNote = async (Id) => {
+
+
+exports.UpdateNote = async (noteModel) => {
+
+   try  {
+    noteModel.Action = 'Updated';
+    noteModel.UpdatedOn = new Date();
+    const note= await NoteRepo.findByIdAndUpdate(noteModel.NoteId, noteModel);
+    if(noteModel.isFirstTimeCreateing){
+        const emp = await UserRepo.findById(note.Owner);
+        this.sendEmailOnNoteCreate(emp);
+    }
+
+   // this.addNoteTrack(noteModel);
+
+
+    return true;
+   }catch(err){
+    logger.error(err)
+
+    console.log(err);
+    throw (err);
+
+   }
 
 };
 
@@ -477,3 +503,44 @@ exports.UpdateReseller = async (organization) => {
     }
 }
 
+
+
+
+
+
+exports.sendEmailOnNoteCreate = async (OwnerInfo) => {
+
+    // if ( OwnerInfo) {
+    if (OwnerInfo) {
+        
+        // send email to User 
+
+        fs.readFile("./EmailTemplates/EmailTemplate.html", async function read(err, bufcontent) {
+            var content = bufcontent.toString();
+    
+            let des= `The note has been added successfully. <br>
+            To view details, <a href="${config.APP_BASE_URL}#/employee/private-notes-list">click here</a>.
+               `
+            content = content.replace("##FirstName##",OwnerInfo.FirstName);
+            content = content.replace("##ProductName##", config.ProductName);
+            content = content.replace("##Description##", des);
+            content = content.replace("##Title##", "Note added successfully");
+
+        var mailObject = SendMail.GetMailObject(
+            OwnerInfo.Email,
+                  "Note added successfully",
+                  content,
+                  null,
+                  null
+                );
+
+        await SendMail.SendEmail(mailObject, function (res) {
+            console.log(res);
+        });
+
+    });
+
+
+    }
+
+}

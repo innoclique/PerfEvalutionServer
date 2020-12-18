@@ -582,6 +582,7 @@ exports.ValidateStrength = ( data)=>{
       Leverage: Joi.optional(),
       TeamBenifit: Joi.optional(),
       SelfBenifit: Joi.optional(),
+      Action: Joi.optional(),
       Status: Joi.optional(),
       ProgressComments: Joi.optional(),
       ManagerComments: Joi.optional(),
@@ -752,13 +753,56 @@ exports.ValidateCommonModel = ( data)=>{
   return schema;
 }
 
+
+
+
 exports.ValidateNote = ( data)=>{
 
-   const schema = Joi.object().keys({
-      Notes: Joi.string().required(),
-      Discussedwith: Joi.string().required(),
-      Comments: Joi.string().required(),
-      User: Joi.string().required(),
-  });
-  return schema;
+   if (data.Action=='Draft' ) {
+  
+
+     const schema = Joi.object().keys({
+        Note: Joi.string().required(),
+        Action: Joi.string().required(),
+        Owner:Joi.string().required(),
+        CreatedBy:Joi.string().required(),
+       
+     }).unknown(true);;
+     return schema;
+  
+  } 
+ else if (data.Action=='Update') {
+  
+
+     const schema = Joi.object().keys({
+        Note: Joi.string().required(),
+       // Action: Joi.string().required(),
+       isFirstTimeCreateing: Joi.optional(),
+        Action: Joi.string().required(),
+        NoteId:Joi.string().required(),
+        UpdatedBy:Joi.string().required(),
+       
+     }).unknown(true);;
+     return schema;
+  
+  }
+  
+  else {
+
+  const schema = Joi.object().keys({
+     Note: Joi.string().required(),
+     Comments: Joi.optional(),
+     NoteId:Joi.optional(),
+     IsDraft:Joi.optional(),
+     UpdatedBy:Joi.optional(),
+     DiscussedWith:Joi.optional(),
+     Action: Joi.optional(),
+     Owner:Joi.string().required(),
+     CreatedBy:Joi.string().required()
+     
+ });
+ return schema;
+
+  }
+
 }

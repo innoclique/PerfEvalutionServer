@@ -11,6 +11,7 @@ const DevGoalsService = require('../DataServices/DevGoalsService')
 const EvaluationService = require('./EvaluationService');
 var config = require(`../Config/${env}.config`);
 const SendMail = require("../Helpers/mail.js");
+const moment = require("moment");
 var fs = require("fs");
 var logger = require('../logger');
 
@@ -476,7 +477,8 @@ exports.addDevGoalTrack = async (devGoalModel) => {
     var track = {
         actorId: devGoalModel.UpdatedBy,
         action: devGoalModel.Action,
-        comment: actor.FirstName + " " + "has " + devGoalModel.Action + " at " + new Date().toLocaleDateString()
+        comment: actor.FirstName + " " + "has " + devGoalModel.Action + " at " + moment().format('lll')
+        
     }
     reportOBJ.tracks.push(track);
     return await reportOBJ.save();

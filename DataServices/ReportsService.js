@@ -58,7 +58,7 @@ const getResellerInfo = async (ParentOrganization) => {
     console.log('inside getResellerInfo ', ParentOrganization);
     let whereObj = { 'ClientType': 'Reseller' };
     whereObj['ParentOrganization'] = Mongoose.Types.ObjectId(ParentOrganization);
-    let clientSummaryArray = await organizationSchema.find(whereObj);
+    let clientSummaryArray = await organizationSchema.find(whereObj).sort({Name:1});;
     return clientSummaryArray;
 }
 
@@ -66,7 +66,7 @@ const getClientInfo = async (ParentOrganization) => {
     console.log('inside getClientInfo ', ParentOrganization);
     let whereObj = { 'ClientType': 'Client' };
     whereObj['ParentOrganization'] = Mongoose.Types.ObjectId(ParentOrganization);
-    let clients = await organizationSchema.find(whereObj);
+    let clients = await organizationSchema.find(whereObj).sort({Name:1});
     let reseller = await organizationSchema.find({ '_id': ParentOrganization });
     let result = {};
     result.resellerInfo = reseller[0];

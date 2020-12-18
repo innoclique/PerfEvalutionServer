@@ -24,6 +24,17 @@ const statusRepo=require('../SchemaModels/Statuses');
 
 exports.AddEvaluation = async (evaluation) => {
     try {
+        if(evaluation.EvaluationId){
+            let employee = evaluation.Employees[0];
+            const _evaluation = await EvaluationRepo.update(
+                {
+                    "_id":Mongoose.Types.ObjectId(evaluation.EvaluationId),
+                    "Employees._id":Mongoose.Types.ObjectId(employee.EmployeeId)
+                },
+                {$set:{"Employees.$.Model":Mongoose.Types.ObjectId((evaluation.Model))}})
+            return true;
+        }
+        console.log("Insert Evaluation");
         const evalStatus = await statusRepo.findOne({Key:"init"});
         let {Employees} = evaluation;
         Employees = Employees.map(employee=>{

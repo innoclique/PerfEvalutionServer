@@ -1,0 +1,13 @@
+2020-12-17 14:06:34 [right meow!] error: statusmap is not defined
+2020-12-17 14:06:38 [right meow!] error: statusmap is not defined
+2020-12-17 14:08:40 [right meow!] error: statusmap is not defined
+2020-12-17 14:08:43 [right meow!] error: statusmap is not defined
+2020-12-17 14:09:32 [right meow!] error: statusmap is not defined
+2020-12-17 14:09:35 [right meow!] error: statusmap is not defined
+2020-12-18 12:01:17 [right meow!] error: User not found
+2020-12-18 12:01:25 [right meow!] error: User not found
+2020-12-18 16:51:09 [right meow!] error: error while Adding a Evaluation Form: Cannot read property '0' of undefined
+2020-12-18 16:51:09 [right meow!] error: Cannot read property '0' of undefined
+2020-12-18 20:25:12 [right meow!] error: Invalid $project :: caused by :: Missing 'cond' parameter to $filter
+2020-12-18 20:25:45 [right meow!] error: Invalid $project :: caused by :: Missing 'cond' parameter to $filter
+2020-12-18 20:26:57 [right meow!] error: Invalid $project :: caused by :: An empty sub-projection is not a valid value. Found empty object at path

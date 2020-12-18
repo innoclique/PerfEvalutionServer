@@ -1080,11 +1080,11 @@ exports.sendmail = async (user) => {
     })
 }
 
-
+//new Date().getFullYear()
 exports.GetReporteeEvaluations = async (manager) => {
     try {
         const reportees = await UserRepo.aggregate([
-            { $match: { Manager: ObjectId(manager.id), "HasActiveEvaluation": "Yes" } },
+            { $match: { Manager: ObjectId(manager.id)} },
             { $addFields: { EmployeeId: "$_id" } },
             {
                 $project: {

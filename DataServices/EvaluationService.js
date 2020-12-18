@@ -372,15 +372,15 @@ exports.GetEvaluationDashboardData = async (request) => {
     evalDashboardResponse['next_evaluation'] = {};
 
     if (EvaluationPeriod && EvaluationPeriod === 'CalendarYear') {
-        let momentNextEvlDate = moment().add(1, 'years').startOf('year');
+        let momentNextEvlDate = moment().startOf('month').add(1, 'years').startOf('year');
         evalDashboardResponse['next_evaluation']['date'] = momentNextEvlDate.format("MMM Do YYYY");
         evalDashboardResponse['next_evaluation']['days'] = momentNextEvlDate.diff(moment(), 'days');
     }
     if (EvaluationPeriod && EvaluationPeriod === 'FiscalYear') {
-        let momentNextEvlDate = moment().month(parseInt(StartMonth)-1);
-        let fiscalEndMonth = moment().add(1, 'years').month(parseInt(StartMonth)-1);
+        let momentNextEvlDate = moment().month(parseInt(StartMonth)-1).startOf('month').add(1, 'years');
+        //let fiscalEndMonth = moment().add(1, 'years').month(parseInt(StartMonth)-1);
         evalDashboardResponse['next_evaluation']['date'] = momentNextEvlDate.format("MMM Do YYYY");
-        evalDashboardResponse['next_evaluation']['days'] = fiscalEndMonth.diff(moment(), 'days');
+        evalDashboardResponse['next_evaluation']['days'] = momentNextEvlDate.diff(moment(), 'days');
     }
     
 

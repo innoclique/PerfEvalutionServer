@@ -398,7 +398,10 @@ exports.GetEvaluationDashboardData = async (request) => {
             currPendingEval+=Employees.length;
         }
     })
-
+    let {Completed} =pieObject;
+    if(Completed){
+        currPendingEval=currPendingEval-pieObject.Completed;
+    }
     evalDashboardResponse['next_evaluation']['current_pending_evealuations'] = currPendingEval;
     /**
      * Start->Overdue Evaluations

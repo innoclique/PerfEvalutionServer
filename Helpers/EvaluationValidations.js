@@ -35,7 +35,8 @@ exports.ValidateEvaluationForm = (data) => {
         Department:Joi.string(),
         Company:Joi.string(),
         CreatedBy:Joi.string(),
-        IsDraft:Joi.optional()
+        IsDraft:Joi.optional(),
+        EvaluationId:Joi.optional(),
     });
     return schema;
 

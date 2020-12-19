@@ -36,7 +36,7 @@ exports.EMDashboardData = async (employee) => {
     
     let { userId,orgId } = employee;
     const evaluationRepo = await peerInfo(userId);
-    response['current_evaluation'] = await currentEvaluationProgress(orgId);
+    response['current_evaluation'] = await currentEvaluationProgress(orgId,userId);
     response['peer_review'] = {};
     let peerReviewList = [];
     if (evaluationRepo && evaluationRepo.length > 0 && evaluationRepo[0].Employees) {
@@ -80,7 +80,7 @@ const peerInfo = async (userId) => {
         }).populate("Employees._id").populate("Company");
 }
 
-const currentEvaluationProgress = async (orgId) => {
+const currentEvaluationProgress = async (orgId,userId) => {
     console.log("currentEvaluationProgress");
     let currentYear = moment().format('YYYY');
     let evaluationObj = {};
@@ -96,12 +96,15 @@ const currentEvaluationProgress = async (orgId) => {
         if (Employees && Employees.length > 0) {
             Employees.forEach(employeeObj => {
                 let { Status, _id } = employeeObj;
-                let evaluationEmpObj={};
-                evaluationEmpObj.name = _id.FirstName + " " + _id.LastName;
-                evaluationEmpObj.status = !Status.Status?"":Status.Status;
-                //evaluationEmpObj.status = Status;
-                evaluationEmpObj.employeeId = _id._id;
-                currentEvaluationList.push(evaluationEmpObj);
+                if(_id.Manager && _id.Manager == userId){
+                    let evaluationEmpObj={};
+                    evaluationEmpObj.name = _id.FirstName + " " + _id.LastName;
+                    evaluationEmpObj.status = !Status.Status?"":Status.Status;
+                    //evaluationEmpObj.status = Status;
+                    evaluationEmpObj.employeeId = _id._id;
+                    currentEvaluationList.push(evaluationEmpObj);
+                }
+                
             });
         }
     });

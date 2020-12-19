@@ -462,11 +462,11 @@ exports.UpdateKpi = async (kpi) => {
 
         kpi.UpdatedOn = new Date();
         let empKpi = await KpiRepo.findByIdAndUpdate(kpi.kpiId, kpi);
+        this.addKpiTrack(kpi);
+        
         if(kpi.ManagerScore && kpi.ManagerScore!=""){
             await EvaluationService.UpdateEvaluationStatus(empKpi.Owner.toString(),"MANAGER_SUBMITTED_PG_SCORE");
         }
-
-        this.addKpiTrack(kpi);
         if(kpi.UpdatedBy === kpi.Owner && kpi.Score!=""){
             await EvaluationService.UpdateEvaluationStatus(kpi.Owner,"PG_SCORE_SUBMITTED");
         }
@@ -2143,6 +2143,9 @@ exports.SaveCompetencyQnAByManager = async (qna) => {
         );
         if(!qna.IsDraft){
             await EvaluationService.UpdateEvaluationStatus(qna.EmployeeId,"MANAGER_SUBMITTED_COMPETENCY");
+        }
+        if(qna.IsDraft){
+            await EvaluationService.UpdateEvaluationStatus(qna.EmployeeId,"MANAGER_SAVE_COMPETENCY");
         }
         if (updateCompetencyList) {
             return { IsSuccess: true }

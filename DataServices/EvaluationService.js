@@ -714,7 +714,28 @@ exports.UpdateEvaluationStatus = async (empId,status) => {
         }
         
         if(status === "MANAGER_SUBMITTED_PG_SCORE" && !CompetencySubmittedByManager){
-            status="ManagerPGCompleted";
+            let {KpiList} = currentEmpEvaluation;
+            let kpisScoreList = KpiList.filter(kpiObj => kpiObj.ManagerScore && kpiObj.ManagerScore != "");
+            if(kpisScoreList.length === KpiList.length){
+                status="ManagerPGCompleted";
+            }else{
+                status = "ManagerStarted";
+            }
+        }
+        if(status === "MANAGER_SUBMITTED_PG_SCORE" && CompetencySubmittedByManager){
+            let {KpiList} = currentEmpEvaluation;
+            let kpisScoreList = KpiList.filter(kpiObj => kpiObj.ManagerScore && kpiObj.ManagerScore != "");
+            if(kpisScoreList.length === KpiList.length){
+                status="ManagerPGCompleted";
+            }
+        }
+
+        if(status === "MANAGER_SAVE_COMPETENCY"){
+            let {KpiList} = currentEmpEvaluation;
+            let kpisScoreList = KpiList.filter(kpiObj => kpiObj.ManagerScore && kpiObj.ManagerScore != "");
+            if(kpisScoreList.length === 0){
+                status="ManagerStarted";
+            }
         }
 
         if(status === "MANAGER_SUBMITTED_COMPETENCY" && score == 65){

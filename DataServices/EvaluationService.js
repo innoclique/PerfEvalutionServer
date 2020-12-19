@@ -619,7 +619,8 @@ exports.GetPeerAvgRating = async (emp) => {
                     "EvaluationPeriod": 1,
                     "EvaluationDuration": 1,
                     "Employees.Peers.EmployeeId": 1,
-                    "Employees.Peers.CompetencyOverallRating": 1
+                    "Employees.Peers.CompetencyOverallRating": 1,
+                    "Employees.Peers.CompetencySubmitted": 1
                 }
 
             },
@@ -803,7 +804,8 @@ exports.GetDirectReporteeAvgRating = async (emp) => {
                     "EvaluationPeriod": 1,
                     "EvaluationDuration": 1,
                     "Employees.DirectReportees.EmployeeId": 1,
-                    "Employees.DirectReportees.CompetencyOverallRating": 1
+                    "Employees.DirectReportees.CompetencyOverallRating": 1,
+                    "Employees.DirectReportees.CompetencySubmitted": 1
                 }
 
             },
@@ -826,6 +828,7 @@ exports.GetDirectReporteeAvgRating = async (emp) => {
 
             {
                 $project: {
+                    "Employees":1,
                     "DirectReporteesList._id": 1,
                     "DirectReporteesList.FirstName": 1,
                     "DirectReporteesList.LastName": 1,

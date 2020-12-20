@@ -968,6 +968,14 @@ exports.GetTSReporteeEvaluations = async (ts) => {
                 }
             },
             { $unwind: "$EvaluationList" },
+            {
+                $lookup: {
+                    from: "statuses",
+                    localField: "EvaluationList.Employees.Status",
+                    foreignField: "_id",
+                    as: "statuses",
+                }
+            },
 
             {
                 $lookup: {
@@ -1044,25 +1052,35 @@ exports.GetTSReporteeEvaluations = async (ts) => {
                             }
                         }
                     },
-                    Evaluation: {
-                        "$filter": {
-                            "input": "$Evaluation",
-                            "as": "e",
-                            "cond": {
-                                "$and": [
-                                    { "$eq": ["$$e.Status", "Active"] }
-
-                                ]
-                            }
-                        }
-                    }
+                    statuses: 1,
+                    Evaluation: 1
 
 
                 }
             }
             // ,
             // {$unwind:{"EvaluationList.Employees":1}}
-        ])
+        ]);
+
+        let _reportees = [];
+        reportees.forEach((reportee,index)=>{
+            
+            let {EmployeeId,Evaluation,statuses,FirstName} = reportee;
+            let evaluationObj = Evaluation.find(element=>{
+                let eid = element._id.toString();
+                let empId = EmployeeId.toString();
+                return eid==empId
+            });
+            let statusObj = statuses.find(status=>{
+                let evalStatus = evaluationObj.Status.toString();
+                let statusId = status._id.toString();
+                return statusId == evalStatus
+            });
+            console.log(`FirstName: ${FirstName} - ${statusObj.Status}`);
+            reportee['FRStatus'] = statusObj.Status
+            _reportees[index]=reportee;
+        })
+        
         return reportees;
 
     } catch (error) {
@@ -1130,7 +1148,14 @@ exports.GetReporteeEvaluations = async (manager) => {
             },
             { $unwind: "$EvaluationList" },
 
-
+            {
+                $lookup: {
+                    from: "statuses",
+                    localField: "EvaluationList.Employees.Status",
+                    foreignField: "_id",
+                    as: "statuses",
+                }
+            },
 
             {
                 $lookup: {
@@ -1208,7 +1233,9 @@ exports.GetReporteeEvaluations = async (manager) => {
                             }
                         }
                     },
-                    Evaluation: {
+                    Evaluation: 1,
+                    statuses: 1,
+                    /*Evaluation: {
                         "$filter": {
                             "input": "$Evaluation",
                             "as": "e",
@@ -1219,11 +1246,29 @@ exports.GetReporteeEvaluations = async (manager) => {
                                 ]
                             }
                         }
-                    }
+                    }*/
                 }
             }
-        ])
-        return reportees;
+        ]);
+        let _reportees = [];
+        reportees.forEach((reportee,index)=>{
+            
+            let {EmployeeId,Evaluation,statuses,FirstName} = reportee;
+            let evaluationObj = Evaluation.find(element=>{
+                let eid = element._id.toString();
+                let empId = EmployeeId.toString();
+                return eid==empId
+            });
+            let statusObj = statuses.find(status=>{
+                let evalStatus = evaluationObj.Status.toString();
+                let statusId = status._id.toString();
+                return statusId == evalStatus
+            });
+            console.log(`FirstName: ${FirstName} - ${statusObj.Status}`);
+            reportee['FRStatus'] = statusObj.Status
+            _reportees[index]=reportee;
+        })
+        return _reportees;
 
     } catch (error) {
         console.log('error', error)

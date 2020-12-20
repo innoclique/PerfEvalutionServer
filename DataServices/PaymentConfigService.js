@@ -2,6 +2,7 @@ const DbConnection = require("../Config/DbConfig");
 require('dotenv').config();
 const Mongoose = require("mongoose");
 const PaymentConfigSchema = require('../SchemaModels/PaymentConfigurationSchema');
+const PaymentPriceScaleRepo = require('../SchemaModels/PaymentPriceScaleSchema');
 var logger = require('../logger');
 var env = process.env.NODE_ENV || "dev";
 var config = require(`../Config/${env}.config`);
@@ -18,8 +19,17 @@ const findPaymentSettingByUserType = async (type) => {
     return paymentSettingObj;
 };
 
+const findScaleByClientType = async (options) => {
+    return await PaymentPriceScaleRepo.findOne({
+        ClientType:options.ClientType,
+        RangeFrom:{$gte:options.RangeFrom},
+        RangeTo:{$lt:options.RangeTo}
+    })
+}
+
 module.exports = {
     AddPaymentConfiguration:addPaymentConfiguration,
-    findPaymentSettingByUserType:findPaymentSettingByUserType
+    findPaymentSettingByUserType:findPaymentSettingByUserType,
+    FindScaleByClientType:findScaleByClientType
 }
 

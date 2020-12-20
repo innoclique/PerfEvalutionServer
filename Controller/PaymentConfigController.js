@@ -1,4 +1,4 @@
-const {AddPaymentConfiguration,findPaymentSettingByUserType} = require('../DataServices/PaymentConfigService');
+const {AddPaymentConfiguration,findPaymentSettingByUserType,FindScaleByClientType} = require('../DataServices/PaymentConfigService');
 
 const addPaymentConfiguartion = async (req,res,next)=>{
     let paymentConfigResponse = await AddPaymentConfiguration(req.body);
@@ -10,8 +10,15 @@ const findPaymentSettingCtrl = async (req,res,next)=>{
     let paymentConfigResponse = await findPaymentSettingByUserType(userType);
     res.json(paymentConfigResponse);
 }
+const findScaleByClientTypeCtrl = async (req,res,next)=>{
+    let userType = req.body;
+    let productScaleResponse = await FindScaleByClientType(userType);
+    res.json(productScaleResponse);
+}
+
 
 module.exports = {
     AddPaymentConfigCtrl:addPaymentConfiguartion,
-    findPaymentSettingCtrl:findPaymentSettingCtrl
+    findPaymentSettingCtrl:findPaymentSettingCtrl,
+    FindScaleByClientTypeCtrl:findScaleByClientTypeCtrl
 }

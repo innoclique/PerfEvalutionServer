@@ -1080,8 +1080,8 @@ exports.GetTSReporteeEvaluations = async (ts) => {
             reportee['FRStatus'] = statusObj.Status
             _reportees[index]=reportee;
         })
-        
-        return reportees;
+
+        return _reportees;
 
     } catch (error) {
         console.log('error', error)

@@ -1,8 +1,9 @@
 const Express = require("express");
 const router = Express.Router();
-const {AddPaymentConfigCtrl,findPaymentSettingCtrl} = require('../Controller/PaymentConfigController');
+const {AddPaymentConfigCtrl,findPaymentSettingCtrl,FindScaleByClientTypeCtrl} = require('../Controller/PaymentConfigController');
 
 router.post("/add/config", AddPaymentConfigCtrl);
 router.post("/:usertype", findPaymentSettingCtrl);
+router.post("/scale", FindScaleByClientTypeCtrl);
 
 module.exports = router;

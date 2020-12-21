@@ -30,13 +30,18 @@ const EvaluationStatus = require('../common/EvaluationStatus');
 const { boolean } = require("joi");
 
 exports.EMDashboardData = async (employee) => {
+    console.log(JSON.stringify(employee))
+    let userType= "EM";
+    if(employee.type){
+        userType=employee.type;
+    }
     const response = {};
     response['current_evaluation']={}
     try{
     
     let { userId,orgId } = employee;
     const evaluationRepo = await peerInfo(userId);
-    response['current_evaluation'] = await currentEvaluationProgress(orgId,userId);
+    response['current_evaluation'] = await currentEvaluationProgress(orgId,userId,userType);
     response['peer_review'] = {};
     let peerReviewList = [];
     if (evaluationRepo && evaluationRepo.length > 0 && evaluationRepo[0].Employees) {
@@ -80,7 +85,7 @@ const peerInfo = async (userId) => {
         }).populate("Employees._id").populate("Company");
 }
 
-const currentEvaluationProgress = async (orgId,userId) => {
+const currentEvaluationProgress = async (orgId,userId,userType) => {
     console.log("currentEvaluationProgress");
     let currentYear = moment().format('YYYY');
     let evaluationObj = {};
@@ -96,12 +101,14 @@ const currentEvaluationProgress = async (orgId,userId) => {
         if (Employees && Employees.length > 0) {
             Employees.forEach(employeeObj => {
                 let { Status, _id } = employeeObj;
-                if(_id.Manager && _id.Manager == userId){
-                    let evaluationEmpObj={};
-                    evaluationEmpObj.name = _id.FirstName + " " + _id.LastName;
-                    evaluationEmpObj.status = !Status.Status?"":Status.Status;
+                let evaluationEmpObj={};
+                evaluationEmpObj.name = _id.FirstName + " " + _id.LastName;
+                evaluationEmpObj.status = !Status.Status?"":Status.Status;
                     //evaluationEmpObj.status = Status;
-                    evaluationEmpObj.employeeId = _id._id;
+                evaluationEmpObj.employeeId = _id._id;
+                if(userType === 'EM' && _id.Manager && _id.Manager == userId){
+                    currentEvaluationList.push(evaluationEmpObj);
+                }else if(userType === 'TS' && _id.ThirdSignatory && _id.ThirdSignatory == userId){
                     currentEvaluationList.push(evaluationEmpObj);
                 }
                 

@@ -11,3 +11,27 @@
 2020-12-18 20:25:12 [right meow!] error: Invalid $project :: caused by :: Missing 'cond' parameter to $filter
 2020-12-18 20:25:45 [right meow!] error: Invalid $project :: caused by :: Missing 'cond' parameter to $filter
 2020-12-18 20:26:57 [right meow!] error: Invalid $project :: caused by :: An empty sub-projection is not a valid value. Found empty object at path
+2020-12-19 16:07:04 [right meow!] error: Cannot read property 'toString' of undefined
+2020-12-19 16:08:18 [right meow!] error: Cannot read property 'toString' of undefined
+2020-12-19 16:45:45 [right meow!] error: Error Occurred while saving Competency updateCompetencyList is not defined
+2020-12-19 16:47:19 [right meow!] error: Error Occurred while saving Competency updateCompetencyList is not defined
+2020-12-20 22:47:42 [right meow!] error: Cannot read property 'find' of undefined
+2020-12-20 22:50:18 [right meow!] error: cconsole is not defined
+2020-12-20 22:50:40 [right meow!] error: Cannot read property 'find' of undefined
+2020-12-20 22:52:37 [right meow!] error: Cannot read property 'find' of undefined
+2020-12-20 22:53:54 [right meow!] error: Cannot read property 'find' of undefined
+2020-12-20 22:54:47 [right meow!] error: Cannot read property 'find' of undefined
+2020-12-20 22:56:19 [right meow!] error: Cannot read property 'find' of undefined
+2020-12-20 22:57:31 [right meow!] error: Cannot read property 'find' of undefined
+2020-12-20 22:59:10 [right meow!] error: Cannot read property 'find' of undefined
+2020-12-20 23:00:26 [right meow!] error: Cannot read property 'find' of undefined
+2020-12-20 23:01:44 [right meow!] error: Cannot read property 'find' of undefined
+2020-12-20 23:02:38 [right meow!] error: Cannot read property 'find' of undefined
+2020-12-20 23:03:47 [right meow!] error: Cannot read property 'find' of undefined
+2020-12-20 23:04:39 [right meow!] error: Cannot read property 'find' of undefined
+2020-12-20 23:05:41 [right meow!] error: Cannot read property 'find' of undefined
+2020-12-20 23:07:55 [right meow!] error: Cannot read property 'find' of undefined
+2020-12-20 23:08:56 [right meow!] error: Console is not defined
+2020-12-20 23:09:20 [right meow!] error: console.localField is not a function
+2020-12-20 23:09:41 [right meow!] error: Cannot read property 'find' of undefined
+2020-12-20 23:14:14 [right meow!] error: i is not defined

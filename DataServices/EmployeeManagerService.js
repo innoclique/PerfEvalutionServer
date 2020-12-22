@@ -29,6 +29,15 @@ var config = require(`../Config/${env}.config`);
 const EvaluationStatus = require('../common/EvaluationStatus');
 const { boolean } = require("joi");
 
+exports.DirectReports = async (employee) => {
+    let { userId,orgId } = employee;
+    let userType= "EM";
+    if(employee.type){
+        userType=employee.type;
+    }
+    response = await directReports(orgId,userId,userType);
+    return response;
+}
 exports.EMDashboardData = async (employee) => {
     console.log(JSON.stringify(employee))
     let userType= "EM";
@@ -119,6 +128,43 @@ const currentEvaluationProgress = async (orgId,userId,userType) => {
     evaluationObj['list']=currentEvaluationList;
     return evaluationObj;
 }
+
+const directReports = async (orgId,userId,userType) => {
+    console.log("inside:directReports");
+    let currentYear = moment().format('YYYY');
+    let responseObj = {};
+    let userWhereObj={};
+    if(userType === 'EM'){
+        userWhereObj['Manager']=Mongoose.Types.ObjectId(userId)
+    }else if(userType === 'TS'){
+        userWhereObj['ThirdSignatory']=Mongoose.Types.ObjectId(userId)
+    }
+    let usersList = await UserRepo.find(userWhereObj);
+    let directReportList = [];
+    for (const userObj of usersList) {
+        let pastEvaluations = await EvaluationRepo.find({
+            "Employees._id":Mongoose.Types.ObjectId(userObj._id),"EvaluationYear": {"$ne":currentYear}
+        }).sort({_id:-1});
+        let empEvaluation=null;
+        if(pastEvaluations.length>0){
+            let lastEvaluation = pastEvaluations[0];
+            let {Employees} = lastEvaluation;
+            empEvaluation = Employees.find(empObj=>{
+                return empObj._id.toString() == userObj._id.toString()
+            });
+        }
+        let directReportObj={};
+        directReportObj.name = userObj.FirstName + " " + userObj.LastName;
+        directReportObj.joiningDate = moment(userObj.JoiningDate).format("MMM DD YYYY");
+        directReportObj.lastRating = empEvaluation?empEvaluation.Manager.CompetencyOverallRating:"";
+        directReportObj.noOfEvaluations = pastEvaluations.length;
+        directReportList.push(directReportObj);
+    };
+    responseObj['list']=directReportList;
+    return responseObj;
+}
+
+
 
 const caluculateDaysRemaining = (evaluationPeriod,endMonth) =>{
     endMonth = "January";

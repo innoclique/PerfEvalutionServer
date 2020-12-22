@@ -37,8 +37,8 @@ exports.CreateOrganization = async (organization) => {
         const EmailUser = await UserRepo.findOne({ Email: userRecord.Email });
         const PhoneNumberUser = await UserRepo.findOne({ PhoneNumber: userRecord.PhoneNumber });
 
-        if (EmailUser !== null) { throw Error("Admin Email Already Exist"); }
-        if (PhoneNumberUser !== null) { throw Error("Admin PhoneNumberUser Already Exist"); }
+        if (userRecord.Email!="" && EmailUser !== null) { throw Error("Admin Email Already Exist"); }
+        if ( userRecord.PhoneNumber && PhoneNumberUser !== null) { throw Error("Admin Phone Number Already Exist"); }
 
 
         const organizationName = await OrganizationRepo.findOne({ Name: organization.Name });
@@ -47,7 +47,7 @@ exports.CreateOrganization = async (organization) => {
 
         if (organizationName !== null) { throw Error("Organization Name Already Exist"); }
         if (organizationEmail !== null) { throw Error("Organization Email Already Exist "); }
-        if (organizationPhone !== null) { throw Error("Organization Phone Number Already Exist"); }
+        if (organization.Phone && organizationPhone !== null) { throw Error("Organization Phone Number Already Exist"); }
         const session = await Mongoose.startSession();
         session.startTransaction();
         try {
@@ -345,8 +345,8 @@ exports.AddReseller = async (organization) => {
         const EmailUser = await UserRepo.findOne({ Email: userRecord.Email });
         const PhoneNumberUser = await UserRepo.findOne({ PhoneNumber: userRecord.PhoneNumber });
 
-        if (EmailUser !== null) { throw Error("Admin Email Already Exist"); }
-        if (PhoneNumberUser !== null) { throw Error("Admin PhoneNumberUser Already Exist"); }
+        if (userRecord.Email!="" && EmailUser !== null) { throw Error("Admin Email Already Exist"); }
+        if (userRecord.PhoneNumber  && PhoneNumberUser !== null) { throw Error("Admin Phone Number Already Exist"); }
 
 
         const organizationName = await OrganizationRepo.findOne({ Name: organization.Name });
@@ -355,10 +355,11 @@ exports.AddReseller = async (organization) => {
 
         if (organizationName !== null) { throw Error("Organization Name Already Exist"); }
         if (organizationEmail !== null) { throw Error("Organization Email Already Exist "); }
-        if (organizationPhone !== null) { throw Error("Organization Phone Number Already Exist"); }
+        if ( organization.Phone && organizationPhone !== null) { throw Error("Organization Phone Number Already Exist"); }
         const session = await Mongoose.startSession();
         session.startTransaction();
         try {
+          
             const user = new UserRepo(userRecord)
             var createdUser = await user.save()
             organization.Admin = createdUser.id;

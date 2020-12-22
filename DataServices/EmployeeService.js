@@ -901,6 +901,7 @@ const currentEvaluationProgress = async (userId) => {
         evaluationOb["status"] = 0;
         evaluationOb["status_title"] = "N/A";
         evaluationOb["overall_status"] = "N/A";
+        evaluationOb["KPI_Status"]="Not Initiated"
     }
     if (Employees && Employees.length > 0) {
         let { Status } = Employees[0];
@@ -941,7 +942,7 @@ const PerformanceGoalStatus = async (employeeId) =>{
             return "Initiated";
         }
     }else{
-        return "Not initiated"
+        return "Initiated"
     }
 }
 

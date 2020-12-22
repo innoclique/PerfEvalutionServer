@@ -59,7 +59,7 @@ exports.EMDashboardData = async (employee) => {
                 peerReviewObj.title = _id.Title || "";
                 if(peerList && peerList.length>0)
                     peerReviewObj.rating = peerList[0].CompetencyOverallRating;
-                else
+                
                 peerReviewObj.deparment = _id.Department || 'N/A';
                 peerReviewObj.daysRemaining = daysRemaining;
                 peerReviewList.push(peerReviewObj);

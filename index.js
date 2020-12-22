@@ -22,6 +22,7 @@ const csaARoute=require('./Routes/CSARoute');
 const EmployeeManagerRouter=require('./Routes/EmployeeManagerRouter');
 const reportsRoute=require('./Routes/ReportsRoute');
 const paymentConfigRoute=require('./Routes/PaymentConfigRoute');
+const MonerisRoute=require('./Routes/MonerisRoute');
 /////////////////////////////////////////////////////
 var logger=require('./logger');
 App.use(Cors());
@@ -42,6 +43,7 @@ App.use("/api/csa", csaARoute );
 App.use("/api/em", EmployeeManagerRouter );
 App.use("/api/reports",  reportsRoute);
 App.use("/api/payments", paymentConfigRoute );
+App.use("/api/moneris/ticket",MonerisRoute);
 App.use(Cookieparser());
 ////////////////////global error handler-------
 App.use(AuthHelper.ErrorHandler);  

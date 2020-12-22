@@ -33,7 +33,15 @@ const evaluatonSummary = async (companyId,years)=>{
         whereObj['EvaluationYear']=`${years[i]}`;
         whereObj['Company']=Mongoose.Types.ObjectId(companyId);
         let numberOfEvaluation=0;
-        let evaluationSummaryArray = await EvaluationRepo.find(whereObj);
+        let evaluationSummaryArray = await EvaluationRepo.find(whereObj).populate("Company");
+        if(evaluationSummaryArray && evaluationSummaryArray.length>0){
+            let {Company} = evaluationSummaryArray[0];
+            console.log(Company._id)
+            if(Company){
+                let evaluationYear = getEvaluationPeriod(Company.EvaluationPeriod,Company.StartMonth);
+                years[i]=evaluationYear;
+            }
+        }
         evaluationSummaryArray.forEach(evaluation=>{
             numberOfEvaluation+=evaluation.Employees.length;
         });
@@ -46,6 +54,21 @@ const evaluatonSummary = async (companyId,years)=>{
 
     };
     
+}
+
+const getEvaluationPeriod = (type,StartMonth)=>{
+    if (type === 'CalendarYear') {
+        let momentCurrentEvlDate = moment().startOf('month').startOf('year');
+        //let momentNextEvlDate = moment().startOf('month').add(1, 'years').startOf('year');
+        let momentNextEvlDate = moment().startOf('month').endOf('year');
+        return momentCurrentEvlDate.format("MMMM-YYYY") +" - "+momentNextEvlDate.format("MMMM-YYYY");
+        
+    }
+    if (type === 'FiscalYear') {
+        let momentCurrentEvlDate = moment().month(parseInt(StartMonth)).startOf('month');
+        let momentNextEvlDate = moment().month(parseInt(StartMonth)-1).startOf('month').add(1, 'years');
+        return momentCurrentEvlDate.format("MMMM-YYYY") +" - "+momentNextEvlDate.format("MMMM-YYYY");
+    }
 }
 
 const clientSummaryUsage = async (ParentOrganization,ClientType,years)=>{

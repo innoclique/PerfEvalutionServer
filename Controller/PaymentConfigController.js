@@ -11,8 +11,9 @@ const findPaymentSettingCtrl = async (req,res,next)=>{
     res.json(paymentConfigResponse);
 }
 const findScaleByClientTypeCtrl = async (req,res,next)=>{
-    let userType = req.body;
-    let productScaleResponse = await FindScaleByClientType(userType);
+    console.log("Inside:ctrl");
+    console.log(req.body)
+    let productScaleResponse = await FindScaleByClientType(req.body);
     res.json(productScaleResponse);
 }
 

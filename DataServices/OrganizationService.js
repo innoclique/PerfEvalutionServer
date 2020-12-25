@@ -4,6 +4,7 @@ const Mongoose = require("mongoose");
 const Bcrypt = require('bcrypt');
 const OrganizationRepo = require('../SchemaModels/OrganizationSchema');
 const UserRepo = require('../SchemaModels/UserSchema');
+const RoleRepo = require('../SchemaModels/Roles');
 const NoteRepo = require('../SchemaModels/Notes');
 const AuthHelper = require('../Helpers/Auth_Helper');
 const SendMail = require("../Helpers/mail.js");
@@ -17,10 +18,13 @@ exports.CreateOrganization = async (organization) => {
         //save user account for this organization
         const _temppwd = AuthHelper.GenerateRandomPassword();
         const pwd = Bcrypt.hashSync(_temppwd, 10);
+        var AppRoles = await RoleRepo.find({ RoleLevel: { $in: ['4', '5'] } })
         const userRecord = {
             Email: organization.AdminEmail,
             ContactPhone: organization.AdminPhone,
             Role: organization.ClientType === 'Client' ? 'CSA' : 'RSA',
+            ApplicationRole:[AppRoles[0]._id,AppRoles[1]._id ],
+            SelectedRoles:[AppRoles[0].RoleCode, AppRoles[1].RoleCode],
             Password: pwd,
             FirstName: organization.AdminFirstName,
             LastName: organization.AdminLastName,

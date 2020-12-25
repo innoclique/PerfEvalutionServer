@@ -205,11 +205,11 @@ exports.AddKpi = async (kpiModel) => {
         var Kpi = new KpiRepo(kpiModel);
         Kpi = await Kpi.save();
         //Updateing other kpis waiting 
-        if (kpiModel.Weighting!='') {
+        if (kpiModel.Weighting!='' && kpiModel.IsDraft=='false') {
             let updatedKPIs = await KpiRepo.updateMany({
                 'Owner': Mongoose.Types.ObjectId(kpiModel.Owner),
                 'EvaluationYear': new Date().getFullYear(),
-               // 'IsDraft': false,
+                'IsDraft': false,
             },
                 { $set: { 'Weighting': kpiModel.Weighting } });
         }
@@ -443,12 +443,13 @@ exports.UpdateKpi = async (kpi) => {
     try {
         kpi.Action = 'Updated';
         console.log(`kpi.Score = ${kpi.Score}`);
+        const kpiOwnerInfo = await this.GetKpiDataById(kpi.kpiId)
         if (kpi.IsManaFTSubmited) {
             const Manager = await UserRepo.findById(kpi.UpdatedBy);
             kpi.ManagerFTSubmitedOn = new Date()
             kpi.ManagerSignOff = { SignOffBy: Manager.FirstName+" "+Manager.LastName, SignOffOn: new Date() }
 
-            const kpiOwnerInfo = this.GetKpiDataById(kpi.kpiId)
+           // const kpiOwnerInfo = this.GetKpiDataById(kpi.kpiId)
             this.sendEmailOnManagerSignoff(Manager, kpiOwnerInfo);
 
 
@@ -463,6 +464,15 @@ exports.UpdateKpi = async (kpi) => {
         kpi.UpdatedOn = new Date();
         let empKpi = await KpiRepo.findByIdAndUpdate(kpi.kpiId, kpi);
         this.addKpiTrack(kpi);
+
+        if (kpi.Weighting!='' && kpiOwnerInfo.Weighting==0) {
+            let updatedKPIs = await KpiRepo.updateMany({
+                'Owner': Mongoose.Types.ObjectId(kpiOwnerInfo.Owner._id),
+                'EvaluationYear': new Date().getFullYear(),
+                'IsDraft': false,
+            },
+                { $set: { 'Weighting': kpi.Weighting } });
+        }
         
         if(kpi.ManagerScore && kpi.ManagerScore!=""){
             await EvaluationService.UpdateEvaluationStatus(empKpi.Owner.toString(),"MANAGER_SUBMITTED_PG_SCORE");
@@ -652,12 +662,12 @@ exports.GetManagers = async (data) => {
             SelectedRoles: { $in: ["EM"] }
         })
 
-    const csa = await UserRepo.findOne(
-        {
-            Organization: Mongoose.Types.ObjectId(data.companyId),
-            Role: 'CSA'
-        })
-    managers.push(csa);
+    // const csa = await UserRepo.findOne(
+    //     {
+    //         Organization: Mongoose.Types.ObjectId(data.companyId),
+    //         Role: 'CSA'
+    //     })
+    // managers.push(csa);
     return managers;
 }
 
@@ -713,6 +723,7 @@ exports.GetUnlistedEmployees = async (search) => {
                 {
                     Organization: Mongoose.Types.ObjectId(search.company),
                     HasActiveEvaluation: { $ne: "Yes" },
+                    Manager:{$ne: null},
                     _id: { $in: response.map(x => { return x.EmployeeId }) }
 
                 }).populate("Manager").sort({ CreatedOn: -1 })
@@ -737,7 +748,7 @@ exports.GetUnlistedEmployees = async (search) => {
             if (checkpoint && checkpoint.length > 0) {
                 let activeEvaluationCount = checkpoint.find(x => x._id === 'Yes')
                 if (activeEvaluationCount) {
-                    if (parseInt(orgData.UsageCount) === activeEvaluationCount.Count) {
+                    if (orgData.UsageType=='Employees' &&  parseInt(orgData.UsageCount) === activeEvaluationCount.Count) {
                         return { IsSuccess: true, Message: "Reached Maximum limit", Data: null }
                     }
                 }
@@ -747,7 +758,8 @@ exports.GetUnlistedEmployees = async (search) => {
             const Employees = await UserRepo.find(
                 {
                     Organization: Mongoose.Types.ObjectId(search.company),
-                    HasActiveEvaluation: { $ne: "Yes" }
+                    HasActiveEvaluation: { $ne: "Yes" },
+                    Manager:{$ne: null}
 
                 }).populate("Manager").sort({ CreatedOn: -1 })
             return { IsSuccess: true, Message: "", Data: Employees }
@@ -1303,7 +1315,7 @@ exports.SavePeerReview = async (qna) => {
 
 
 
-
+        return { IsSuccess: true }
     } catch (error) {
         logger.error('error occurred while saving peer review:', error)
         throw error;

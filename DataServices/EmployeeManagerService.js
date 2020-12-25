@@ -115,6 +115,7 @@ const currentEvaluationProgress = async (orgId,userId,userType) => {
                 evaluationEmpObj.status = !Status.Status?"":Status.Status;
                     //evaluationEmpObj.status = Status;
                 evaluationEmpObj.employeeId = _id._id;
+                evaluationEmpObj.managerId = _id.Manager;
                 if(userType === 'EM' && _id.Manager && _id.Manager == userId){
                     currentEvaluationList.push(evaluationEmpObj);
                 }else if(userType === 'TS' && _id.ThirdSignatory && _id.ThirdSignatory == userId){

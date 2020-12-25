@@ -452,7 +452,7 @@ exports.sendEmpCreateEamils = async (newemp,_temppwd) =>{
 
 exports.GetEmployeeDataById = async (Id) => {
     
-    const GetEmployee = await UserRepo.findById(Id);
+    const GetEmployee = await UserRepo.findById(Id).populate("JobLevel Manager ThirdSignatory");
 
     return GetEmployee;
 
@@ -460,7 +460,8 @@ exports.GetEmployeeDataById = async (Id) => {
 };
 exports.GetAllEmployees = async (employee) => {  
      const Employees = await UserRepo.find({ 
-        Role:'EO',
+        
+         $or: [ { Role:'EO',}, { SelectedRoles: { $in: ['EO'] } } ] ,
          Organization:Mongoose.Types.ObjectId(employee.companyId)})     
      .populate('ThirdSignatory CopiesTo DirectReports Manager')
      .sort({ UpdatedOn: -1 })  

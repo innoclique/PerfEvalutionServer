@@ -1,4 +1,12 @@
-const {AddPaymentConfiguration,findPaymentSettingByUserType,FindScaleByClientType} = require('../DataServices/PaymentConfigService');
+const {AddPaymentConfiguration,
+    findPaymentSettingByUserType,
+    FindScaleByClientType,
+    SavePaymentRelease,
+    FindPaymentReleaseByOrgId,
+    FindAdhocRequestList,
+    FindAdhocLatestByOrganization,
+    FindEmployeeScale
+} = require('../DataServices/PaymentConfigService');
 
 const addPaymentConfiguartion = async (req,res,next)=>{
     let paymentConfigResponse = await AddPaymentConfiguration(req.body);
@@ -11,15 +19,44 @@ const findPaymentSettingCtrl = async (req,res,next)=>{
     res.json(paymentConfigResponse);
 }
 const findScaleByClientTypeCtrl = async (req,res,next)=>{
-    console.log("Inside:ctrl");
-    console.log(req.body)
     let productScaleResponse = await FindScaleByClientType(req.body);
     res.json(productScaleResponse);
 }
 
+const savePaymentReleaseCtrl = async (req,res,next)=>{
+    await SavePaymentRelease(req.body)
+        .then(Response => Response ? res.status(200).json({message: "Action plan has been submitted successfully."}) : res.status(404).json("Payment Release Not Saved"))
+        .catch(err => next(err));
+}
+
+const findPaymentReleaseByOrgIdCtrl = async (req,res,next)=>{
+    let paymentReleaseData = await FindPaymentReleaseByOrgId(req.body);
+    res.json(paymentReleaseData);
+}
+
+const findAdhocListCtrl = async (req,res,next)=>{
+    let adhocList = await FindAdhocRequestList();
+    res.json(adhocList);
+}
+
+const findAdhocLatestCtrl = async (req,res,next)=>{
+    let adhocLatest = await FindAdhocLatestByOrganization(req.body);
+    res.json(adhocLatest);
+}
+
+const findEmpScaleByCtrl = async (req,res,next)=>{
+    let productScaleResponse = await FindEmployeeScale(req.body);
+    res.json(productScaleResponse);
+}
 
 module.exports = {
     AddPaymentConfigCtrl:addPaymentConfiguartion,
     findPaymentSettingCtrl:findPaymentSettingCtrl,
-    FindScaleByClientTypeCtrl:findScaleByClientTypeCtrl
+    FindScaleByClientTypeCtrl:findScaleByClientTypeCtrl,
+    SavePaymentReleaseCtrl:savePaymentReleaseCtrl,
+    FindPaymentReleaseByOrgIdCtrl:findPaymentReleaseByOrgIdCtrl,
+    FindAdhocListCtrl:findAdhocListCtrl,
+    FindAdhocLatestCtrl:findAdhocLatestCtrl,
+    FindEmpScaleByCtrl:findEmpScaleByCtrl,
+    
 }

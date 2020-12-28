@@ -6,10 +6,12 @@ const {AddPaymentConfigCtrl,
     FindPaymentReleaseByOrgIdCtrl,
     FindAdhocListCtrl,
     FindAdhocLatestCtrl,
-    FindEmpScaleByCtrl
+    FindEmpScaleByCtrl,
+    FindRangeListCtrl
 } = require('../Controller/PaymentConfigController');
 
 router.post("/add/config", AddPaymentConfigCtrl);
+router.post("/range/list", FindRangeListCtrl);
 router.post("/Scale", FindScaleByClientTypeCtrl);
 router.post("/employee/scale", FindEmpScaleByCtrl);
 router.post("/release/save", SavePaymentReleaseCtrl);

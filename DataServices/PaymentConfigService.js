@@ -23,7 +23,7 @@ const findPaymentSettingByUserType = async (type) => {
 };
 
 const findScaleByClientType = async (options) => {
-    let {Organization,ClientType,UsageType,UsageCount,Type} = options;
+    /*let {Organization,ClientType,UsageType,UsageCount,Type} = options;
     let overrideWhereObj={
         Organization,
         EvaluationYear:""+moment().format("YYYY")
@@ -36,8 +36,8 @@ const findScaleByClientType = async (options) => {
     let productWhereObj={
         ClientType,UsageType,Type
     }
-    console.log(productWhereObj);
-    let priceScale = await ProductPriceScaleRepo.findOne(productWhereObj);
+    console.log(productWhereObj);*/
+    let priceScale = await ProductPriceScaleRepo.findOne(options);
     return priceScale;
 }
 
@@ -85,16 +85,47 @@ const savePaymentRelease = async (paymentRelease) => {
     return false;
 }
 const findPaymentReleaseByOrgId = async (paymentRelease) => {
+    console.log("Inside:findPaymentReleaseByOrgId");
+    console.log(paymentRelease)
     const _paymentrelease = await PaymentReleaseSchema.findOne(paymentRelease);
     return _paymentrelease;
 }
 const findAdhocRequestList = async () => {
+    let responseObj=[];
     console.log("Inside:Adhoc Request list")
-    let _whereObj={
-        Type:"Adhoc"
+    let whereObj={
+        Type:"Adhoc",
+        Status:{$ne:"Complete"}
     }
-    const adhocList = await PaymentReleaseSchema.find(_whereObj).populate('Organization');
-    return adhocList;
+    const adhocList = await PaymentReleaseSchema.find(whereObj).populate('Organization');
+    for(var i=0;i<adhocList.length;i++){
+        let adhocObj = adhocList[i];
+        let _whereObj={
+            Organization:adhocObj.Organization._id,
+            Type:"Adhoc",
+            Status:"Complete"
+        }
+        
+        let pastAdhocList = await PaymentReleaseSchema.find(_whereObj);
+        let totalRequest=0;
+        if(pastAdhocList.length>0)
+            totalRequest=pastAdhocList.map(item => item.NoOfEmployees).reduce((prev, next) => prev + next);
+        
+        let createdYear = moment(adhocObj.Organization.CreatedOn).format("YYYY");
+        responseObj[i]={
+            paymentReleaseId:adhocObj._id,
+            organizationId:adhocObj.Organization._id,
+            clientName:adhocObj.Organization.Name,
+            activeSince:createdYear,
+            requestRange:adhocObj.Range,
+            amount:adhocObj.TOTAL_PAYABLE_AMOUNT,
+            status:adhocObj.Status,
+            totalRequest:totalRequest,
+            noOfEmployees:adhocObj.NoOfEmployees,
+            purpose:adhocObj.Purpose,
+        }
+    }
+    return responseObj;
 }
 
 const findAdhocLatestByOrganization = async (adhoc) => {
@@ -106,6 +137,11 @@ const findAdhocLatestByOrganization = async (adhoc) => {
     return null;
 }
 
+const findRangeList = async (options) => {
+    let rangeList = await ProductPriceScaleRepo.find(options);
+    return rangeList;
+}
+
 module.exports = {
     AddPaymentConfiguration:addPaymentConfiguration,
     findPaymentSettingByUserType:findPaymentSettingByUserType,
@@ -114,6 +150,7 @@ module.exports = {
     FindPaymentReleaseByOrgId:findPaymentReleaseByOrgId,
     FindAdhocRequestList:findAdhocRequestList,
     FindAdhocLatestByOrganization:findAdhocLatestByOrganization,
-    FindEmployeeScale:findEmployeeScale
+    FindEmployeeScale:findEmployeeScale,
+    FindRangeList:findRangeList
 }
 

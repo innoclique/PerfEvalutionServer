@@ -46,6 +46,7 @@ const OrganizationSchema = new mongoose.Schema({
     IsDraft:Boolean,
     Competencies:[],
     ParentOrganization:{ type: mongoose.Schema.Types.ObjectId, ref: 'Organization',default:null },
+    Range:{ type: mongoose.Schema.Types.ObjectId, ref: 'ProductPriceScale',default:null },
 });
 
 OrganizationSchema.set('toJSON', { versionKey: false });

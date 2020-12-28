@@ -387,7 +387,8 @@ exports.OrganizationSchema=(schema)=>{
       }),
       EndMonth:Joi.optional(),
       IsDraft:Joi.optional(),
-      ParentOrganization:Joi.string().required()
+      ParentOrganization:Joi.string().required(),
+      Range:Joi.optional(),
  });
 
  return organization;
@@ -447,7 +448,8 @@ exports.UpdateOrganizationSchema=(schema)=>{
       }),
       EndMonth:Joi.optional(),
       IsDraft:Joi.optional(),
-      ParentOrganization:Joi.optional()
+      ParentOrganization:Joi.optional(),
+      Range:Joi.optional()
  });
 
  return organization;

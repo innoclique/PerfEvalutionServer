@@ -21,7 +21,7 @@ const PaymentReleasesSchema = new mongoose.Schema({
     DUE_AMOUNT : { type: Number },
     TAX_AMOUNT : { type: Number },
     TOTAL_PAYABLE_AMOUNT : { type: Number },
-    RangeId : { type: mongoose.Schema.Types.ObjectId, ref: 'Overridepricescales', default: null  },
+    RangeId : { type: mongoose.Schema.Types.ObjectId, ref: 'Overridepricescale', default: null  },
     Range : { type: String},
     DurationMonths : { type: String},
     Purpose : { type: String},
@@ -31,4 +31,4 @@ const PaymentReleasesSchema = new mongoose.Schema({
 
 PaymentReleasesSchema.set('toJSON', { versionKey: false });
 
-module.exports = mongoose.model("PaymentReleases", PaymentReleasesSchema);
+module.exports = mongoose.model("Paymentrelease", PaymentReleasesSchema);

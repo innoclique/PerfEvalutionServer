@@ -23,6 +23,7 @@ const EmployeeManagerRouter=require('./Routes/EmployeeManagerRouter');
 const reportsRoute=require('./Routes/ReportsRoute');
 const paymentConfigRoute=require('./Routes/PaymentConfigRoute');
 const MonerisRoute=require('./Routes/MonerisRoute');
+const TransactionsRoute=require('./Routes/TransactionsRoute');
 /////////////////////////////////////////////////////
 var logger=require('./logger');
 App.use(Cors());
@@ -44,6 +45,7 @@ App.use("/api/em", EmployeeManagerRouter );
 App.use("/api/reports",  reportsRoute);
 App.use("/api/payments", paymentConfigRoute );
 App.use("/api/moneris/ticket",MonerisRoute);
+App.use("/api/transactions",TransactionsRoute);
 App.use(Cookieparser());
 ////////////////////global error handler-------
 App.use(AuthHelper.ErrorHandler);  

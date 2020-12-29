@@ -9,6 +9,9 @@ const AccomplishmentRepo = require('../SchemaModels/Accomplishments');
 const DepartmentRepo = require('../SchemaModels/DepartmentSchema');
 const JobRoleRepo = require('../SchemaModels/JobRoleSchema');
 const JobLevelRepo = require('../SchemaModels/JobLevelSchema');
+const RatingScoreRepo = require('../SchemaModels/RatingScore');
+const CoachingRemainRepo = require('../SchemaModels/CoachingRemainder');
+const IndustryRepo = require('../SchemaModels/Industry');
 const AppRoleRepo = require('../SchemaModels/ApplicationRolesSchema');
 const RoleRepo = require('../SchemaModels/Roles');
 const KpiRepo = require('../SchemaModels/KPI');
@@ -121,9 +124,13 @@ exports.GetEmpSetupBasicData = async (industry) => {
 
 exports.GetKpiSetupBasicData = async (empId, orgId) => {
 
+try{
+
     const KpiStatus = Messages.constants.KPI_STATUS;
-    const KpiScore = Messages.constants.KPI_SCORE;
-    const coachingRem = Messages.constants.COACHING_REM_DAYS;
+    //const KpiScore = Messages.constants.KPI_SCORE;
+    // const coachingRem = Messages.constants.COACHING_REM_DAYS;
+    const KpiScore = await RatingScoreRepo.find();
+    const coachingRem = await CoachingRemainRepo.find();
     var allEvaluation = await EvaluationRepo.find({
         Employees: { $elemMatch: { _id: Mongoose.Types.ObjectId(empId) } },
         EvaluationYear: new Date().getFullYear(),
@@ -131,7 +138,41 @@ exports.GetKpiSetupBasicData = async (empId, orgId) => {
     }).sort({ CreatedDate: -1 });  
     let evaluation = allEvaluation[0];
     return { KpiStatus, KpiScore, coachingRem, evaluation };
+
+    
+
+}catch(err){
+
+    logger.error(err)
+
+    console.log(err);
+    throw (err);
+}
 };
+
+
+
+exports.GetSetupBasicData = async (data) => {
+
+    try{
+    
+        const Industries = await IndustryRepo.find({}).sort({Name:1});
+        const KpiStatus = Messages.constants.KPI_STATUS;
+      
+        const KpiScore = await RatingScoreRepo.find();
+        const coachingRem = await CoachingRemainRepo.find();
+        return { KpiStatus, KpiScore, coachingRem,Industries };
+    
+        
+    
+    }catch(err){
+    
+        logger.error(err)
+    
+        console.log(err);
+        throw (err);
+    }
+    };
 
 exports.GetAllMeasurementCriterias = async (empId) => {
     const MeasureCriterias = await MeasureCriteriaRepo.find({ 'CreatedBy': empId });

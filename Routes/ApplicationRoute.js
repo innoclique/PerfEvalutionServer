@@ -44,6 +44,7 @@ route.post('/UpdateNoteDataById',ApplicationController.UpdateNoteDataById);
 route.post('/GetAllDepartments',EmployeeController.GetAllDepartments);
 route.post('/GetEmpSetupBasicData',EmployeeController.GetEmpSetupBasicData);
 route.post('/GetKpiSetupBasicData',EmployeeController.GetKpiSetupBasicData);
+route.post('/GetSetupBasicData',EmployeeController.GetSetupBasicData);
 route.post('/GetAllMeasurementCriterias',EmployeeController.GetAllMeasurementCriterias);
 route.post('/CreateMeasurementCriteria',EmployeeController.CreateMeasurementCriteria);
 

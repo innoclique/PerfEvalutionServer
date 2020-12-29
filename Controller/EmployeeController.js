@@ -76,6 +76,14 @@ exports.GetKpiSetupBasicData = async (req, res, next) => {
 }
 
 
+exports.GetSetupBasicData = async (req, res, next) => {
+    await EmployeeService.GetSetupBasicData(req.body)
+        .then(Response => Response ? res.status(200).json(Response) : res.status(404).json("Accomplishments Not Found"))
+        .catch(err => next(err => { next(err) }));
+
+}
+
+
 
 exports.GetAllMeasurementCriterias = async (req, res, next) => {
     await EmployeeService.GetAllMeasurementCriterias(req.body.empId)

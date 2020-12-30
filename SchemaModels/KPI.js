@@ -12,7 +12,7 @@ const KpiSchema = new mongoose.Schema({
     Score: {type: String},
     YECommManager:{ type: String },
     ManagerComments:{ type: String },
-    ManagerScore: {type: String},
+    ManagerScore: {type: String,default:""},
     CoachingReminder: {type: String},
     YearEndComments:{ type: String },
     Weighting:{ type: Number },

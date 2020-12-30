@@ -7,7 +7,8 @@ const {AddPaymentConfigCtrl,
     FindAdhocListCtrl,
     FindAdhocLatestCtrl,
     FindEmpScaleByCtrl,
-    FindRangeListCtrl
+    FindRangeListCtrl,
+    FindPriceListCtrl
 } = require('../Controller/PaymentConfigController');
 
 router.post("/add/config", AddPaymentConfigCtrl);
@@ -18,5 +19,6 @@ router.post("/release/save", SavePaymentReleaseCtrl);
 router.post("/release/organization", FindPaymentReleaseByOrgIdCtrl);
 router.post("/adhoc/request/list", FindAdhocListCtrl);
 router.post("/adhoc/latest", FindAdhocLatestCtrl);
+router.post("/price/list", FindPriceListCtrl);
 
 module.exports = router;

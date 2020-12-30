@@ -3,6 +3,7 @@ const organizationSchema = require("../SchemaModels/OrganizationSchema");
 const EvaluationRepo = require('../SchemaModels/Evalution');
 const moment = require('moment');
 const Mongoose = require("mongoose");
+const { Console } = require("winston/lib/winston/transports");
 
 const clientChartSummaryService =  async (options)=>{
     let {orgId,years,chartType,userType} = options
@@ -36,11 +37,16 @@ const evaluatonSummary = async (companyId,years)=>{
         let evaluationSummaryArray = await EvaluationRepo.find(whereObj).populate("Company");
         if(evaluationSummaryArray && evaluationSummaryArray.length>0){
             let {Company} = evaluationSummaryArray[0];
-            console.log(Company._id)
             if(Company){
                 let evaluationYear = getEvaluationPeriod(Company.EvaluationPeriod,Company.StartMonth);
                 years[i]=evaluationYear;
             }
+        }else{
+            let whereObj={};
+            whereObj['_id']=Mongoose.Types.ObjectId(companyId);
+            let orgDomain = await organizationSchema.findOne(whereObj);
+            console.log(orgDomain.EvaluationPeriod)
+            years[i] = getNonEvaluationPeriod(years[i],orgDomain.EvaluationPeriod,orgDomain.StartMonth);
         }
         evaluationSummaryArray.forEach(evaluation=>{
             numberOfEvaluation+=evaluation.Employees.length;
@@ -67,6 +73,27 @@ const getEvaluationPeriod = (type,StartMonth)=>{
     if (type === 'FiscalYear') {
         let momentCurrentEvlDate = moment().month(parseInt(StartMonth)).startOf('month');
         let momentNextEvlDate = moment().month(parseInt(StartMonth)-1).startOf('month').add(1, 'years');
+        return momentCurrentEvlDate.format("MMMM-YYYY") +" - "+momentNextEvlDate.format("MMMM-YYYY");
+    }
+}
+
+const getNonEvaluationPeriod = (year,type,StartMonth)=>{
+    console.log("inside:year")
+    if (type === 'CalendarYear') {
+        let _momentStrat = moment(year,"YYYY");
+        let _momentEnd = moment(year,"YYYY");
+        let momentCurrentEvlDate = _momentStrat.startOf('month').startOf('year');
+        //let momentNextEvlDate = moment().startOf('month').add(1, 'years').startOf('year');
+        let momentNextEvlDate = _momentEnd.startOf('month').endOf('year');
+        return momentCurrentEvlDate.format("MMMM-YYYY") +" - "+momentNextEvlDate.format("MMMM-YYYY");
+        
+    }
+    if (type === 'FiscalYear') {
+        console.log("==start==")
+        let _momentStrat = moment(year,"YYYY");
+        let _momentEnd = moment(year,"YYYY");
+        let momentCurrentEvlDate = _momentStrat.month(parseInt(StartMonth)).startOf('month');
+        let momentNextEvlDate = _momentEnd.month(parseInt(StartMonth)-1).startOf('month').add(1, 'years');
         return momentCurrentEvlDate.format("MMMM-YYYY") +" - "+momentNextEvlDate.format("MMMM-YYYY");
     }
 }
@@ -99,7 +126,6 @@ const clientSummaryUsage = async (ParentOrganization,ClientType,years)=>{
     return {
         chartDataSets:clientSummaryResponse,
         Label:years
-
     };
     
 }

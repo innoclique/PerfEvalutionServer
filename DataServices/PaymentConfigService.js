@@ -5,6 +5,7 @@ const PaymentConfigSchema = require('../SchemaModels/PaymentConfigurationSchema'
 const  ProductPriceScaleRepo= require('../SchemaModels/ProductPriceScale');
 const  OverridePriceScaleRepo= require('../SchemaModels/OverridePriceScale');
 const  PaymentReleaseSchema= require('../SchemaModels/PaymentReleaseSchema');
+const  PriceSchema= require('../SchemaModels/PriceSchema');
 var logger = require('../logger');
 var env = process.env.NODE_ENV || "dev";
 var config = require(`../Config/${env}.config`);
@@ -23,22 +24,15 @@ const findPaymentSettingByUserType = async (type) => {
 };
 
 const findScaleByClientType = async (options) => {
-    /*let {Organization,ClientType,UsageType,UsageCount,Type} = options;
-    let overrideWhereObj={
-        Organization,
-        EvaluationYear:""+moment().format("YYYY")
-    };
-    console.log(overrideWhereObj);
-    let overrideScale = await OverridePriceScaleRepo.findOne(overrideWhereObj);
-    if(overrideScale){
-        return overrideScale;
-    }
-    let productWhereObj={
-        ClientType,UsageType,Type
-    }
-    console.log(productWhereObj);*/
     let priceScale = await ProductPriceScaleRepo.findOne(options);
     return priceScale;
+}
+
+const findPriceList = async (options) => {
+    console.log("inside:pricelist")
+    console.log(options)
+    let priceList = await PriceSchema.find(options);
+    return priceList;
 }
 
 const findEmployeeScale = async (options) => {
@@ -151,6 +145,7 @@ module.exports = {
     FindAdhocRequestList:findAdhocRequestList,
     FindAdhocLatestByOrganization:findAdhocLatestByOrganization,
     FindEmployeeScale:findEmployeeScale,
-    FindRangeList:findRangeList
+    FindRangeList:findRangeList,
+    FindPriceList:findPriceList
 }
 

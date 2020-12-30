@@ -12,7 +12,7 @@ const requestObj = {
     "dynamic_descriptor": "dyndesc",
     "language": "en",
 
-    "cart": {
+    /*"cart": {
         "items": [
             {
                 "url": "https:\/\/example.com\/examples\/item1.jpg",
@@ -64,7 +64,7 @@ const requestObj = {
         "province": "ON",
         "country": "CA",
         "postal_code": "M1M1M1"
-    }
+    }*/
 };
 
 const requestOptions = {
@@ -74,10 +74,14 @@ const requestOptions = {
 };
 const postUrl = "https://gatewayt.moneris.com/chkt/request/request.php";
 
-const getTicket = async (optons) => {
+const getTicket = async (options) => {
+    console.log(options);
+    let {payableAmount,transactionId} = options;
+    requestObj["txn_total"] = Number(payableAmount);
+    requestObj["order_no"] = transactionId;
     try {
         console.log('inside getTicket');
-        const {body} = await got.post('https://gatewayt.moneris.com/chkt/request/request.php', {
+        const {body} = await got.post(postUrl, {
             json: requestObj,
             responseType: 'json'
         });

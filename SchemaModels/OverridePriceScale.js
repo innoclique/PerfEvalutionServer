@@ -19,4 +19,4 @@ const OverridepricescaleSchema = new mongoose.Schema({
 
 OverridepricescaleSchema.set('toJSON', { versionKey: false });
 
-module.exports = mongoose.model("Overridepricescales", OverridepricescaleSchema);
+module.exports = mongoose.model("Overridepricescale", OverridepricescaleSchema);

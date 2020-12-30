@@ -60,18 +60,19 @@ exports.EMDashboardData = async (employee) => {
             let daysRemaining = caluculateDaysRemaining(Company.EvaluationPeriod,Company.EndMonth);
             Employees.forEach(employeeObj => {
                 let { Peers, _id } = employeeObj;
-                let peerList = Peers.filter(peerObj => peerObj.EmployeeId == userId);
-                let peerReviewObj = {};
+                let peerFoundObject = Peers.find(peerObj => peerObj.EmployeeId == userId);
+                if(peerFoundObject){
+                    let peerReviewObj = {};
                 peerReviewObj.EvaluationId = evaluationId;
                 peerReviewObj.employeeId = _id._id;
                 peerReviewObj.peer = _id.FirstName +" "+_id.LastName;
                 peerReviewObj.title = _id.Title || "";
-                if(peerList && peerList.length>0)
-                    peerReviewObj.rating = peerList[0].CompetencyOverallRating;
-                
+                peerReviewObj.rating = peerFoundObject.CompetencyOverallRating;
                 peerReviewObj.deparment = _id.Department || 'N/A';
                 peerReviewObj.daysRemaining = daysRemaining;
                 peerReviewList.push(peerReviewObj);
+                }
+                
             });
         });
     }

@@ -6,7 +6,8 @@ const {AddPaymentConfiguration,
     FindAdhocRequestList,
     FindAdhocLatestByOrganization,
     FindEmployeeScale,
-    FindRangeList
+    FindRangeList,
+    FindPriceList
 } = require('../DataServices/PaymentConfigService');
 
 const addPaymentConfiguartion = async (req,res,next)=>{
@@ -55,6 +56,11 @@ const findRangeListCtrl = async (req,res,next)=>{
     res.json(productScaleResponse);
 }
 
+const findPriceListCtrl = async (req,res,next)=>{
+    let priceListResp = await FindPriceList(req.body);
+    res.json(priceListResp);
+}
+
 module.exports = {
     AddPaymentConfigCtrl:addPaymentConfiguartion,
     findPaymentSettingCtrl:findPaymentSettingCtrl,
@@ -64,6 +70,7 @@ module.exports = {
     FindAdhocListCtrl:findAdhocListCtrl,
     FindAdhocLatestCtrl:findAdhocLatestCtrl,
     FindEmpScaleByCtrl:findEmpScaleByCtrl,
-    FindRangeListCtrl:findRangeListCtrl
+    FindRangeListCtrl:findRangeListCtrl,
+    FindPriceListCtrl:findPriceListCtrl
     
 }

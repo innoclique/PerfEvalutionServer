@@ -67,13 +67,13 @@ const getEvaluationPeriod = (type,StartMonth)=>{
         let momentCurrentEvlDate = moment().startOf('month').startOf('year');
         //let momentNextEvlDate = moment().startOf('month').add(1, 'years').startOf('year');
         let momentNextEvlDate = moment().startOf('month').endOf('year');
-        return momentCurrentEvlDate.format("MMMM-YYYY") +" - "+momentNextEvlDate.format("MMMM-YYYY");
+        return momentCurrentEvlDate.format("MMM-YY") +" - "+momentNextEvlDate.format("MMM-YY");
         
     }
     if (type === 'FiscalYear') {
         let momentCurrentEvlDate = moment().month(parseInt(StartMonth)).startOf('month');
         let momentNextEvlDate = moment().month(parseInt(StartMonth)-1).startOf('month').add(1, 'years');
-        return momentCurrentEvlDate.format("MMMM-YYYY") +" - "+momentNextEvlDate.format("MMMM-YYYY");
+        return momentCurrentEvlDate.format("MMM-YY") +" - "+momentNextEvlDate.format("MMM-YY");
     }
 }
 
@@ -85,7 +85,7 @@ const getNonEvaluationPeriod = (year,type,StartMonth)=>{
         let momentCurrentEvlDate = _momentStrat.startOf('month').startOf('year');
         //let momentNextEvlDate = moment().startOf('month').add(1, 'years').startOf('year');
         let momentNextEvlDate = _momentEnd.startOf('month').endOf('year');
-        return momentCurrentEvlDate.format("MMMM-YYYY") +" - "+momentNextEvlDate.format("MMMM-YYYY");
+        return momentCurrentEvlDate.format("MMM-YY") +" - "+momentNextEvlDate.format("MMM-YY");
         
     }
     if (type === 'FiscalYear') {
@@ -94,7 +94,7 @@ const getNonEvaluationPeriod = (year,type,StartMonth)=>{
         let _momentEnd = moment(year,"YYYY");
         let momentCurrentEvlDate = _momentStrat.month(parseInt(StartMonth)).startOf('month');
         let momentNextEvlDate = _momentEnd.month(parseInt(StartMonth)-1).startOf('month').add(1, 'years');
-        return momentCurrentEvlDate.format("MMMM-YYYY") +" - "+momentNextEvlDate.format("MMMM-YYYY");
+        return momentCurrentEvlDate.format("MMM-YY") +" - "+momentNextEvlDate.format("MMM-YY");
     }
 }
 

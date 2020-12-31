@@ -7,12 +7,20 @@ const {AddPaymentConfiguration,
     FindAdhocLatestByOrganization,
     FindEmployeeScale,
     FindRangeList,
-    FindPriceList
+    FindPriceList,
+    FindTaxRateByName
 } = require('../DataServices/PaymentConfigService');
 
 const addPaymentConfiguartion = async (req,res,next)=>{
     let paymentConfigResponse = await AddPaymentConfiguration(req.body);
     res.json(paymentConfigResponse);
+}
+
+const findTaxRateByNameCtrl = async (req,res,next)=>{
+    let request = req.body;
+    let taxInfo = await FindTaxRateByName(request.State);
+    let response={tax:taxInfo}
+    res.json(response);
 }
 
 const findPaymentSettingCtrl = async (req,res,next)=>{
@@ -71,6 +79,7 @@ module.exports = {
     FindAdhocLatestCtrl:findAdhocLatestCtrl,
     FindEmpScaleByCtrl:findEmpScaleByCtrl,
     FindRangeListCtrl:findRangeListCtrl,
-    FindPriceListCtrl:findPriceListCtrl
+    FindPriceListCtrl:findPriceListCtrl,
+    FindTaxRateByNameCtrl:findTaxRateByNameCtrl
     
 }

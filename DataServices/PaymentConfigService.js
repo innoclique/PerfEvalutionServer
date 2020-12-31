@@ -6,6 +6,7 @@ const  ProductPriceScaleRepo= require('../SchemaModels/ProductPriceScale');
 const  OverridePriceScaleRepo= require('../SchemaModels/OverridePriceScale');
 const  PaymentReleaseSchema= require('../SchemaModels/PaymentReleaseSchema');
 const  PriceSchema= require('../SchemaModels/PriceSchema');
+const  StateTaxesSchema= require('../SchemaModels/StateTaxesSchema');
 var logger = require('../logger');
 var env = process.env.NODE_ENV || "dev";
 var config = require(`../Config/${env}.config`);
@@ -23,8 +24,25 @@ const findPaymentSettingByUserType = async (type) => {
     return paymentSettingObj;
 };
 
+const getTaxRateByName = async (name)=>{
+    let tax = 0;
+    let stateTax = await StateTaxesSchema.findOne({name});
+        if(stateTax){
+            tax=stateTax.tax;
+        }
+    console.log(`state name : ${name} - tax amount : ${tax}`)
+    return tax;
+}
+
 const findScaleByClientType = async (options) => {
+    let {State} = options;
+    let tax = 0;
+    if(State){
+        tax = await getTaxRateByName(State);
+
+    }
     let priceScale = await ProductPriceScaleRepo.findOne(options);
+    priceScale.tax = tax;
     return priceScale;
 }
 
@@ -36,7 +54,12 @@ const findPriceList = async (options) => {
 }
 
 const findEmployeeScale = async (options) => {
-    let {Organization,noOfEmployess} = options;
+    let {Organization,noOfEmployess,State} = options;
+    let tax = 0;
+    if(State){
+        tax = await getTaxRateByName(State);
+
+    }
     noOfEmployess = parseInt(noOfEmployess);
     let overrideWhereObj={
         Organization,
@@ -59,6 +82,7 @@ const findEmployeeScale = async (options) => {
     }
     console.log(productWhereObj);
     let priceScale = await ProductPriceScaleRepo.findOne(productWhereObj);
+    priceScale.tax = tax;
     return priceScale;
 }
 
@@ -146,6 +170,7 @@ module.exports = {
     FindAdhocLatestByOrganization:findAdhocLatestByOrganization,
     FindEmployeeScale:findEmployeeScale,
     FindRangeList:findRangeList,
-    FindPriceList:findPriceList
+    FindPriceList:findPriceList,
+    FindTaxRateByName:getTaxRateByName
 }
 

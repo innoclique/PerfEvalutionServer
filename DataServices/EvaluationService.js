@@ -124,6 +124,7 @@ exports.GetEvaluations = async (clientId) => {
             "Employees":{$exists: true, $ne: [null]}
         }).populate("Employees.Model")
             .populate({ path: 'Employees._id', populate: { path: 'Manager' } })
+            .populate("Statuses.Model").populate({ path: 'Employees.Status', populate: { path: 'Stasuses' } })
             .sort({ CreatedDate: -1 })
 
         response["kpiList"] = await KpiFormRepo.aggregate([

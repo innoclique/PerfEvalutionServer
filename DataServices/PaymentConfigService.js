@@ -39,7 +39,7 @@ const findScaleByClientType = async (options) => {
     let tax = 0;
     if(State){
         tax = await getTaxRateByName(State);
-
+        delete options.State;
     }
     let priceScale = await ProductPriceScaleRepo.findOne(options);
     priceScale.tax = tax;
@@ -54,7 +54,7 @@ const findPriceList = async (options) => {
 }
 
 const findEmployeeScale = async (options) => {
-    let {Organization,noOfEmployess,State} = options;
+    let {Organization,noOfEmployess,State,ClientType} = options;
     let tax = 0;
     if(State){
         tax = await getTaxRateByName(State);
@@ -77,6 +77,7 @@ const findEmployeeScale = async (options) => {
     let productWhereObj={
         Type : "Range",
         UsageType:"Employees",
+        ClientType:ClientType,
         RangeTo:{$gte:noOfEmployess},
         RangeFrom:{$lte:noOfEmployess},
     }

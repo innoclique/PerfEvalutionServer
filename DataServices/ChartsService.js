@@ -46,6 +46,12 @@ const evaluatonSummary = async (companyId,years)=>{
             whereObj['_id']=Mongoose.Types.ObjectId(companyId);
             let orgDomain = await organizationSchema.findOne(whereObj);
             console.log(orgDomain.EvaluationPeriod)
+            if(!orgDomain.EvaluationPeriod){
+                orgDomain.EvaluationPeriod="CalendarYear";
+            }
+            if(!orgDomain.StartMonth){
+                orgDomain.StartMonth=1;
+            }
             years[i] = getNonEvaluationPeriod(years[i],orgDomain.EvaluationPeriod,orgDomain.StartMonth);
         }
         evaluationSummaryArray.forEach(evaluation=>{
@@ -92,8 +98,8 @@ const getNonEvaluationPeriod = (year,type,StartMonth)=>{
         console.log("==start==")
         let _momentStrat = moment(year,"YYYY");
         let _momentEnd = moment(year,"YYYY");
-        let momentCurrentEvlDate = _momentStrat.month(parseInt(StartMonth)).startOf('month');
-        let momentNextEvlDate = _momentEnd.month(parseInt(StartMonth)-1).startOf('month').add(1, 'years');
+        let momentCurrentEvlDate = _momentStrat.month(parseInt(StartMonth)-1).startOf('month');
+        let momentNextEvlDate = _momentEnd.month(parseInt(StartMonth)-2).startOf('month').add(1, 'years');
         return momentCurrentEvlDate.format("MMM-YY") +" - "+momentNextEvlDate.format("MMM-YY");
     }
 }

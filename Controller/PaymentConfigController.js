@@ -35,7 +35,7 @@ const findScaleByClientTypeCtrl = async (req,res,next)=>{
 
 const savePaymentReleaseCtrl = async (req,res,next)=>{
     await SavePaymentRelease(req.body)
-        .then(Response => Response ? res.status(200).json({message: "Action plan has been submitted successfully."}) : res.status(404).json("Payment Release Not Saved"))
+        .then(Response => Response ? res.status(200).json(Response) : res.status(404).json("Payment Release Not Saved"))
         .catch(err => next(err));
 }
 

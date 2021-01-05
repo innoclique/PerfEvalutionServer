@@ -99,9 +99,9 @@ const savePaymentRelease = async (paymentRelease) => {
         savedObjet = await PaymentReleaseSchema.updateOne({_id:paymentreleaseId},paymentRelease);
     }
     if(savedObjet){
-        return true;
+        return savedObjet;
     }
-    return false;
+    return savedObjet;
 }
 const findPaymentReleaseByOrgId = async (paymentRelease) => {
     console.log("Inside:findPaymentReleaseByOrgId");

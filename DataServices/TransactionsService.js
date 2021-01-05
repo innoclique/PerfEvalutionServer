@@ -48,6 +48,20 @@ const addSubscription = async(paymentreleaseId) => {
         }
         
     }
+    if(paymentReleaseDomain && paymentReleaseDomain.Type === "Renewal"){
+        let {Organization,ActivationDate,NoOfMonths} = paymentReleaseDomain;
+        let findSubscription = await SubscriptionsSchema.findOne({Organization:Mongoose.Types.ObjectId(Organization)});
+        let {ActivatedOn,ValidTill} = findSubscription;
+        console.log(`Organization=>${Organization}`);
+        console.log(`ActivatedOn=>${ActivatedOn}`);
+        console.log(`ValidTill=>${ValidTill}`);
+        
+        ValidTill = moment(ValidTill).add(NoOfMonths,'months');
+        let subscriptions = {Organization,ActivatedOn,ValidTill};
+        console.log(`Update Subscription. id: ${findSubscription._id}`);
+        await SubscriptionsSchema.updateOne({_id:findSubscription._id},subscriptions);
+        
+    }
     console.log("end:addSubscription");
 }
 

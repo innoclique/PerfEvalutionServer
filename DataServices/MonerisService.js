@@ -81,12 +81,15 @@ const getTicket = async (options) => {
     requestObj["order_no"] = transactionId;
     try {
         console.log('inside getTicket');
+        console.log("===MONARIES-REQUEST===");
+        console.log(requestObj);
         const {body} = await got.post(postUrl, {
             json: requestObj,
             responseType: 'json'
         });
-    
+        console.log("===MONARIES RESPONSE===")
         console.log(body);
+        console.log("====END====")
         return body;
     } catch (error) {
         console.log(error.response.body);

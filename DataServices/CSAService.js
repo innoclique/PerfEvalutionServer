@@ -1,6 +1,7 @@
 const userSchema = require("../SchemaModels/UserSchema");
 const organizationSchema = require("../SchemaModels/OrganizationSchema");
 const EvaluationRepo = require('../SchemaModels/Evalution');
+const SubscriptionsSchema = require('../SchemaModels/SubscriptionsSchema');
 const Mongoose = require("mongoose");
 const ObjectId = Mongoose.Types.ObjectId;
 const moment = require("moment");
@@ -51,6 +52,14 @@ const evaluationCurrentStatus = async (evaluationList,orgId)=>{
         UsageCount-=completed;
         UsageCount-=inprogress;
         currentEvaluationObj['evaluations_left']=UsageCount;
+    }
+    let subscriptionDomain = await SubscriptionsSchema.findOne({
+        Organization:Mongoose.Types.ObjectId(orgId),
+        Type:"Initial",
+    });
+    currentEvaluationObj['renewalDate'] = "N/A";
+    if(subscriptionDomain){
+        currentEvaluationObj['renewalDate'] = moment(subscriptionDomain.ValidTill).format("MMM DD YYYY")
     }
     return currentEvaluationObj;
 

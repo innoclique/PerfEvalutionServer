@@ -77,8 +77,8 @@ const getEvaluationPeriod = (type,StartMonth)=>{
         
     }
     if (type === 'FiscalYear') {
-        let momentCurrentEvlDate = moment().month(parseInt(StartMonth)).startOf('month');
-        let momentNextEvlDate = moment().month(parseInt(StartMonth)-1).startOf('month').add(1, 'years');
+        let momentCurrentEvlDate = moment().month(parseInt(StartMonth-1)).startOf('month');
+        let momentNextEvlDate = moment().month(parseInt(StartMonth)-2).startOf('month').add(1, 'years');
         return momentCurrentEvlDate.format("MMM-YY") +" - "+momentNextEvlDate.format("MMM-YY");
     }
 }

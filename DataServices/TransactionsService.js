@@ -36,7 +36,7 @@ const addSubscription = async(paymentreleaseId) => {
 
         let ActivatedOn = ActivationDate;
         let ValidTill = moment(ActivationDate).add(NoOfMonths,'months');
-        let subscriptions = {Organization,ActivatedOn,ValidTill};
+        let subscriptions = {Organization,ActivatedOn,ValidTill,Type:paymentReleaseDomain.Type,IsActive:true};
         let findSubscription = await SubscriptionsSchema.findOne({Organization:Mongoose.Types.ObjectId(Organization)});
         if(!findSubscription){
             console.log("Add New Subscription.");

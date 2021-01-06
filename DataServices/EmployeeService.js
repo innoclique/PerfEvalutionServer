@@ -116,7 +116,8 @@ exports.GetEmpSetupBasicData = async (industry) => {
     //  const Industries = await IndustriesRepo.findById('5f6b2acc7d83cd08b8a9ad46');   
     const Industries = await IndustriesRepo.find({ Name: industry });
 
-    var AppRoles = await RoleRepo.find({ RoleLevel: { $in: ['3', '4', '5', '6'] } })
+    //var AppRoles = await RoleRepo.find({ RoleLevel: { $in: ['3', '4', '5', '6'] } })
+    var AppRoles = await RoleRepo.find({ RoleLevel: { $in: ['2', '3', '4', '5', '6'] } })
     const JobLevels = await JobLevelRepo.find();
     return { Industries, AppRoles, JobLevels };
 };

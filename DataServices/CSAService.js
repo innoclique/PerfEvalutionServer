@@ -2,6 +2,7 @@ const userSchema = require("../SchemaModels/UserSchema");
 const organizationSchema = require("../SchemaModels/OrganizationSchema");
 const EvaluationRepo = require('../SchemaModels/Evalution');
 const SubscriptionsSchema = require('../SchemaModels/SubscriptionsSchema');
+const ProductPriceScaleSchema = require('../SchemaModels/ProductPriceScale');
 const Mongoose = require("mongoose");
 const ObjectId = Mongoose.Types.ObjectId;
 const moment = require("moment");
@@ -26,6 +27,7 @@ const dashboardService =  async (userId)=>{
     return response;
 }
 const evaluationCurrentStatus = async (evaluationList,orgId)=>{
+    console.log("inside:evaluationCurrentStatus")
     let currentEvaluationObj = {};
     let completed=0, inprogress=0;
     let completedEvaluation = evaluationList.filter(obj => obj.status === 'Completed');
@@ -45,7 +47,7 @@ const evaluationCurrentStatus = async (evaluationList,orgId)=>{
     
     currentEvaluationObj= {completed,inprogress};
     currentEvaluationObj['evaluations_left']="N/A";
-    let orgnizationDomain = await organizationSchema.find({"_id":Mongoose.Types.ObjectId(orgId)});
+    let orgnizationDomain = await organizationSchema.findOne({"_id":Mongoose.Types.ObjectId(orgId)});
     if(orgnizationDomain.UsageType && orgnizationDomain.UsageType === "Employees"){
         let {UsageCount} = orgnizationDomain;
         UsageCount = parseInt(UsageCount);
@@ -53,13 +55,23 @@ const evaluationCurrentStatus = async (evaluationList,orgId)=>{
         UsageCount-=inprogress;
         currentEvaluationObj['evaluations_left']=UsageCount;
     }
+    if(orgnizationDomain.UsageType && orgnizationDomain.UsageType === "License"){
+        let Range = orgnizationDomain.Range;
+        let priceScale = await ProductPriceScaleSchema.findOne({_id:Mongoose.Types.ObjectId(Range)});
+        let UsageCount = 0;
+        UsageCount = parseInt(priceScale.RangeTo);
+        UsageCount-=completed;
+        UsageCount-=inprogress;
+        currentEvaluationObj['evaluations_left']=UsageCount;
+    }
+
     let subscriptionDomain = await SubscriptionsSchema.findOne({
         Organization:Mongoose.Types.ObjectId(orgId),
         Type:"Initial",
     });
     currentEvaluationObj['renewalDate'] = "N/A";
     if(subscriptionDomain){
-        currentEvaluationObj['renewalDate'] = moment(subscriptionDomain.ValidTill).format("MMM DD YYYY")
+        currentEvaluationObj['renewalDate'] = moment(subscriptionDomain.ValidTill).format("MMM DD,YYYY")
     }
     return currentEvaluationObj;
 

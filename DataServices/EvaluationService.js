@@ -428,23 +428,24 @@ exports.GetEvaluationDashboardData = async (request) => {
     ];
     let overDueEvaluations = await EvaluationRepo.aggregate(overDueCondition);
     let overDueEvaluationEmps = [];
-    
-    overDueEvaluations.forEach(overDueObj => {
-        
+    for (var j = 0; j < overDueEvaluations.length; j++) {
+    //overDueEvaluations.forEach(overDueObj => {
+        let overDueObj = overDueEvaluations[j];
         let { CreatedDate,status, users, Employees } = overDueObj;
         for (var i = 0; i < users.length; i++) {
             let userObj = users[i];
-            //let selectedEmployee = Employees.find(emp=>emp._id==userObj._id)
+            let selectedEmployee = Employees.find(emp=>emp._id.toString()==userObj._id.toString());
+            let statusDomain = await statusRepo.findOne({_id:Mongoose.Types.ObjectId(selectedEmployee.Status)})
             let overDueEvaluationEmp = {
                 name: userObj.FirstName,
                 title: userObj.Title || "",
                 designation: userObj.Role,
-                status:status
+                status:statusDomain.Status
                 //noOfDays: evalDate.diff(CreatedDate, 'days')
             }
             overDueEvaluationEmps.push(overDueEvaluationEmp);
         }
-    });
+    }
     evalDashboardResponse['overdue_evaluation'] = overDueEvaluationEmps;
     return evalDashboardResponse;
 }

@@ -32,7 +32,8 @@ console.log('getmailobj')
     if (to && to !="")
     {
         if(env==='dev'){
-            mailObject.to =   ['ksamba@innoclique.com','yviswanadh@innoclique.com','kramachandra@innoclique.com','avinash@innoclique.com','kpamulapati@innoclique.com']
+         mailObject.to =   ['brajesh@innoclique.com','kramachandra@innoclique.com','avinash@innoclique.com']
+      //   mailObject.to =   "brajesh@innoclique.com"
         }else{
             mailObject.to = to;
         }
@@ -55,12 +56,12 @@ console.log('getmailobj')
 
     if (bcc)
         mailObject.bcc = bcc;
-console.log('mailobject',mailObject)
+//console.log('mailobject',mailObject)
     return mailObject;
 }
 
 exports.SendEmail = function (contents, cb) {
-    console.log('sendemail',smtpConfig)
+   // console.log('sendemail',smtpConfig)
     contents.from = config.smtp2.smtp_user; 
     return transporter.sendMail(contents, function (error, info) {
         if (error) {

@@ -374,13 +374,13 @@ exports.GetEvaluationDashboardData = async (request) => {
 
     if (EvaluationPeriod && EvaluationPeriod === 'CalendarYear') {
         let momentNextEvlDate = moment().startOf('month').add(1, 'years').startOf('year');
-        evalDashboardResponse['next_evaluation']['date'] = momentNextEvlDate.format("MMM Do YYYY");
+        evalDashboardResponse['next_evaluation']['date'] = momentNextEvlDate.format("MMM DD,YYYY");
         evalDashboardResponse['next_evaluation']['days'] = momentNextEvlDate.diff(moment(), 'days');
     }
     if (EvaluationPeriod && EvaluationPeriod === 'FiscalYear') {
         let momentNextEvlDate = moment().month(parseInt(StartMonth)-1).startOf('month').add(1, 'years');
         //let fiscalEndMonth = moment().add(1, 'years').month(parseInt(StartMonth)-1);
-        evalDashboardResponse['next_evaluation']['date'] = momentNextEvlDate.format("MMM Do YYYY");
+        evalDashboardResponse['next_evaluation']['date'] = momentNextEvlDate.format("MMM DD,YYYY");
         evalDashboardResponse['next_evaluation']['days'] = momentNextEvlDate.diff(moment(), 'days');
     }
     
@@ -428,15 +428,19 @@ exports.GetEvaluationDashboardData = async (request) => {
     ];
     let overDueEvaluations = await EvaluationRepo.aggregate(overDueCondition);
     let overDueEvaluationEmps = [];
-
+    
     overDueEvaluations.forEach(overDueObj => {
-        let { CreatedDate, users } = overDueObj;
+        
+        let { CreatedDate,status, users, Employees } = overDueObj;
         for (var i = 0; i < users.length; i++) {
             let userObj = users[i];
+            //let selectedEmployee = Employees.find(emp=>emp._id==userObj._id)
             let overDueEvaluationEmp = {
                 name: userObj.FirstName,
+                title: userObj.Title || "",
                 designation: userObj.Role,
-                noOfDays: evalDate.diff(CreatedDate, 'days')
+                status:status
+                //noOfDays: evalDate.diff(CreatedDate, 'days')
             }
             overDueEvaluationEmps.push(overDueEvaluationEmp);
         }

@@ -1,5 +1,5 @@
 const got = require("got");
-
+const { v4: uuidv4 } = require('uuid');
 const requestObj = {
     "store_id": "moneris",
     "api_token": "hurgle",
@@ -77,8 +77,8 @@ const postUrl = "https://gatewayt.moneris.com/chkt/request/request.php";
 const getTicket = async (options) => {
     console.log(options);
     let {payableAmount,transactionId} = options;
-    requestObj["txn_total"] = Number(payableAmount);
-    requestObj["order_no"] = transactionId;
+    requestObj["txn_total"] = payableAmount;//Number(payableAmount);
+    requestObj["order_no"] = uuidv4();
     try {
         console.log('inside getTicket');
         console.log("===MONARIES-REQUEST===");

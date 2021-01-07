@@ -92,6 +92,7 @@ const getTicket = async (options) => {
         console.log("====END====")
         return body;
     } catch (error) {
+        console.log("Error!")
         console.log(error.response.body);
         //=> 'Internal server error ...'
     }

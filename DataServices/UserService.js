@@ -86,7 +86,7 @@ exports.CreateAccount = async (UserModel) => {
 exports.Authenticate = async (LoginModel) => {
     Email = LoginModel.Email;
     Password = LoginModel.Password;
-    console.log('came into login metho')
+    console.log('came into login method', Email, Password)
     try {        
         const User = await  UserRepo.findOne({ 'Email': Email }) .populate('ThirdSignatory CopiesTo DirectReports Manager Organization JobLevel').select("+Password");
         if (User && Bcrypt.compareSync(Password, User.Password)) {
@@ -167,27 +167,28 @@ exports.AuthenticateAdmin = async (LoginModel) => {
 exports.SendResetPsw = async (LoginModel) => {
     Email = LoginModel.Email;
     const User = await UserRepo.findOne({ 'Email': Email }).select("+Password");
-
+//Bcrypt.hashSync(resetModel.password, 10)
+    let pwd=AuthHelper.GenerateRandomPassword();
+    let cPass = Bcrypt.hashSync(pwd, 10)
     if (User && true) {
 
-        User.Password = AuthHelper.GenerateRandomPassword();
+        User.Password = cPass;
         User.IsPswChangedOnFirstLogin = false;
         User.IsActive = false;
         User.IsLoggedIn = false;
         User.save();
-
         mailObject = SendMail.GetMailObject(
             Email,
             "Password Reset",
             `Hey!  Your password has been updated. <br>
-            Here are the details of Password : ${User.Password}    `,
+            Here are the details of Password : ${pwd}    `,
             null,
             null
         );
 
-        // await SendMail.SendEmail(mailObject, function (res) {
-        //     console.log(res);
-        // });
+         await SendMail.SendEmail(mailObject, function (res) {
+             console.log(res);
+         });
 
         return { status: "success" };
     } else { throw Error("No user found"); }
@@ -302,7 +303,7 @@ exports.ConfirmTnC = async (id) => {
         //userTnC.TnCAccepted = true;
         //userTnC.TnCAcceptedOn = new Date();
        //await userTnC.save();
-        return await UserRepo.findById(id).populate('ThirdSignatory CopiesTo DirectReports Manager Organization JobLevel').select("+Password");;
+        return await UserRepo.findById(id);
     }
 
 }

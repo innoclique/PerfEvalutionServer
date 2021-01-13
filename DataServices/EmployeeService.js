@@ -32,6 +32,7 @@ var config = require(`../Config/${env}.config`);
 const EvaluationStatus = require('../common/EvaluationStatus');
 const { boolean } = require("joi");
 const EvaluationService = require('./EvaluationService');
+const PGSignoffSchema = require('../SchemaModels/PGSignoffSchema');
 
 exports.AddStrength = async (strength) => {
     try {
@@ -244,6 +245,13 @@ catch (err) {
 
 exports.AddKpi = async (kpiModel) => {
     try {
+        console.log(JSON.stringify(kpiModel))
+        //isManagerSubmitted
+        if(kpiModel.isFinalSignoff && kpiModel.isManagerSubmitted){
+            kpiModel.IsDraft = true;
+            const User = await UserRepo.findOne({ "_id": kpiModel.CreatedBy });
+            kpiModel.ManagerSignOff = { SignOffBy: User.FirstName+" "+User.LastName, SignOffOn: new Date() ,submited : true};
+        }
         var Kpi = new KpiRepo(kpiModel);
         Kpi = await Kpi.save();
         //Updateing other kpis waiting 
@@ -377,6 +385,10 @@ exports.GetKpisByManager = async (data) => {
         })
         .sort({ UpdatedOn: -1 });
 
+        if(data.draftSignoff){
+            Kpis= await filterEmployeePG(Kpis);
+        }
+
     allKpis = [...Kpis, ...managerDraftsKpis]
     //sgsgggjsr
 
@@ -385,6 +397,120 @@ exports.GetKpisByManager = async (data) => {
     return allKpis;
 };
 
+const filterEmployeePG = async (KpiList) => {
+    console.log("inside:filterEmployeePG");
+    console.log(KpiList.length);
+    let pgSignoffDomain;
+    let _KpiList = [];
+    if(KpiList.length>0){
+        let _kpiObj = KpiList[0];
+        let {Owner} = _kpiObj;
+        pgSignoffDomain = await PGSignoffSchema.findOne({Owner:ObjectId(Owner._id)});
+    }
+    for(var i=0;i<KpiList.length;i++){
+        console.log(i)
+        let kpiObj = KpiList[i];
+        let {ManagerSignOff,isFinalSignoff} = kpiObj;
+        if(pgSignoffDomain){
+            let {FinalSignoff,FinalSignoffOn} = pgSignoffDomain;
+            if(FinalSignoff && isFinalSignoff && !ManagerSignOff.submited){
+                _KpiList.push(kpiObj);
+            }
+        }
+    }
+    return _KpiList;
+}
+
+exports.SubmitKpisByEmployee = async (options) => {
+    let {empId,kpi} = options;
+    try {
+
+        const User = await UserRepo.find({ "_id": empId })
+            .populate('Manager');
+
+            let kpis = await KpiRepo.find({
+                '_id': Mongoose.Types.ObjectId(kpi),
+            } );
+
+        let submitedKPIs = await KpiRepo.updateMany({
+            '_id': Mongoose.Types.ObjectId(kpi),
+        },
+            {
+                $set: {
+                    'IsDraft':false,
+                    'IsSubmitedKPIs': true,
+                    'EmpFTSubmitedOn': new Date(),
+                    'Signoff': { SignOffBy: User[0].FirstName+" "+User[0].LastName, SignOffOn: new Date() }
+                }
+            });
+
+        if (submitedKPIs.nModified>0) {
+            // send email to manager 
+            if (User[0].Manager) {
+                var mailObject = SendMail.GetMailObject(
+                    User[0].Manager.Email,
+                    "Performance Goals submited for review",
+                    `Dear ${User[0].Manager.FirstName},<br>
+
+                                  Your Direct Report, ${User[0].FirstName} has submitted the Performance Goals.
+
+                                    Please click here to login and review.
+
+                                  
+                                    <br>  Thank you,
+                                  <product name> Administrator
+                                  `,
+                    null,
+                    null
+                );
+
+               await SendMail.SendEmail(mailObject, function (res) {
+                    console.log(res);
+                });
+            }
+
+            // send email to User 
+            var mailObject = SendMail.GetMailObject(
+                User[0].Email,
+                "Performance Goals submited for review",
+                `Dear ${User[0].FirstName},<br>
+
+                                  Your KPIs have been successfully submitted to your manager.
+                                  
+                                  To view details, click here.
+                                  
+                                  <br>   Thank you,
+                                 Administrator
+                                  `,
+                null,
+                null
+            );
+
+         await    SendMail.SendEmail(mailObject, function (res) {
+                console.log(res);
+            });
+        }
+
+        if (submitedKPIs.nModified >0 && kpis.length>0) {
+            kpis.forEach(e=> {
+                e.UpdatedBy=empId;
+                e.kpiId=e._id;
+                e.Action="Submitted"
+                this.addKpiTrack(e)
+            })
+        }
+
+        return true
+    }
+    catch (err) {
+        logger.error(err)
+
+        console.log(err);
+        throw (err);
+    }
+
+
+};
 
 exports.SubmitAllKpis = async (empId) => {
     try {
@@ -535,6 +661,36 @@ exports.UpdateKpi = async (kpi) => {
 
 }
 
+exports.DenyAllSignoffKpis = async (options) => {
+    try {
+        
+        let {empId} = options;
+        
+        let submitedKPIs = await KpiRepo.updateMany({
+            'Owner': Mongoose.Types.ObjectId(empId),
+            'isFinalSignoff': true,
+            "ManagerSignOff.submited":false
+        },
+            {
+                $set: {
+                    'IsActive': false,
+                }
+            });
+        
+        
+
+        return true;
+    }
+    catch (err) {
+        logger.error(err)
+
+        console.log(err);
+        throw (err);
+    }
+
+
+}
+
 
 exports.addKpiTrack = async (kpi) => {
 
@@ -607,7 +763,108 @@ exports.SubmitAllKpisByManager = async (empId) => {
             {
                 $set: {
                     'ManagerFTSubmitedOn': new Date(),
-                    'ManagerSignOff': { SignOffBy: User[0].Manager.FirstName+" "+User[0].Manager.LastName, SignOffOn: new Date() }
+                    'ManagerSignOff': { SignOffBy: User[0].Manager.FirstName+" "+User[0].Manager.LastName, SignOffOn: new Date(),submited:true }
+                }
+            });
+
+        if (submitedKPIs.nModified>0) {
+            // send email to manager 
+            this.sendEmailOnManagerSignoff(User[0].Manager, User[0]);
+           
+        }
+        if (submitedKPIs.nModified >0 && submitingKpis.length>0) {
+            submitingKpis.forEach(e=> {
+                e.UpdatedBy=e.ManagerId;
+                e.kpiId=e._id;
+                e.Action="Sign-off"
+                this.addKpiTrack(e)
+            })
+        }
+
+        return true
+    }
+    catch (err) {
+        logger.error(err)
+
+        console.log(err);
+        throw (err);
+    }
+
+
+};
+
+exports.SubmitSignoffKpisByManager = async (options) => {
+    console.log("Inside:SubmitKpisByManager")
+    let {empId} = options;
+    try {
+
+            const User = await UserRepo.find({ "_id": empId })
+            .populate('Manager');
+            console.log(User[0].Manager.FirstName)
+            let submitingKpis = await KpiRepo.find({
+                'Owner': Mongoose.Types.ObjectId(empId),
+                isFinalSignoff:true
+            });
+
+        let submitedKPIs = await KpiRepo.updateMany({
+            'Owner': Mongoose.Types.ObjectId(empId),
+            'isFinalSignoff':true,
+            'ManagerSignOff.submited':false
+
+        },
+            {
+                $set: {
+                    'ManagerFTSubmitedOn': new Date(),
+                    'ManagerSignOff': { SignOffBy: User[0].Manager.FirstName+" "+User[0].Manager.LastName, SignOffOn: new Date(),submited:true }
+                }
+            });
+
+        if (submitedKPIs.nModified>0) {
+            // send email to manager 
+            this.sendEmailOnManagerSignoff(User[0].Manager, User[0]);
+           
+        }
+        if (submitedKPIs.nModified >0 && submitingKpis.length>0) {
+            submitingKpis.forEach(e=> {
+                e.UpdatedBy=e.ManagerId;
+                e.kpiId=e._id;
+                e.Action="Sign-off"
+                this.addKpiTrack(e)
+            })
+        }
+
+        return true
+    }
+    catch (err) {
+        logger.error(err)
+
+        console.log(err);
+        throw (err);
+    }
+
+
+};
+
+exports.SubmitKpisByManager = async (options) => {
+    console.log("Inside:SubmitKpisByManager")
+    let {empId,kpi} = options;
+    console.log(`${empId} => ${kpi}`)
+    try {
+
+            const User = await UserRepo.find({ "_id": empId })
+            .populate('Manager');
+            console.log(User[0].Manager.FirstName)
+            let submitingKpis = await KpiRepo.find({
+                '_id': Mongoose.Types.ObjectId(kpi)
+            });
+
+        let submitedKPIs = await KpiRepo.updateMany({
+            '_id': Mongoose.Types.ObjectId(kpi)
+        },
+            {
+                $set: {
+                    'ManagerFTSubmitedOn': new Date(),
+                    'ManagerSignOff': { SignOffBy: User[0].Manager.FirstName+" "+User[0].Manager.LastName, SignOffOn: new Date(),submited:true }
                 }
             });
 

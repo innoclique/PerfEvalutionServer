@@ -3,6 +3,7 @@ const Joi = require('joi');
 const UserService = require('../DataServices/UserService');
 const EmployeeService = require('../DataServices/EmployeeService')
 const EvaluationService=require('../DataServices/EvaluationService');
+const PGSignoffService=require('../DataServices/PGSignoffService');
 
 exports.CreateEmployee = async (req, res, next) => {
     Joi.validate(req.body, Validation_Helper.ValidateCreateEmployeeModel(req.body), async (err, result) => {
@@ -241,8 +242,21 @@ exports.SubmitAllKpisByManager = async (req, res, next) => {
     await EmployeeService.SubmitAllKpisByManager(req.body.empId)
         .then(Response => Response ? res.status(200).json({message: "Your sign-off is successful."}) : res.status(404).json("Kpi Not Found"))
         .catch(err => next(err));
-
 }
+
+exports.SubmitKpisByManager = async (req, res, next) => {
+    await EmployeeService.SubmitKpisByManager(req.body)
+        .then(Response => Response ? res.status(200).json({message: "Your sign-off is successful."}) : res.status(404).json("Kpi Not Found"))
+        .catch(err => next(err));
+}
+
+exports.SubmitSignoffKpisByManager = async (req, res, next) => {
+    await EmployeeService.SubmitSignoffKpisByManager(req.body)
+        .then(Response => Response ? res.status(200).json({message: "Your sign-off is successful."}) : res.status(404).json("Kpi Not Found"))
+        .catch(err => next(err));
+}
+
+
 
 
 
@@ -254,6 +268,17 @@ exports.SubmitKpisForEvaluation = async (req, res, next) => {
       
 
 }
+
+exports.SubmitKpisByEmployee = async (req, res, next) => {
+    await EmployeeService.SubmitKpisByEmployee(req.body)
+        .then(Response => Response ? res.status(200).json({message: "The Performance Goals have been submitted successfully and your sign-off registered."}) : res.status(404).json("Kpi Not Found"))
+        .catch(err => next(err));
+
+      
+
+}
+
+
 
 
 exports.GetKpiDataById = async (req, res, next) => {
@@ -284,6 +309,16 @@ exports.UpdateKpiDataById = async (req, res, next) => {
         }
     });
 }
+
+exports.DenyAllSignoffKpis = async (req, res, next) => {
+    await EmployeeService.DenyAllSignoffKpis(req.body)
+    .then((Response) => {
+        res.status(200).json({  message: "Success" });
+    })
+    .catch(err => { next(err) });
+}
+
+
 
 
 
@@ -419,4 +454,15 @@ exports.GetOverallRatingByCompetency= async (req, res, next) => {
     await EmployeeService.GetOverallRatingByCompetency(req.body)
         .then(Response => Response ? res.status(200).json(Response) : res.status(404).json("No Peer Review found"))
         .catch(err => next(err));
+}
+
+exports.PGSignoffCtrl= async (req, res, next) => {
+    await PGSignoffService.PGSignOffSave(req.body)
+        .then(Response => Response ? res.status(200).json({description:'PG Signoff Submitted'}) : res.status(404).json("Error in save singoff"))
+        .catch(err => next(err));
+}
+
+exports.GetPGSignoffByOwnerCtrl= async (req, res, next) => {
+    let response = await PGSignoffService.GetPGSignoffByOwner(req.body);
+    res.json(response);
 }

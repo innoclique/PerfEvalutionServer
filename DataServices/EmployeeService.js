@@ -512,6 +512,153 @@ exports.SubmitKpisByEmployee = async (options) => {
 
 };
 
+exports.DenyAllSignOffKpis = async (empId) => {
+    try {
+
+        const User = await UserRepo.find({ "_id": empId })
+            .populate('Manager');
+
+            let kpis = await KpiRepo.find({
+                'Owner': Mongoose.Types.ObjectId(empId),
+                'IsDraft': true,
+                'EvaluationYear': new Date().getFullYear(),
+                'IsSubmitedKPIs': false,
+                'isFinalSignoff':true
+            } );
+
+        let submitedKPIs = await KpiRepo.updateMany({
+            'Owner': Mongoose.Types.ObjectId(empId),
+            'IsDraft': true,
+            'EvaluationYear': new Date().getFullYear(),
+            'IsSubmitedKPIs': false,
+            'isFinalSignoff':true
+        },
+            {
+                $set: {
+                    'IsActive': false,
+                }
+            });
+
+        if (submitedKPIs.nModified >0 && kpis.length>0) {
+            kpis.forEach(e=> {
+                e.UpdatedBy=empId;
+                e.kpiId=e._id;
+                e.Action="Submitted"
+                this.addKpiTrack(e)
+            })
+        }
+
+        return true
+    }
+    catch (err) {
+        logger.error(err)
+
+        console.log(err);
+        throw (err);
+    }
+
+
+};
+
+exports.SubmitAllSignOffKpis = async (empId) => {
+    try {
+
+        const User = await UserRepo.find({ "_id": empId })
+            .populate('Manager');
+
+            let kpis = await KpiRepo.find({
+                'Owner': Mongoose.Types.ObjectId(empId),
+                'IsDraft': true,
+                'EvaluationYear': new Date().getFullYear(),
+                'IsSubmitedKPIs': false,
+                'isFinalSignoff':true
+            } );
+
+        let submitedKPIs = await KpiRepo.updateMany({
+            'Owner': Mongoose.Types.ObjectId(empId),
+            'IsDraft': true,
+            'EvaluationYear': new Date().getFullYear(),
+            'IsSubmitedKPIs': false,
+            'isFinalSignoff':true
+        },
+            {
+                $set: {
+                    'IsDraft':false,
+                    'IsSubmitedKPIs': true,
+                    'EmpFTSubmitedOn': new Date(),
+                    'Signoff': { SignOffBy: User[0].FirstName+" "+User[0].LastName, SignOffOn: new Date() }
+                }
+            });
+
+        if (submitedKPIs.nModified>0) {
+            // send email to manager 
+            if (User[0].Manager) {
+                var mailObject = SendMail.GetMailObject(
+                    User[0].Manager.Email,
+                    "Performance Goals submited for review",
+                    `Dear ${User[0].Manager.FirstName},<br>
+
+                                  Your Direct Report, ${User[0].FirstName} has submitted the Performance Goals.
+
+                                    Please click here to login and review.
+
+                                  
+                                    <br>  Thank you,
+                                  <product name> Administrator
+                                  `,
+                    null,
+                    null
+                );
+
+               await SendMail.SendEmail(mailObject, function (res) {
+                    console.log(res);
+                });
+            }
+
+            // send email to User 
+            var mailObject = SendMail.GetMailObject(
+                User[0].Email,
+                "Performance Goals submited for review",
+                `Dear ${User[0].FirstName},<br>
+
+                                  Your KPIs have been successfully submitted to your manager.
+                                  
+                                  To view details, click here.
+                                  
+                                  <br>   Thank you,
+                                 Administrator
+                                  `,
+                null,
+                null
+            );
+
+         await    SendMail.SendEmail(mailObject, function (res) {
+                console.log(res);
+            });
+        }
+
+        if (submitedKPIs.nModified >0 && kpis.length>0) {
+            kpis.forEach(e=> {
+                e.UpdatedBy=empId;
+                e.kpiId=e._id;
+                e.Action="Submitted"
+                this.addKpiTrack(e)
+            })
+        }
+
+        return true
+    }
+    catch (err) {
+        logger.error(err)
+
+        console.log(err);
+        throw (err);
+    }
+
+
+};
+
+
 exports.SubmitAllKpis = async (empId) => {
     try {
 

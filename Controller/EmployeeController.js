@@ -264,10 +264,20 @@ exports.SubmitKpisForEvaluation = async (req, res, next) => {
     await EmployeeService.SubmitAllKpis(req.body.empId)
         .then(Response => Response ? res.status(200).json({message: "The Performance Goals have been submitted successfully and your sign-off registered."}) : res.status(404).json("Kpi Not Found"))
         .catch(err => next(err));
-
-      
-
 }
+
+exports.SubmitAllSignOffKpis = async (req, res, next) => {
+    await EmployeeService.SubmitAllSignOffKpis(req.body.empId)
+        .then(Response => Response ? res.status(200).json({message: "The Performance Goals have been submitted successfully and your sign-off registered."}) : res.status(404).json("Kpi Not Found"))
+        .catch(err => next(err));
+}
+
+exports.DenyAllSignOffKpis = async (req, res, next) => {
+    await EmployeeService.DenyAllSignOffKpis(req.body.empId)
+        .then(Response => Response ? res.status(200).json({message: "The Performance Goals have been submitted successfully and your sign-off registered."}) : res.status(404).json("Kpi Not Found"))
+        .catch(err => next(err));
+}
+
 
 exports.SubmitKpisByEmployee = async (req, res, next) => {
     await EmployeeService.SubmitKpisByEmployee(req.body)

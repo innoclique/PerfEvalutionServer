@@ -33,9 +33,15 @@ route.post('/GetAllKpis',EmployeeController.GetAllKpis);
 route.post('/GetKpisByManager',EmployeeController.GetKpisByManager);
 route.post('/GetKpisByManagerId',EmployeeController.GetKpisByManagerId);
 route.post('/SubmitKpisForEvaluation',EmployeeController.SubmitKpisForEvaluation);
+route.post('/SubmitKpisByEmployee',EmployeeController.SubmitKpisByEmployee);
 route.post('/SubmitAllKpisByManager',EmployeeController.SubmitAllKpisByManager);
+route.post('/SubmitKpisByManager',EmployeeController.SubmitKpisByManager);
+route.post('/SubmitSignoffKpisByManager',EmployeeController.SubmitSignoffKpisByManager);
 route.post('/UpdateKpiDataById',EmployeeController.UpdateKpiDataById);
+route.post('/DenyAllSignoffKpis',EmployeeController.DenyAllSignoffKpis);
 route.post('/dashboard',EmployeeController.Dashboard);
+route.post('/PG/Signoff', EmployeeController.PGSignoffCtrl);
+route.post('/Find/PG/Signoff', EmployeeController.GetPGSignoffByOwnerCtrl);
 
 route.post('/AddNote', ApplicationController.AddNote);
 route.post('/GetNoteDataById',ApplicationController.GetNoteDataById);

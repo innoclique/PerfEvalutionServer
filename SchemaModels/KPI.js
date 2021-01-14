@@ -51,6 +51,7 @@ const KpiSchema = new mongoose.Schema({
        
     }],
     UpdatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    isFinalSignoff: { type: Boolean, default:false },
 }
 ,{usePushEach: true}
 );

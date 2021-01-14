@@ -13,6 +13,7 @@ var config = require(`../Config/${env}.config`);
 const SendMail = require("../Helpers/mail.js");
 const moment = require("moment");
 var fs = require("fs");
+const PGSignoffSchema = require('../SchemaModels/PGSignoffSchema');
 var logger = require('../logger');
 
 
@@ -623,8 +624,10 @@ exports.GetReporteeReleasedKpiForm = async (manager) => {
         ])
 
 
+
         var evReportees=[];
       evReportees=  await   EvaluationService.GetReporteeEvaluations(manager);
+      evReportees = await filterEmployeePG(evReportees);
 return [...reportees,...evReportees];
    
 
@@ -634,6 +637,41 @@ return [...reportees,...evReportees];
     }
 }
 
+const filterEmployeePG = async (pglist) => {
+    console.log("inside:filterEmployeePG");
+    console.log(pglist.length)
+    for(var i=0;i<pglist.length;i++){
+        let employeePg = {} ;
+        employeePg = pglist[i];
+        let pgSignoffDomain = await PGSignoffSchema.findOne({Owner:ObjectId(employeePg._id)});
+        if(pgSignoffDomain){
+            if(employeePg && employeePg.KpiList && employeePg.KpiList.length>0){
+                let {FinalSignoff,FinalSignoffOn} = pgSignoffDomain;
+                let {KpiList} = employeePg;
+                let pgDraftGoals = [];
+                let _KpiList = [];
+                for(var j=0;j<KpiList.length;j++){
+                    let kpiObj = KpiList[j];
+                    let {ManagerSignOff,IsActive,isFinalSignoff} = kpiObj;
+                    console.log(`${kpiObj.Kpi} => ${FinalSignoff} - ${isFinalSignoff} - ${IsActive} - ${ManagerSignOff.submited}`)
+                    if(FinalSignoff && isFinalSignoff && !ManagerSignOff.submited && IsActive){
+                       console.log("inside:if")
+                        pgDraftGoals.push(kpiObj)
+                    }else{
+                        console.log("inside:else")
+                        _KpiList.push(kpiObj)
+                    }
+                }
+                employeePg.pgDraftGoals=pgDraftGoals;
+                employeePg.KpiList=_KpiList;
+            }
+        }else{
+            employeePg.pgDraftGoals=[];
+        }
+        pglist[i]=employeePg;
+    }
+    return pglist;
+}
 
 
 

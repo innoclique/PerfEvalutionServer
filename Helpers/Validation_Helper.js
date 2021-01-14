@@ -572,7 +572,7 @@ exports.ValidateStrength = ( data)=>{
          IsManaFTSubmited: Joi.any().optional(),
          UpdatedBy: Joi.string().required(),
          empId: Joi.string().required(),
-
+         
 
       });
       return schema;
@@ -666,7 +666,9 @@ if (data.Action=='Active' || data.Action=='DeActive') {
       kpiId: Joi.required(),
       Action: Joi.string().required(),
       UpdatedBy: Joi.string().required(),
-      IsActive: Joi.any().required()
+      IsActive: Joi.any().required(),
+      empId: Joi.string().optional(),
+      
    });
    return schema;
 
@@ -732,6 +734,9 @@ else if (data.Action=='Review') {
     CreatedBy:Joi.string().required(),
     Owner:Joi.string().required(),
     EvaluationId:Joi.string().optional(),
+    isFinalSignoff:Joi.boolean().optional(),
+    isManagerSubmitted:Joi.boolean().optional(),
+    isFinalSignoff:Joi.boolean().optional(),
   
     UpdatedBy:Joi.string().required()
 

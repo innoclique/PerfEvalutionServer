@@ -63,6 +63,13 @@ exports.GetStrengthById = async (Id) => {
 
 
 };
+
+exports.getCopiesTo = async (userId) => {
+    console.log("inside GetCopiesTo service ");
+    return await UserRepo
+        .find({ "CopiesTo": Mongoose.Types.ObjectId(userId.userId) });
+}
+
 exports.GetAllStrengths = async (empId) => {
 
     const Strengths = await StrengthRepo.find({ 'Employee': empId,

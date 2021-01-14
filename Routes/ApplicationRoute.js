@@ -36,6 +36,8 @@ route.post('/SubmitKpisForEvaluation',EmployeeController.SubmitKpisForEvaluation
 route.post('/SubmitAllKpisByManager',EmployeeController.SubmitAllKpisByManager);
 route.post('/UpdateKpiDataById',EmployeeController.UpdateKpiDataById);
 route.post('/dashboard',EmployeeController.Dashboard);
+route.post('/getCopiesTo',EmployeeController.GetCopiesTo);
+
 
 route.post('/AddNote', ApplicationController.AddNote);
 route.post('/GetNoteDataById',ApplicationController.GetNoteDataById);

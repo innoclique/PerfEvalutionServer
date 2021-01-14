@@ -206,6 +206,14 @@ exports.AddKpi = async (req, res, next) => {
         }
     });
 }
+
+exports.GetCopiesTo = async (req, res, next) => {
+    console.log("inside GetCopiesTo:::::")
+    await EmployeeService.getCopiesTo(req.body)
+        .then(Response => Response ? res.status(200).json(Response) : res.status(404).json("copies to Not Found"))
+        .catch(err => next(err));
+}
+
 exports.GetAllKpis = async (req, res, next) => {
     await EmployeeService.GetAllKpis(req.body)
         .then(Response => Response ? res.status(200).json(Response) : res.status(404).json("Kpi Not Found"))

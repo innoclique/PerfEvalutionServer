@@ -196,6 +196,7 @@ exports.UpdateDirectReportees = async (evaluation) => {
     try {
         const toupdateForm = await EvaluationRepo.findOne({ _id: Mongoose.Types.ObjectId(evaluation.EvaluationId) });
         toupdateForm.Employees.find(x => x._id.toString() === evaluation.EmployeeId).DirectReportees = evaluation.DirectReportees;
+        toupdateForm.Employees.find(x => x._id.toString() === evaluation.EmployeeId).drCompetenceMapping = evaluation.drCompetenceMapping;
         toupdateForm.Employees.find(x => x._id.toString() === evaluation.EmployeeId).DirectReporteeComptencyMessage = evaluation.DirectReporteeCompetencyMessage;
         toupdateForm.Employees.find(x => x._id.toString() === evaluation.EmployeeId).DirectReporteeCompetencyList = evaluation.DirectReporteeCompetencyList;
         //Object.assign(toupdateForm, evaluation);
@@ -229,8 +230,10 @@ exports.UpdateDirectReportees = async (evaluation) => {
 
 exports.UpdatePeers = async (evaluation) => {
     try {
+        console.log('request body from UpdatePeers:::::',evaluation);
         const toupdateForm = await EvaluationRepo.findOne({ _id: Mongoose.Types.ObjectId(evaluation.EvaluationId) });
         toupdateForm.Employees.find(x => x._id.toString() === evaluation.EmployeeId).Peers = evaluation.Peers;
+        toupdateForm.Employees.find(x => x._id.toString() === evaluation.EmployeeId).peerCompetenceMapping = evaluation.peerCompetenceMapping;
         toupdateForm.Employees.find(x => x._id.toString() === evaluation.EmployeeId).PeersCompetencyMessage = evaluation.PeersCompetencyMessage;
         toupdateForm.Employees.find(x => x._id.toString() === evaluation.EmployeeId).PeersCompetencyList = evaluation.PeersCompetencyList;
         //Object.assign(toupdateForm, evaluation);

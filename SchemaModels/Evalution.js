@@ -23,11 +23,13 @@ const Evalution = new mongoose.Schema({
                 PeersCompetencyList: [],
                 PeersCompetencyMessage: String,
                 QnA: [],
+                peerCompetenceMapping:{},
                 CompetencyComments: { type: String, default: "" },
                 CompetencyOverallRating: { type: Number, default: 0 },
                 CompetencySubmitted: {type:Boolean,default:false},
                 CompetencySubmittedOn: { type: Date, default: Date() }
             }],
+        peerCompetenceMapping:[],
         DirectReportees: [
             {
                 EmployeeId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
@@ -36,12 +38,14 @@ const Evalution = new mongoose.Schema({
                 DirectReporteeCompetencyList: [],
                 DirectReporteeCompetencyMessage: String,
                 QnA: [],
+                drCompetenceMapping:{},
                 CompetencyComments: { type: String, default: "" },
                 CompetencyOverallRating: { type: Number, default: 0 },
                 CompetencySubmitted: {type:Boolean,default:false},
                 CompetencySubmittedOn: { type: Date, default: Date() }
             }
         ],
+        drCompetenceMapping:[],
         Model: { type: mongoose.Schema.Types.ObjectId, ref: 'models', default: null },
         Competencies: [],
         CompetencyComments: { type: String, default: "" },

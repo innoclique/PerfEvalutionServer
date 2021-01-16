@@ -343,7 +343,6 @@ exports.GetEvaluationDashboardData = async (request) => {
     let evaluationArray = await EvaluationRepo.find(
         {"EvaluationYear" : moment().format("YYYY"), 
         "Company": ObjectId(orgId) }).populate("Employees.Status");
-        
     evaluationArray.forEach(evaluation=>{
         let {Employees} = evaluation;
         Employees.forEach(employee=>{
@@ -401,10 +400,10 @@ exports.GetEvaluationDashboardData = async (request) => {
         if(Employees && Employees.length>0){
             currPendingEval+=Employees.length;
         }
-    })
-    let {Completed} =pieObject;
-    if(Completed){
-        currPendingEval=currPendingEval-pieObject.Completed;
+    });
+    let EvaluationComplete =pieObject['Evaluation Complete'];
+    if(EvaluationComplete){
+        currPendingEval=currPendingEval-EvaluationComplete;
     }
     evalDashboardResponse['next_evaluation']['current_pending_evealuations'] = currPendingEval;
     /**

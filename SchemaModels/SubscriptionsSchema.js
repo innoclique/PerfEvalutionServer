@@ -6,6 +6,8 @@ const subscriptionSchema = new mongoose.Schema({
     Organization: { type: mongoose.Schema.Types.ObjectId, ref: 'Organization', default: null },
     ActivatedOn: { type: Date },
     ValidTill: { type: Date },
+    IsActive: { type: Boolean,  default:true},
+    Type: { type: String },
 });
 
 subscriptionSchema.set('toJSON', { versionKey: false });

@@ -519,7 +519,7 @@ exports.SubmitKpisByEmployee = async (options) => {
 
 };
 
-exports.DenyAllSignOffKpis = async (empId) => {
+exports.DenyAllEmployeeSignOffKpis = async (empId) => {
     try {
 
         const User = await UserRepo.find({ "_id": empId })

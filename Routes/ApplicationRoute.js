@@ -60,6 +60,8 @@ route.post('/CreateMeasurementCriteria',EmployeeController.CreateMeasurementCrit
 route.post('/AddReseller', ApplicationController.AddReseller);
 route.post('/UpdateReseller', ApplicationController.UpdateReseller);
 route.post('/GetUnlistedEmployees', EmployeeController.GetUnlistedEmployees);
+route.post('/GetPaymentInfo', EmployeeController.GetPaymentInfo);
+
 route.post('/GetManagers', EmployeeController.GetManagers);
 route.post('/GetImmediateApprCircle', EmployeeController.GetImmediateApprCircle);
 route.post('/GetThirdSignatorys', EmployeeController.GetThirdSignatorys);

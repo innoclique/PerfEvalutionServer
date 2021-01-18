@@ -27,6 +27,7 @@ const moment = require("moment");
 const ObjectId = Mongoose.Types.ObjectId;
 const KpiFormRepo = require('../SchemaModels/KpiForm');
 const strengthRepo = require('../SchemaModels/Strengths');
+const PaymentRepo = require('../SchemaModels/PaymentReleaseSchema')
 var fs = require("fs");
 var config = require(`../Config/${env}.config`);
 const EvaluationStatus = require('../common/EvaluationStatus');
@@ -1154,7 +1155,30 @@ exports.GetThirdSignatorys = async (data) => {
     return managers;
 }
 
+exports.GetPaymentInfo = async(search)=>{
+    try{
+        let orgData = await OrganizationRepo.findOne({ _id: search.company });
+        if (!orgData) {
+            console.log(orgData)
+            return { IsSuccess: true, Message: "No Organization details found", Data: null }
+        }
+        else{
+            console.log(orgData)
+            const PaymentInfo = await PaymentRepo.find({
+                Organization: Mongoose.Types.ObjectId(search.company),
+                Type:'Adhoc'
 
+            }).sort({ CreatedOn: -1 })
+            return { IsSuccess: true, Message: "", Data: PaymentInfo }
+        }
+
+    }
+    catch (error) {
+        logger.error('Error occurred while getting payment into', error)
+        throw error;
+    }
+
+}
 
 /**For getting employees who has not been added to evaluation */
 exports.GetUnlistedEmployees = async (search) => {

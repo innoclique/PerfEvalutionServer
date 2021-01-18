@@ -347,6 +347,13 @@ exports.GetUnlistedEmployees=async (req,res,next)=>{
         .catch(err => next(err => { next(err) }));
 }
 
+// FOR ADHOC PAYMENT DATA
+
+exports.GetPaymentInfo=async (req,res,next)=>{
+    await EmployeeService.GetPaymentInfo(req.body)
+        .then(Response => Response ? res.status(200).json(Response) : res.status(404).json(""))
+        .catch(err => next(err => { next(err) }));
+}
 
 exports.GetManagers=async (req,res,next)=>{
     await EmployeeService.GetManagers(req.body)

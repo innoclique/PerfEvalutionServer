@@ -624,7 +624,6 @@ exports.GetReporteeReleasedKpiForm = async (manager) => {
         ])
 
 
-
         var evReportees=[];
       evReportees=  await   EvaluationService.GetReporteeEvaluations(manager);
       evReportees = await filterEmployeePG(evReportees);
@@ -638,8 +637,7 @@ return [...reportees,...evReportees];
 }
 
 const filterEmployeePG = async (pglist) => {
-    console.log("inside:filterEmployeePG");
-    console.log(pglist.length)
+    console.log("inside:filterEmployeePG: "+pglist.length);
     for(var i=0;i<pglist.length;i++){
         let employeePg = {} ;
         employeePg = pglist[i];
@@ -655,10 +653,8 @@ const filterEmployeePG = async (pglist) => {
                     let {ManagerSignOff,IsActive,isFinalSignoff} = kpiObj;
                     console.log(`${kpiObj.Kpi} => ${FinalSignoff} - ${isFinalSignoff} - ${IsActive} - ${ManagerSignOff.submited}`)
                     if(FinalSignoff && isFinalSignoff && !ManagerSignOff.submited && IsActive){
-                       console.log("inside:if")
                         pgDraftGoals.push(kpiObj)
                     }else{
-                        console.log("inside:else")
                         _KpiList.push(kpiObj)
                     }
                 }

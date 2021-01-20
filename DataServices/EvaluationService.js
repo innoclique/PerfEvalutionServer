@@ -676,6 +676,7 @@ exports.GetPeerAvgRating = async (emp) => {
     }
 }
 exports.UpdateEvaluationStatus = async (empId,status) => {
+    let isEvaluationCompleted = false;
     let CompetencySubmitted = false;
     let CompetencySubmittedByManager = false;
     let score=0;
@@ -761,6 +762,7 @@ exports.UpdateEvaluationStatus = async (empId,status) => {
             status="EmployeeSignoff";
             if(_userObj.ThirdSignatory.toString() === '5f60f96d08967f4688416a00'){
                 status = "EvaluationComplete";
+                isEvaluationCompleted = truel
                 
             }
         }
@@ -782,6 +784,7 @@ exports.UpdateEvaluationStatus = async (empId,status) => {
         }
         if(status === "RevisionProgress" && score > 85){
             status="EvaluationComplete";
+            isEvaluationCompleted=truel
         }
         
         const evalStatus = await statusRepo.findOne({Key:status});
@@ -789,7 +792,7 @@ exports.UpdateEvaluationStatus = async (empId,status) => {
             console.log("Updating evaluation status = "+status);
             await EvaluationRepo.update(
                 {"status" : "Active","Employees._id":Mongoose.Types.ObjectId(empId)},
-                {$set:{'Employees.$.Status':evalStatus._id}}
+                {$set:{'Employees.$.Status':evalStatus._id,'Employees.$.isEvaluationCompleted':isEvaluationCompleted}}
                 );
         }else{
             console.log("Not Updating status  "+status);

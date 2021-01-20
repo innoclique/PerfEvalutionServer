@@ -789,7 +789,7 @@ exports.UpdateEvaluationStatus = async (empId,status) => {
         
         const evalStatus = await statusRepo.findOne({Key:status});
         if(evalStatus){
-            console.log("Updating evaluation status = "+status);
+            console.log("Updating evaluation status = "+status + ", isEvaluationCompleted:"+isEvaluationCompleted);
             await EvaluationRepo.update(
                 {"status" : "Active","Employees._id":Mongoose.Types.ObjectId(empId)},
                 {$set:{'Employees.$.Status':evalStatus._id,'Employees.$.isEvaluationCompleted':isEvaluationCompleted}}

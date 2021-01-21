@@ -137,7 +137,7 @@ exports.GetEvaluations = async (clientId) => {
                     as: 'Employee'
                 }
             },
-            { $match: { "Employee.HasActiveEvaluation": { $ne: "Yes" } } },
+            //{ $match: { "Employee.HasActiveEvaluation": { $ne: "Yes" } } },
             {
                 $lookup: {
                     from: 'users',
@@ -168,8 +168,29 @@ exports.GetEvaluations = async (clientId) => {
         ])
         response["kpiList"].map(x => {
             x.Type = "K"
-        })
-        return [...response["kpiList"], ...response["evaluations"]];
+        });
+        //console.log(response["kpiList"])
+        for(var i=0;i<response["kpiList"].length;i++){
+            let kpiObj = response["kpiList"][i];
+            let {Employee} = kpiObj;
+            let empObj = Employee[0];
+            //console.log(empObj._id._id);
+            let hasEvaluation = await response["evaluations"].
+            findIndex(evaluation=>empObj._id._id.toString() == 
+            evaluation.Employees[0]._id._id.toString());
+
+            if(hasEvaluation!==-1){
+                let evaluationObj = JSON.stringify(response["evaluations"][hasEvaluation]);
+                evaluationObj = JSON.parse(evaluationObj);
+                evaluationObj['kpiFormCreatedOn']=kpiObj.CreatedDate;
+                response["evaluations"][hasEvaluation] = evaluationObj;
+            }else{
+                kpiObj['Type'] = "K";
+                response["evaluations"].push(kpiObj);
+            }
+        }
+        return [...response["evaluations"]];
+        //return [...response["kpiList"], ...response["evaluations"]];
     } catch (error) {
         logger.error('error while GetEvaluations :', error)
         throw error;

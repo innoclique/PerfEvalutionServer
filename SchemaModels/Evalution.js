@@ -100,6 +100,7 @@ const Evalution = new mongoose.Schema({
     UpdatedDate: { type: Date, default: Date() },
     Company: { type: mongoose.Schema.Types.ObjectId, ref: 'Organization', default: null },
     EvaluationYear: { type: String, default: new Date().getFullYear() },
+    EvaluationType: { type: String,  default: null },
 
 
     // tracks: [{

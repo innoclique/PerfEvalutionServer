@@ -1165,9 +1165,7 @@ exports.GetPaymentInfo = async(search)=>{
         else{
             console.log(orgData)
             const PaymentInfo = await PaymentRepo.find({
-                Organization: Mongoose.Types.ObjectId(search.company),
-                Type:'Adhoc'
-
+                Organization: Mongoose.Types.ObjectId(search.company)
             }).sort({ CreatedOn: -1 })
             return { IsSuccess: true, Message: "", Data: PaymentInfo }
         }

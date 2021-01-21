@@ -24,7 +24,7 @@ const statusRepo=require('../SchemaModels/Statuses');
 
 exports.AddEvaluation = async (evaluation) => {
     try {
-        if(evaluation.EvaluationId){
+                if(evaluation.EvaluationId){
             let employee = evaluation.Employees[0];
             const _evaluation = await EvaluationRepo.update(
                 {

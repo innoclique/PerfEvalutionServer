@@ -762,8 +762,6 @@ exports.UpdateEvaluationStatus = async (empId,status) => {
             status="EmployeeSignoff";
             if(_userObj.ThirdSignatory.toString() === '5f60f96d08967f4688416a00'){
                 status = "EvaluationComplete";
-                isEvaluationCompleted = true;
-                
             }
         }
 
@@ -784,9 +782,13 @@ exports.UpdateEvaluationStatus = async (empId,status) => {
         }
         if(status === "RevisionProgress" && score > 85){
             status="EvaluationComplete";
-            isEvaluationCompleted=true;
+            
         }
         
+        if(status === "EvaluationComplete"){
+            isEvaluationCompleted=true;
+        }
+
         const evalStatus = await statusRepo.findOne({Key:status});
         if(evalStatus){
             console.log("Updating evaluation status = "+status + ", isEvaluationCompleted:"+isEvaluationCompleted);

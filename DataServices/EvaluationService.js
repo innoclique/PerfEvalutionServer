@@ -169,27 +169,28 @@ exports.GetEvaluations = async (clientId) => {
         response["kpiList"].map(x => {
             x.Type = "K"
         });
-        //console.log(response["kpiList"])
+        console.log(response["kpiList"].length)
+        let kpiArray = [];
         for(var i=0;i<response["kpiList"].length;i++){
             let kpiObj = response["kpiList"][i];
             let {Employee} = kpiObj;
             let empObj = Employee[0];
-            //console.log(empObj._id._id);
-            let hasEvaluation = await response["evaluations"].
+            let hasEvaluation = response["evaluations"].
             findIndex(evaluation=>empObj._id._id.toString() == 
             evaluation.Employees[0]._id._id.toString());
-
+            console.log(hasEvaluation);
             if(hasEvaluation!==-1){
                 let evaluationObj = JSON.stringify(response["evaluations"][hasEvaluation]);
-                evaluationObj = JSON.parse(evaluationObj);
-                evaluationObj['kpiFormCreatedOn']=kpiObj.CreatedDate;
-                response["evaluations"][hasEvaluation] = evaluationObj;
+                let _evaluationObj = JSON.parse(evaluationObj);
+                _evaluationObj['kpiFormCreatedOn']=kpiObj.CreatedDate;
+                response["evaluations"][hasEvaluation] = _evaluationObj;
+                
             }else{
                 kpiObj['Type'] = "K";
-                response["evaluations"].push(kpiObj);
+                kpiArray.push(kpiObj);
             }
         }
-        return [...response["evaluations"]];
+        return [...kpiArray , ...response["evaluations"]];
         //return [...response["kpiList"], ...response["evaluations"]];
     } catch (error) {
         logger.error('error while GetEvaluations :', error)

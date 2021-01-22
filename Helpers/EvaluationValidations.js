@@ -8,6 +8,7 @@ exports.ValidateEvaluationForm = (data) => {
         ActivateActionPlan: Joi.bool().optional(),
         EvaluationForRole: Joi.string().optional(),
         EvaluationDuration: Joi.string().optional(),
+     
         Model:Joi.string().allow(['',null]).optional(),
         PeerRatingNeeded: Joi.bool().optional(),
         
@@ -37,6 +38,7 @@ exports.ValidateEvaluationForm = (data) => {
         CreatedBy:Joi.string(),
         IsDraft:Joi.optional(),
         EvaluationId:Joi.optional(),
+        EvaluationType: Joi.optional(),
     });
     return schema;
 
@@ -47,10 +49,12 @@ exports.ValidateDraftEvaluationForm = (data) => {
         Employees:Joi.array().items(Joi.object().required()).min(1).required(),
         EvaluationPeriod: Joi.string().allow('').optional(),
         EvaluationDuration: Joi.string().allow('').optional(),
+        EvaluationType: Joi.string().optional(),
         ActivateKPI:Joi.bool().allow(false).optional(),
         ActivateActionPlan: Joi.bool().allow(false).optional(),
         EvaluationForRole: Joi.string().allow('').optional(),
         EvaluationDuration: Joi.string().allow('').optional(),
+        EvaluationType: Joi.string().optional(),
         Model:Joi.string().allow(['',null]).optional(),
         PeerRatingNeeded: Joi.bool().allow(false).optional(),        
         DirectReportRateNeeded: Joi.bool().allow(false).optional(),

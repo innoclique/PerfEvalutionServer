@@ -8,8 +8,16 @@ const { response } = require("express");
 
 
 exports.CreateEvaluation = async (req, res, next) => {
-    
-    Joi.validate(req.body, Validation.ValidateEvaluationForm(req.body), async (err, result) => {
+    console.log("INN")
+ 
+
+    await EvaluationService.AddEvaluation( req.body)
+    .then(Response => res.status(200).json(Response))
+    .catch(error =>{
+        logger.error(error)
+         next(error)});
+
+   /*  Joi.validate(req.body, Validation.ValidateEvaluationForm(req.body), async (err, result) => {
         if (err) { res.status(400).json({ message: err.details.map(i => i.message).join(" / ") }) }
         else {
             await EvaluationService.AddEvaluation( req.body)
@@ -18,7 +26,7 @@ exports.CreateEvaluation = async (req, res, next) => {
                 logger.error(error)
                  next(error)});
         }
-    });
+    }); */
 
     //const CurrentUserId = req.user.Id;
     

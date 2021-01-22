@@ -94,13 +94,14 @@ const Evalution = new mongoose.Schema({
     EvaluationForRole: String,
     EvaluationPeriod: String,
     EvaluationDuration: String,
+    EvaluationType:String,
     CreatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
     CreatedDate: { type: Date, default: Date() },
     UpdatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
     UpdatedDate: { type: Date, default: Date() },
     Company: { type: mongoose.Schema.Types.ObjectId, ref: 'Organization', default: null },
     EvaluationYear: { type: String, default: new Date().getFullYear() },
-    EvaluationType: { type: String,  default: null },
+   // EvaluationType: { type: String,  default: null },
 
 
     // tracks: [{

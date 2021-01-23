@@ -19,7 +19,7 @@ const KpiRepo = require('../SchemaModels/KPI');
 const MeasureCriteriaRepo = require('../SchemaModels/MeasurementCriteria');
 const KpiFormRepo = require('../SchemaModels/KpiForm');
 const EmployeeService = require('./EmployeeService');
-
+const EvaluationUtils = require("../utils/EvaluationUtils")
 const statusRepo=require('../SchemaModels/Statuses');
 
 exports.AddEvaluation = async (evaluation) => {
@@ -42,6 +42,8 @@ exports.AddEvaluation = async (evaluation) => {
             return employee;
         });
         evaluation.Employees = Employees;
+        let evaluationYear = await EvaluationUtils.GetOrgEvaluationYear(evaluation.Company);
+        evaluation.EvaluationYear = evaluationYear;
         const _evaluation = await EvaluationRepo(evaluation);
         var savedEvauation = await _evaluation.save();
         var _emps = evaluation.Employees.map(x => x._id);
@@ -501,10 +503,15 @@ exports.GetEmpCurrentEvaluation = async (emp) => {
         }
         var returnObject = {};
         if (employee) {
+            const EmpUserDomain = await UserRepo.findOne({ "_id": emp.EmployeeId });
+        let evaluationYear = await EvaluationUtils.GetOrgEvaluationYear(EmpUserDomain.Organization);
+        console.log(`evaluationYear = ${evaluationYear}`);
+
+
             const Kpi = await KpiRepo.find({
                 'Owner': emp.EmployeeId,
                 'IsDraftByManager': false,
-                'EvaluationYear': new Date().getFullYear(),
+                'EvaluationYear': evaluationYear,
                 // 'EvaluationId': evaluationForm._id.toString()
             }).populate('MeasurementCriteria.measureId Owner')
                 .sort({ UpdatedOn: -1 });
@@ -555,10 +562,14 @@ exports.GetEmpEvaluationByEmpId = async (emp) => {
         }
         var returnObject = {};
         if (employee) {
+            const EmpUserDomain = await UserRepo.findOne({ "_id": emp.EmployeeId });
+        let evaluationYear = await EvaluationUtils.GetOrgEvaluationYear(EmpUserDomain.Organization);
+        console.log(`evaluationYear = ${evaluationYear}`);
+
             const Kpi = await KpiRepo.find({
                 'Owner': emp.EmployeeId,
                 'IsDraftByManager': false,
-                'EvaluationYear': new Date().getFullYear(),
+                'EvaluationYear': evaluationYear,
                 // 'EvaluationId': evaluationForm._id.toString()
             }).populate('MeasurementCriteria.measureId Owner')
                 .sort({ UpdatedOn: -1 });
@@ -1160,6 +1171,10 @@ exports.sendmail = async (user) => {
 //new Date().getFullYear()
 exports.GetReporteeEvaluations = async (manager) => {
     try {
+        const ManagerUserDomain = await UserRepo.findOne({ "_id": manager.id });
+        let evaluationYear = await EvaluationUtils.GetOrgEvaluationYear(ManagerUserDomain.Organization);
+        console.log(`evaluationYear = ${evaluationYear}`);
+
         const reportees = await UserRepo.aggregate([
             { $match: { Manager: ObjectId(manager.id)} },
             { $addFields: { EmployeeId: "$_id" } },
@@ -1261,7 +1276,7 @@ exports.GetReporteeEvaluations = async (manager) => {
                             "as": "result",
                             "cond": {
                                 "$and": [
-                                    { "$eq": ["$$result.EvaluationYear", new Date().getFullYear().toString()] },
+                                    { "$eq": ["$$result.EvaluationYear", evaluationYear] },
                                     { "$eq": ["$$result.IsDraft", false] },
                                     { "$eq": ["$$result.IsSubmitedKPIs", true] }
                                 ]

@@ -13,6 +13,8 @@ const ObjectId = Mongoose.Types.ObjectId;
 var env = process.env.NODE_ENV || "dev";
 var config = require(`../Config/${env}.config`);
 var fs = require("fs");
+const EvaluationUtils = require("../utils/EvaluationUtils")
+
 exports.CreateOrganization = async (organization) => {
     try {
         //save user account for this organization
@@ -259,6 +261,10 @@ exports.ActivateOrg = async (client) => {
 
 exports.AddNotes = async (note) => {
     try {
+        const OwnerUserDomain = await UserRepo.findOne({ "_id": note.Owner });
+        let evaluationYear = await EvaluationUtils.GetOrgEvaluationYear(OwnerUserDomain.Organization);
+        console.log(`evaluationYear = ${evaluationYear}`);
+        note.EvaluationYear=evaluationYear;
         const Note = new NoteRepo(note);
         await Note.save();
         if (note.IsDraft=='false') { 

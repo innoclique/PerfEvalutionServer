@@ -15,15 +15,17 @@ const moment = require("moment");
 var fs = require("fs");
 const PGSignoffSchema = require('../SchemaModels/PGSignoffSchema');
 var logger = require('../logger');
-
+const EvaluationUtils = require('../utils/EvaluationUtils');
 
 exports.GetKpisForDevGoals = async (data) => {
-
+    const OwnerUserDomain = await UserRepo.findOne({ "_id": data.empId });
+    let evaluationYear = await EvaluationUtils.GetOrgEvaluationYear(OwnerUserDomain.Organization);
+    console.log(`evaluationYear = ${evaluationYear}`);
 
     try {
         const Kpi = await KpiRepo.find({ 'Owner': data.empId,
         'IsDraft': false,
-        'EvaluationYear' :new Date().getFullYear() })
+        'EvaluationYear' :evaluationYear })
             .populate('MeasurementCriteria.measureId Owner')
             .sort({ UpdatedOn: -1 });
 
@@ -497,6 +499,10 @@ exports.addDevGoalTrack = async (devGoalModel) => {
 
 exports.GetReporteeReleasedKpiForm = async (manager) => {
     try {
+        const ManagerUserDomain = await UserRepo.findOne({ "_id": manager.id });
+        let evaluationYear = await EvaluationUtils.GetOrgEvaluationYear(ManagerUserDomain.Organization);
+        console.log(`evaluationYear = ${evaluationYear}`);
+
         const reportees = await UserRepo.aggregate([
             { $match: { Manager: ObjectId(manager.id) } },
             { $addFields: { EmployeeId: "$_id" } },
@@ -518,7 +524,7 @@ exports.GetReporteeReleasedKpiForm = async (manager) => {
                     as: "ReleasedKpiList"
                 }
             },
-            {$match:{"ReleasedKpiList.IsActive": true,"ReleasedKpiList.EvaluationYear": new Date().getFullYear()+""  }},
+            {$match:{"ReleasedKpiList.IsActive": true,"ReleasedKpiList.EvaluationYear": evaluationYear+""  }},
            {$unwind:"$ReleasedKpiList"},
           
             
@@ -592,7 +598,7 @@ exports.GetReporteeReleasedKpiForm = async (manager) => {
                             "as": "accompresult",
                             "cond": {
                                 "$and": [
-                                    { "$eq": ["$$accompresult.EvaluationYear", new Date().getFullYear()+""] },
+                                    { "$eq": ["$$accompresult.EvaluationYear", evaluationYear+""] },
                                     { "$eq": ["$$accompresult.IsDraft", false] },
                                     { "$eq": ["$$accompresult.ShowToManager", true] }
                                 ]
@@ -612,7 +618,7 @@ exports.GetReporteeReleasedKpiForm = async (manager) => {
                             "as": "result",
                             "cond": {
                                 "$and": [
-                                    { "$eq": ["$$result.EvaluationYear", new Date().getFullYear().toString()] },
+                                    { "$eq": ["$$result.EvaluationYear", evaluationYear] },
                                     { "$eq": ["$$result.IsDraft", false] },
                                     { "$eq": ["$$result.IsSubmitedKPIs", true] }
                                 ]

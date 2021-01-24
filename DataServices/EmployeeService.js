@@ -1198,8 +1198,8 @@ exports.GetThirdSignatorys = async (data) => {
 /**For getting employees who has not been added to evaluation */
 exports.GetUnlistedEmployees = async (search) => {
     try {
-        const Organization = await OrganizationRepo.findOne({ "_id": search.company });
-        let evaluationYear = await EvaluationUtils.GetOrgEvaluationYear(Organization);
+        console.log(search.company)
+        let evaluationYear = await EvaluationUtils.GetOrgEvaluationYear(search.company);
         console.log(`evaluationYear = ${evaluationYear}`);
 
         if (search.allKpi === 'true') {

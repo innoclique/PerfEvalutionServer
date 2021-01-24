@@ -28,6 +28,7 @@ var fs = require("fs");
 var config = require(`../Config/${env}.config`);
 const EvaluationStatus = require('../common/EvaluationStatus');
 const { boolean } = require("joi");
+const EvaluationUtils = require("../utils/EvaluationUtils");
 
 exports.DirectReports = async (employee) => {
     let { userId,orgId } = employee;
@@ -96,7 +97,9 @@ const peerInfo = async (userId) => {
 
 const currentEvaluationProgress = async (orgId,userId,userType) => {
     console.log("currentEvaluationProgress");
-    let currentYear = moment().format('YYYY');
+    let currentYear = await EvaluationUtils.GetOrgEvaluationYear(orgId);
+    console.log(`evaluationYear:dashboardService = ${currentYear}`);
+
     let evaluationObj = {};
     let whereObj = {
         "Company": Mongoose.Types.ObjectId(orgId),

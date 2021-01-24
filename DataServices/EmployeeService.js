@@ -146,8 +146,7 @@ exports.GetEmpSetupBasicData = async (industry) => {
 exports.GetKpiSetupBasicData = async (empId, orgId) => {
 
 try{
-    const Organization = await OrganizationRepo.findOne({ "_id": orgId });
-    let evaluationYear = await EvaluationUtils.GetOrgEvaluationYear(Organization);
+    let evaluationYear = await EvaluationUtils.GetOrgEvaluationYear(orgId);
     console.log(`evaluationYear = ${evaluationYear}`);
     if(!evaluationYear){
         evaluationYear = new Date().getFullYear();
@@ -1481,7 +1480,12 @@ const previousEvaluationProgress = async (userId) => {
     let previousEvaluation = {};
     let prevYearStart = moment().subtract(1, 'years').startOf('year');
     let prevYearEnd = moment().subtract(1, 'years').endOf('year');
+    
     const OwnerUserDomain = await UserRepo.findOne({ "_id": userId });
+    let evaluationYear = await EvaluationUtils.GetOrgEvaluationYear(OwnerUserDomain.Organization);
+    console.log(`evaluationYear = ${evaluationYear}`);
+    prevYearStart = parseInt(evaluationYear)-1;
+    
     let evaluationYearObj = await EvaluationUtils.getOrganizationStartAndEndDates(OwnerUserDomain.Organization);
     evaluationYearObj.start = evaluationYearObj.start.subtract(1, 'years');
     evaluationYearObj.end = evaluationYearObj.end.subtract(1, 'years');
@@ -2339,9 +2343,12 @@ exports.GetPeerAvgRating = async (emp) => {
 
 exports.GetDRReviewsList = async (emp) => {
     try {
+        const OwnerUserDomain = await UserRepo.findOne({ "_id": emp.EmployeeId });
+        let evaluationYear = await EvaluationUtils.GetOrgEvaluationYear(OwnerUserDomain.Organization);
+        console.log(`evaluationYear = ${evaluationYear}`);
         var list =
             await EvaluationRepo.aggregate([
-                { $match: { "Employees.DirectReportees.EmployeeId": ObjectId(emp.EmployeeId), "Employees.FinalRating.Manager.SignOff":{$exists:true,$eq:""}, "EvaluationYear": new Date().getFullYear().toString() } },
+                { $match: { "Employees.DirectReportees.EmployeeId": ObjectId(emp.EmployeeId), "Employees.FinalRating.Manager.SignOff":{$exists:true,$eq:""}, "EvaluationYear": evaluationYear } },
                 {
                     $addFields: {
                         EvaluationId: "$_id"

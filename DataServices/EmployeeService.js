@@ -1492,7 +1492,7 @@ const previousEvaluationProgress = async (userId) => {
     previousEvaluation['period'] = evaluationYearObj.start.format("MMM, YYYY") + " - " + evaluationYearObj.end.format("MMM, YYYY");
     let whereObj = {
         "Employees._id": Mongoose.Types.ObjectId(userId),
-        "EvaluationYear": prevYearStart.format('YYYY'),
+        "EvaluationYear": prevYearStart,
         //"Employees.Status": "EvaluationComplete"
 
 

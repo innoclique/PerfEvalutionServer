@@ -503,11 +503,13 @@ exports.GetEmpCurrentEvaluation = async (emp) => {
     returnObject["DirectReporteeScoreCard"] = {}
     returnObject["OverallCompetencyRatings"] = []
     let status = ['Active', 'InProgress','Completed'];
+    const EmpUserDomain = await UserRepo.findOne({ "_id": emp.EmployeeId });
+    let evaluationYear = await EvaluationUtils.GetOrgEvaluationYear(EmpUserDomain.Organization);
     try {
         const evaluationForm = await EvaluationRepo.findOne(
             {
                 Employees: { $elemMatch: { _id: ObjectId(emp.EmployeeId) }},
-                EvaluationYear: new Date().getFullYear().toString()
+                EvaluationYear: evaluationYear
             }
         ).populate("Employees.PeersCompetencyList._id").select({ "Employees.Peers": 0 });
         if (!evaluationForm) {
@@ -519,12 +521,9 @@ exports.GetEmpCurrentEvaluation = async (emp) => {
         }
         var returnObject = {};
         if (employee) {
-            const EmpUserDomain = await UserRepo.findOne({ "_id": emp.EmployeeId });
-        let evaluationYear = await EvaluationUtils.GetOrgEvaluationYear(EmpUserDomain.Organization);
+        
         console.log(`evaluationYear = ${evaluationYear}`);
-
-
-            const Kpi = await KpiRepo.find({
+        const Kpi = await KpiRepo.find({
                 'Owner': emp.EmployeeId,
                 'IsDraftByManager': false,
                 'EvaluationYear': evaluationYear,

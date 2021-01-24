@@ -696,7 +696,6 @@ exports.SubmitAllKpis = async (empId) => {
     try {
         const User = await UserRepo.find({ "_id": empId })
             .populate('Manager');
-        console.log(User)
             let evaluationYear = await EvaluationUtils.GetOrgEvaluationYear(User[0].Organization);
             console.log(`evaluationYear = ${evaluationYear}`);
 

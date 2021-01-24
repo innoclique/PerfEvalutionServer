@@ -1449,7 +1449,9 @@ const previousEvaluationProgress = async (userId) => {
     let previousEvaluation = {};
     let prevYearStart = moment().subtract(1, 'years').startOf('year');
     let prevYearEnd = moment().subtract(1, 'years').endOf('year');
-    previousEvaluation['period'] = prevYearStart.format("MMM") + " - " + prevYearEnd.format("MMM, YYYY");
+    const OwnerUserDomain = await UserRepo.findOne({ "_id": userId });
+    let evaluationYearObj = await EvaluationUtils.getOrganizationStartAndEndDates(OwnerUserDomain.Organization);
+    previousEvaluation['period'] = evaluationYearObj.start.format("MMM, YYYY") + " - " + evaluationYearObj.end.format("MMM, YYYY");
     let whereObj = {
         "Employees._id": Mongoose.Types.ObjectId(userId),
         "EvaluationYear": prevYearStart.format('YYYY'),

@@ -76,6 +76,8 @@ exports.EMDashboardData = async (employee) => {
             });
         });
     }
+    console.log("====peerReviewList====");
+    console.log(peerReviewList);
     response['peer_review']['list'] = peerReviewList;
     }
     catch(e){
@@ -177,7 +179,7 @@ const caluculateDaysRemaining = (evaluationPeriod,endMonth,StartMonth) =>{
         let momentNextEvlDate = moment().add(1, 'years').startOf('year');
         remainingDays = momentNextEvlDate.diff(moment(), 'days');
     }else if(evaluationPeriod === 'FiscalYear'){
-        
+        let currentMoment = moment();
         var currentMonth = parseInt(currentMoment.format('M'));
         console.log(`${currentMonth} <= ${StartMonth}`);
         let evaluationStartMoment;

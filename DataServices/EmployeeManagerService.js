@@ -39,7 +39,6 @@ exports.DirectReports = async (employee) => {
     return response;
 }
 exports.EMDashboardData = async (employee) => {
-    console.log(JSON.stringify(employee))
     let userType= "EM";
     if(employee.type){
         userType=employee.type;
@@ -57,7 +56,7 @@ exports.EMDashboardData = async (employee) => {
         evaluationRepo.forEach(element => {
             let { Employees,Company } = element;
             let evaluationId = element._id;
-            let daysRemaining = caluculateDaysRemaining(Company.EvaluationPeriod,Company.EndMonth);
+            let daysRemaining = caluculateDaysRemaining(Company.EvaluationPeriod,Company.EndMonth,Company.StartMonth);
             Employees.forEach(employeeObj => {
                 let { Peers, _id } = employeeObj;
                 let peerFoundObject = Peers.find(peerObj => peerObj.EmployeeId == userId);
@@ -168,20 +167,28 @@ const directReports = async (orgId,userId,userType) => {
 
 
 
-const caluculateDaysRemaining = (evaluationPeriod,endMonth) =>{
+const caluculateDaysRemaining = (evaluationPeriod,endMonth,StartMonth) =>{
     endMonth = "January";
     let remainingDays = "N/A";
     if(evaluationPeriod === 'CalendarYear'){
         let momentNextEvlDate = moment().add(1, 'years').startOf('year');
         remainingDays = momentNextEvlDate.diff(moment(), 'days');
     }else if(evaluationPeriod === 'FiscalYear'){
-        let currentMonth= moment().format('M');
-        let endMonthVal = moment().month(endMonth).format("M");
-        let nextYear = moment().add(1, 'years').month(endMonthVal-1).endOf('month');
-    if(currentMonth === endMonthVal){
-        nextYear = moment().endOf('month');
-    }
-    remainingDays = nextYear.diff(moment(), 'days');
+        
+        var currentMonth = parseInt(currentMoment.format('M'));
+        console.log(`${currentMonth} <= ${StartMonth}`);
+        let evaluationStartMoment;
+        let evaluationEndMoment;
+        if(currentMonth <= StartMonth){
+            evaluationStartMoment = moment().month(StartMonth-1).startOf('month').subtract(1, 'years');
+            evaluationEndMoment = moment().month(StartMonth-2).endOf('month');
+            console.log(`${evaluationStartMoment.format("MM DD,YYYY")} = ${evaluationEndMoment.format("MM DD,YYYY")}`);
+          }else{
+            evaluationStartMoment = moment().month(StartMonth-1).startOf('month');
+            evaluationEndMoment = moment().month(StartMonth-2).endOf('month').add(1, 'years');
+            console.log(`${evaluationStartMoment.format("MM DD,YYYY")} = ${evaluationEndMoment.format("MM DD,YYYY")}`);
+          }
+        remainingDays = evaluationEndMoment.diff(moment(), 'days');
     }
     return remainingDays;
     

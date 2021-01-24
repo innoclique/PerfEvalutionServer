@@ -359,13 +359,15 @@ exports.GetEvaluationDashboardData = async (request) => {
     let { userId } = request;
     let _userObj = await UserRepo.findOne({"_id":Mongoose.Types.ObjectId(userId)}).populate("Organization");
     let orgId = _userObj.Organization._id;
+    let evaluationYear = await EvaluationUtils.GetOrgEvaluationYear(orgId);
+    console.log(`evaluationYear = ${evaluationYear}`);
     let { EvaluationPeriod,StartMonth } = _userObj.Organization;
     /**
      * Start->Charts
      */
     let pieObject={};
     let evaluationArray = await EvaluationRepo.find(
-        {"EvaluationYear" : moment().format("YYYY"), 
+        {"EvaluationYear" : evaluationYear, 
         "Company": ObjectId(orgId) }).populate("Employees.Status");
     evaluationArray.forEach(evaluation=>{
         let {Employees} = evaluation;
@@ -560,10 +562,13 @@ exports.GetEmpEvaluationByEmpId = async (emp) => {
     returnObject["OverallCompetencyRatings"] = []
     let status = ['Active', 'InProgress','Completed'];
     try {
+        const EmpUserDomain = await UserRepo.findOne({ "_id": emp.EmployeeId });
+        let evaluationYear = await EvaluationUtils.GetOrgEvaluationYear(EmpUserDomain.Organization);
+
         const evaluationForm = await EvaluationRepo.findOne(
             {
                 Employees: { $elemMatch: { _id: ObjectId(emp.EmployeeId) }},
-                EvaluationYear: new Date().getFullYear().toString()
+                EvaluationYear: evaluationYear
             }
         ).populate("Employees.PeersCompetencyList._id").select({ "Employees.Peers": 0 });
         if (!evaluationForm) {
@@ -577,8 +582,7 @@ exports.GetEmpEvaluationByEmpId = async (emp) => {
         }
         var returnObject = {};
         if (employee) {
-            const EmpUserDomain = await UserRepo.findOne({ "_id": emp.EmployeeId });
-        let evaluationYear = await EvaluationUtils.GetOrgEvaluationYear(EmpUserDomain.Organization);
+        
         console.log(`evaluationYear = ${evaluationYear}`);
 
             const Kpi = await KpiRepo.find({
@@ -1001,6 +1005,10 @@ exports.GetDirectReporteeAvgRating = async (emp) => {
 
 exports.GetTSReporteeEvaluations = async (ts) => {
     try {
+        const TSUserDomain = await UserRepo.findOne({ "_id": ts.id });
+        let evaluationYear = await EvaluationUtils.GetOrgEvaluationYear(TSUserDomain.Organization);
+        console.log(`evaluationYear = ${evaluationYear}`);
+
         const reportees = await UserRepo.aggregate([
             { $match: { ThirdSignatory: ObjectId(ts.id) } },
             { $addFields: { EmployeeId: "$_id" } },
@@ -1024,7 +1032,7 @@ exports.GetTSReporteeEvaluations = async (ts) => {
             ,
             {
                 $match: {
-                    "EvaluationList.EvaluationYear": new Date().getFullYear().toString(),
+                    "EvaluationList.EvaluationYear": evaluationYear,
 
                 }
             },
@@ -1106,7 +1114,7 @@ exports.GetTSReporteeEvaluations = async (ts) => {
                             "as": "result",
                             "cond": {
                                 "$and": [
-                                    { "$eq": ["$$result.EvaluationYear", new Date().getFullYear().toString()] },
+                                    { "$eq": ["$$result.EvaluationYear", evaluationYear] },
                                     { "$eq": ["$$result.IsDraft", false] },
                                     { "$eq": ["$$result.IsSubmitedKPIs", true] }
                                 ]

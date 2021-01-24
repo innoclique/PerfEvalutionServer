@@ -6,8 +6,13 @@ const ProductPriceScaleSchema = require('../SchemaModels/ProductPriceScale');
 const Mongoose = require("mongoose");
 const ObjectId = Mongoose.Types.ObjectId;
 const moment = require("moment");
+const EvaluationUtils = require("../utils/EvaluationUtils");
 
 const dashboardService =  async (userId)=>{
+    const OwnerUserDomain = await userSchema.findOne({ "_id": userId });
+    let evaluationYear = await EvaluationUtils.GetOrgEvaluationYear(OwnerUserDomain.Organization);
+    console.log(`evaluationYear:dashboardService = ${evaluationYear}`);
+
     let response = {};
     response['current_status']={};
     response['evaluation_summary']={};
@@ -19,8 +24,8 @@ const dashboardService =  async (userId)=>{
             list: {$addToSet :{ _id: "$_id",status:'$status'}}
         }}
       ]);
-      let currentYear = moment().format('YYYY');
-      let evaluationList = await EvaluationRepo.find({Company: Mongoose.Types.ObjectId(orgId),EvaluationYear:currentYear});
+      
+      let evaluationList = await EvaluationRepo.find({Company: Mongoose.Types.ObjectId(orgId),EvaluationYear:evaluationYear});
       response['current_status'] = await evaluationCurrentStatus(evaluationList,orgId);
       response['evaluation_summary'] = evaluationChat(evaluationAggregateList);
       

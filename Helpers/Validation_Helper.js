@@ -590,7 +590,7 @@ exports.ValidateStrength = ( data)=>{
       ManagerComments: Joi.optional(),
       Employee: Joi.string().required(),
       Owner: Joi.string().required(),
-      ManagerId: Joi.string().required(),
+      ManagerId: Joi.optional(),
       IsDraft:Joi.optional(),
       IsStrengthSubmited:Joi.optional(),
       

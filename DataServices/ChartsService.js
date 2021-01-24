@@ -69,6 +69,7 @@ const evaluatonSummary = async (companyId,years)=>{
 }
 
 const getEvaluationPeriod = (type,StartMonth)=>{
+    let currentMoment = moment();
     if (type === 'CalendarYear') {
         let momentCurrentEvlDate = moment().startOf('month').startOf('year');
         //let momentNextEvlDate = moment().startOf('month').add(1, 'years').startOf('year');
@@ -77,9 +78,23 @@ const getEvaluationPeriod = (type,StartMonth)=>{
         
     }
     if (type === 'FiscalYear') {
-        let momentCurrentEvlDate = moment().month(parseInt(StartMonth-1)).startOf('month');
+        var currentMonth = parseInt(currentMoment.format('M'));
+        console.log(`${currentMonth} <= ${StartMonth}`);
+        let evaluationStartMoment;
+        let evaluationEndMoment;
+        if(currentMonth <= StartMonth){
+            evaluationStartMoment = moment().month(StartMonth-1).startOf('month').subtract(1, 'years');
+            evaluationEndMoment = moment().month(StartMonth-2).endOf('month');
+            console.log(`${evaluationStartMoment.format("MM DD,YYYY")} = ${evaluationEndMoment.format("MM DD,YYYY")}`);
+          }else{
+            evaluationStartMoment = moment().month(StartMonth-1).startOf('month');
+            evaluationEndMoment = moment().month(StartMonth-2).endOf('month').add(1, 'years');
+            console.log(`${evaluationStartMoment.format("MM DD,YYYY")} = ${evaluationEndMoment.format("MM DD,YYYY")}`);
+          }
+          return evaluationStartMoment.format("MMM-YY") +" - "+evaluationEndMoment.format("MMM-YY");
+        /*let momentCurrentEvlDate = moment().month(parseInt(StartMonth-1)).startOf('month');
         let momentNextEvlDate = moment().month(parseInt(StartMonth)-2).startOf('month').add(1, 'years');
-        return momentCurrentEvlDate.format("MMM-YY") +" - "+momentNextEvlDate.format("MMM-YY");
+        return momentCurrentEvlDate.format("MMM-YY") +" - "+momentNextEvlDate.format("MMM-YY");*/
     }
 }
 

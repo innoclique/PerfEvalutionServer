@@ -404,7 +404,23 @@ exports.GetEvaluationDashboardData = async (request) => {
         evalDashboardResponse['next_evaluation']['days'] = momentNextEvlDate.diff(moment(), 'days');
     }
     if (EvaluationPeriod && EvaluationPeriod === 'FiscalYear') {
-        let momentNextEvlDate = moment().month(parseInt(StartMonth)-1).startOf('month').add(1, 'years');
+        let currentMoment = moment();
+        var currentMonth = parseInt(currentMoment.format('M'));
+        console.log(`${currentMonth} <= ${StartMonth}`);
+        let evaluationStartMoment;
+        let evaluationEndMoment;
+        if(currentMonth <= StartMonth){
+            evaluationStartMoment = moment().month(StartMonth-1).startOf('month').subtract(1, 'years');
+            evaluationEndMoment = moment().month(StartMonth-2).endOf('month');
+            console.log(`${evaluationStartMoment.format("MM DD,YYYY")} = ${evaluationEndMoment.format("MM DD,YYYY")}`);
+          }else{
+            evaluationStartMoment = moment().month(StartMonth-1).startOf('month');
+            evaluationEndMoment = moment().month(StartMonth-2).endOf('month').add(1, 'years');
+            console.log(`${evaluationStartMoment.format("MM DD,YYYY")} = ${evaluationEndMoment.format("MM DD,YYYY")}`);
+          }
+
+          
+        let momentNextEvlDate = evaluationStartMoment.startOf('month').add(1, 'years');
         //let fiscalEndMonth = moment().add(1, 'years').month(parseInt(StartMonth)-1);
         evalDashboardResponse['next_evaluation']['date'] = momentNextEvlDate.format("MMM DD,YYYY");
         evalDashboardResponse['next_evaluation']['days'] = momentNextEvlDate.diff(moment(), 'days');

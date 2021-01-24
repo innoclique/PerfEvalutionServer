@@ -133,8 +133,13 @@ exports.GetAllStrengths = async (req, res, next) => {
 
 }
 exports.AddAccomplishment = async (req, res, next) => {
-    
-    Joi.validate(req.body, Validation_Helper.ValidateAccomplishment(req.body), async (err, result) => {
+    await EmployeeService.AddAccomplishment(req.body)
+                .then((Response) => {
+                    res.status(200).json({ message: "Success" });
+                })
+                .catch(err => { next(err) });
+
+    /*Joi.validate(req.body, Validation_Helper.ValidateAccomplishment(req.body), async (err, result) => {
         if (err) { res.status(400).json({ message: err.details.map(i => i.message).join(" / ") }) }
         else {
             
@@ -144,7 +149,7 @@ exports.AddAccomplishment = async (req, res, next) => {
                 })
                 .catch(err => { next(err) });
         }
-    });
+    });*/
 }
 exports.GetAllAccomplishments = async (req, res, next) => {
     await EmployeeService.GetAllAccomplishments(req.body)

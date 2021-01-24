@@ -146,7 +146,12 @@ exports.GetEmpSetupBasicData = async (industry) => {
 exports.GetKpiSetupBasicData = async (empId, orgId) => {
 
 try{
-
+    const Organization = await OrganizationRepo.findOne({ "_id": orgId });
+    let evaluationYear = await EvaluationUtils.GetOrgEvaluationYear(Organization);
+    console.log(`evaluationYear = ${evaluationYear}`);
+    if(!evaluationYear){
+        evaluationYear = new Date().getFullYear();
+    }
     const KpiStatus = Messages.constants.KPI_STATUS;
     //const KpiScore = Messages.constants.KPI_SCORE;
     // const coachingRem = Messages.constants.COACHING_REM_DAYS;
@@ -154,7 +159,7 @@ try{
     const coachingRem = await CoachingRemainRepo.find();
     var allEvaluation = await EvaluationRepo.find({
         Employees: { $elemMatch: { _id: Mongoose.Types.ObjectId(empId) } },
-        EvaluationYear: new Date().getFullYear(),
+        EvaluationYear: evaluationYear,
         Company: orgId
     }).sort({ CreatedDate: -1 });  
     let evaluation = allEvaluation[0];
@@ -1193,11 +1198,15 @@ exports.GetThirdSignatorys = async (data) => {
 /**For getting employees who has not been added to evaluation */
 exports.GetUnlistedEmployees = async (search) => {
     try {
+        const Organization = await OrganizationRepo.findOne({ "_id": search.company });
+        let evaluationYear = await EvaluationUtils.GetOrgEvaluationYear(Organization);
+        console.log(`evaluationYear = ${evaluationYear}`);
+
         if (search.allKpi === 'true') {
             var response = await KpiFormRepo.aggregate([{
                 $match: {
                     Company: Mongoose.Types.ObjectId(search.company),
-                    EvaluationYear: new Date().getFullYear().toString()
+                    EvaluationYear: evaluationYear
                 }
             },
             {
@@ -1327,7 +1336,7 @@ exports.DashboardData = async (employee) => {
         evaluationRepo.forEach(element => {
             let { Employees,Company } = element;
             let evaluationId = element._id;
-            let daysRemaining = caluculateDaysRemaining(Company.EvaluationPeriod,Company.EndMonth);
+            let daysRemaining = caluculateDaysRemaining(Company.EvaluationPeriod,Company.EndMonth,Company.StartMonth);
             Employees.forEach(employeeObj => {
                 let { Peers, _id } = employeeObj;
                 let peerFoundObject = Peers.find(peerObj => peerObj.EmployeeId == userId);
@@ -1355,26 +1364,49 @@ exports.DashboardData = async (employee) => {
     return response;
 }
 
-const caluculateDaysRemaining = (evaluationPeriod,endMonth) =>{
+const caluculateDaysRemaining = (evaluationPeriod,endMonth,StartMonth) =>{
     //endMonth = "January";
     let remainingDays = "N/A";
+    let currentMoment = moment();
     if(evaluationPeriod === 'CalendarYear'){
         let momentNextEvlDate = moment().add(1, 'years').startOf('year');
         remainingDays = momentNextEvlDate.diff(moment(), 'days');
     }else if(evaluationPeriod === 'FiscalYear'){
-        let currentMonth= moment().format('M');
+        var currentMonth = parseInt(currentMoment.format('M'));
+        console.log(`${currentMonth} <= ${StartMonth}`);
+        let evaluationStartMoment;
+        let evaluationEndMoment;
+        if(currentMonth <= StartMonth){
+            evaluationStartMoment = moment().month(StartMonth-1).startOf('month').subtract(1, 'years');
+            evaluationEndMoment = moment().month(StartMonth-2).endOf('month');
+            console.log(`${evaluationStartMoment.format("MM DD,YYYY")} = ${evaluationEndMoment.format("MM DD,YYYY")}`);
+          }else{
+            evaluationStartMoment = moment().month(StartMonth-1).startOf('month');
+            evaluationEndMoment = moment().month(StartMonth-2).endOf('month').add(1, 'years');
+            console.log(`${evaluationStartMoment.format("MM DD,YYYY")} = ${evaluationEndMoment.format("MM DD,YYYY")}`);
+          }
+
+
+        /*let currentMonth= moment().format('M');
         let endMonthVal = moment().month(endMonth).format("M");
         let nextYear = moment().add(1, 'years').month(endMonthVal-1).endOf('month');
+
     if(currentMonth === endMonthVal){
         nextYear = moment().endOf('month');
-    }
-    remainingDays = nextYear.diff(moment(), 'days');
+    }*/
+    remainingDays = evaluationEndMoment.diff(moment(), 'days');
     }
     return remainingDays;
     
 }
 const currentEvaluationProgress = async (userId) => {
+    
     let currentYear = moment().format('YYYY');
+    if(userId){
+        const UserDomain = await UserRepo.findOne({ "_id": userId });
+        currentYear = await EvaluationUtils.GetOrgEvaluationYear(UserDomain.Organization);
+        console.log(`currentYear = ${currentYear}`);
+    }
     let evaluationOb = {};
     let whereObj = {
         "Employees._id": Mongoose.Types.ObjectId(userId),
@@ -1451,6 +1483,8 @@ const previousEvaluationProgress = async (userId) => {
     let prevYearEnd = moment().subtract(1, 'years').endOf('year');
     const OwnerUserDomain = await UserRepo.findOne({ "_id": userId });
     let evaluationYearObj = await EvaluationUtils.getOrganizationStartAndEndDates(OwnerUserDomain.Organization);
+    evaluationYearObj.start = evaluationYearObj.start.subtract(1, 'years');
+    evaluationYearObj.end = evaluationYearObj.end.subtract(1, 'years');
     previousEvaluation['period'] = evaluationYearObj.start.format("MMM, YYYY") + " - " + evaluationYearObj.end.format("MMM, YYYY");
     let whereObj = {
         "Employees._id": Mongoose.Types.ObjectId(userId),
@@ -1520,13 +1554,16 @@ const getPeerInfo = (Peers) => {
 
 
 const peerInfo = async (userId) => {
+    const UserDomain = await UserRepo.findOne({ "_id": userId });
+    let evaluationYear = await EvaluationUtils.GetOrgEvaluationYear(UserDomain.Organization);
+    console.log(`evaluationYear = ${evaluationYear}`);
     return await EvaluationRepo
         .find({
             "Employees.Peers": {
                 $elemMatch:
                     { "EmployeeId": Mongoose.Types.ObjectId(userId) }
             },
-            "EvaluationYear":new Date().getFullYear()
+            "EvaluationYear":evaluationYear
         }).populate("Employees._id").populate("Company");
 }
 
@@ -2776,6 +2813,10 @@ exports.GetOverallRatingByCompetency = async (emp) => {
 
 exports.GetReporteeAccomplishments = async (manager) => {
     try {
+        const ManagerUserDomain = await UserRepo.findOne({ "_id": manager.id });
+        let evaluationYear = await EvaluationUtils.GetOrgEvaluationYear(ManagerUserDomain.Organization);
+        console.log(`evaluationYear = ${evaluationYear}`);
+
         const reportees = await UserRepo.aggregate([
             { $match: { Manager: ObjectId(manager.id) } },
             { $addFields: { EmployeeId: "$_id" } },
@@ -2809,7 +2850,7 @@ exports.GetReporteeAccomplishments = async (manager) => {
                             "as": "accompresult",
                             "cond": {
                                 "$and": [
-                                    { "$eq": ["$$accompresult.EvaluationYear", new Date().getFullYear()+""] },
+                                    { "$eq": ["$$accompresult.EvaluationYear", evaluationYear+""] },
                                     { "$eq": ["$$accompresult.IsDraft", false] },
                                     { "$eq": ["$$accompresult.ShowToManager", true] }
                                 ]

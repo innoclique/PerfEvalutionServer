@@ -47,6 +47,12 @@ exports.AddEvaluation = async (evaluation) => {
         const _evaluation = await EvaluationRepo(evaluation);
         var savedEvauation = await _evaluation.save();
         var _emps = evaluation.Employees.map(x => x._id);
+        
+        var _empMgrsIds = evaluation.Employees.map(x => x.DirectReports);
+        var _Mgrs = evaluation.Employees.map(x => x.Manager);
+        var _thirdSignatoryIds = evaluation.Employees.map(x => x.ThirdSignatory);
+        var _empMgrs = await UserRepo.find({ $or: [{ _id: { $in: _empMgrsIds } }, { _id: { $in: _thirdSignatoryIds } }] });
+       
         await UserRepo.updateMany({ _id: { $in: _emps } }, { $set: { HasActiveEvaluation: "Yes" } });
         await KpiFormRepo.updateMany({ EmployeeId: { $in: _emps } }, { $set: { IsActive: false } });
         const _currentEvaluation = await EvaluationRepo.findOne({ _id: Mongoose.Types.ObjectId(savedEvauation._id) })
@@ -107,6 +113,85 @@ exports.AddEvaluation = async (evaluation) => {
                 })
             })
         })
+        
+         _empMgrs.map(mgr => {
+            var empTable = `<p><table style="margin:20px 0px;" width="100%" border="2px" cellspacing="0" cellpadding="0">
+            <thead>
+                <th>
+                    Name
+                </th>
+                <th>
+                    Email
+                </th>
+                <th>
+                    Manager
+                </th>
+                <th>
+                    Peers
+                </th>
+                <th>
+                    Direct Reports
+                </th>
+            </thead>`;
+
+            for (let emp of _currentEvaluation.Employees) {
+
+                var manager = _Mgrs.find(mgr => mgr._id.toString() == emp._id.Manager.toString())
+
+                if (emp._id.DirectReports.toString() == mgr._id.toString() || emp._id.ThirdSignatory.toString() == mgr._id.toString()) {
+
+                    var peers = '';
+                    var directReportees = '';
+
+                    emp.Peers.map(p => {
+                        peers = peers + p.EmployeeId.FirstName + ' ' + p.EmployeeId.LastName + ', ';
+                    });
+                    emp.DirectReportees.map(d => {
+                        directReportees = directReportees + d.EmployeeId.FirstName + ' ' + d.EmployeeId.LastName + ', ';
+                    });
+
+                    empTable = `${empTable} 
+                <tr>
+                <td>
+                ${emp._id.FirstName} ${emp._id.LastName}
+                </td>
+                <td>
+                ${emp._id.Email}
+                </td>
+                <td>
+                ${manager.FirstName} ${manager.LastName}
+                </td>
+                <td>
+               ${peers}
+                </td>
+                <td>
+                ${directReportees}
+                </td>
+                </tr>`;
+                }
+            }
+
+
+            empTable = empTable + ` </table></p>`;
+            _deliveremails.push({
+                User: mgr._id,
+                Type: 'Evaluation Released',
+                IsDelivered: false,
+                Email: mgr.Email,
+                Template: `<p>Dear ${mgr.FirstName} <br/></p>
+                <p>The Evaluations has been released for the following employees. This is for your information.</p>
+
+                <br/>
+                ${empTable}
+                <br/>
+                <p>Thank you,<br/>
+                OPAssess Admin</p>`,
+                Company: _currentEvaluation.Company,
+                Subject: 'Evaluations for your direct reports has been released'
+            });
+
+        });
+        
 
         var de = await DeliverEmailRepo.insertMany(_deliveremails);
         return true;

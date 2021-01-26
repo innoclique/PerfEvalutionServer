@@ -99,6 +99,7 @@ if(data.IsDraft!='true'){
       RoleEffFrom: Joi.optional(),
 
       MiddleName: Joi.optional(),
+      EmployeeId: Joi.optional(),
       ExtNumber:Joi.optional(),
       AltPhoneNumber:Joi.optional(),
       MobileNumber:Joi.optional(),

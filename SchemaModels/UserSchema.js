@@ -5,6 +5,7 @@ const { boolean, string } = require("joi");
 
 const UserSchema = new mongoose.Schema({
     Email: { type: String, unique: true },
+    EmployeeId: { type: String },
     Password: { type: String,select:false },
     RefreshToken: { type: String },
     Role: { type: String },

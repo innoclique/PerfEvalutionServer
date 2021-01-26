@@ -126,7 +126,9 @@ const getClientPurchaseHistory = async (client) => {
 
 const getResellerPurchaseHistory = async (client) => {
     console.log('inside getResellerPurchaseHistory ', client);
-    let resellerInfo = await organizationSchema.find({ '_id': client });
+    // let resellerInfo = await organizationSchema.find({ '_id': client });
+    let whereObj = { '_id': Mongoose.Types.ObjectId(client) };
+    let resellerInfo = await getClientPurchaseInfo(whereObj);
     console.log(resellerInfo);
     let result = {};
     result.resellerInfo = resellerInfo[0];
@@ -136,7 +138,9 @@ const getResellerPurchaseHistory = async (client) => {
 const getEvaluationsSummary = async (client) => {
     console.log('inside getEvaluationsSummary ', client);
     let whereObj = {};
-    let year = new Date().getFullYear();
+    let clientInfo = await organizationSchema.find({ '_id': client });
+    // let year = new Date().getFullYear();
+    let year = getYearStart(clientInfo.StartMonth);
     whereObj['EvaluationYear'] = `${year}`;
     whereObj['Company'] = Mongoose.Types.ObjectId(client);
     console.log(whereObj)
@@ -144,6 +148,18 @@ const getEvaluationsSummary = async (client) => {
     let yearEndCount = evaluationSummaryArray.length;
     clientSummaryResponse = { data: yearEndCount, label: 'Year-end' };
     return clientSummaryResponse;
+}
+
+ const getYearStart  = async (month) => {
+    if (this.months.indexOf(month) > new Date().getMonth()) {
+        var currentYear = (new Date().getFullYear() - 1).toString();
+        currentYear = currentYear.substring(2);
+        return currentYear;
+    } else {
+        var currentYear = new Date().getFullYear().toString();
+        currentYear = currentYear.substring(2);
+        return currentYear;
+    }
 }
 
 module.exports = {

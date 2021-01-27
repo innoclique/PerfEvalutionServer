@@ -103,6 +103,13 @@ const savePaymentRelease = async (paymentRelease) => {
     }
     return savedObjet;
 }
+
+const deletePaymentRelease = async (request) => {
+    console.log("remove payment release.");
+    console.log(request.paymentReleaseId)
+    const _paymentrelease = await PaymentReleaseSchema.remove({_id:request.paymentReleaseId});
+    return _paymentrelease;
+}
 const findPaymentReleaseByOrgId = async (paymentRelease) => {
     console.log("Inside:findPaymentReleaseByOrgId");
     console.log(paymentRelease)
@@ -172,6 +179,7 @@ module.exports = {
     FindEmployeeScale:findEmployeeScale,
     FindRangeList:findRangeList,
     FindPriceList:findPriceList,
-    FindTaxRateByName:getTaxRateByName
+    FindTaxRateByName:getTaxRateByName,
+    DeletePaymentRelease:deletePaymentRelease
 }
 

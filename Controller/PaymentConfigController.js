@@ -8,7 +8,8 @@ const {AddPaymentConfiguration,
     FindEmployeeScale,
     FindRangeList,
     FindPriceList,
-    FindTaxRateByName
+    FindTaxRateByName,
+    DeletePaymentRelease
 } = require('../DataServices/PaymentConfigService');
 
 const addPaymentConfiguartion = async (req,res,next)=>{
@@ -68,6 +69,10 @@ const findPriceListCtrl = async (req,res,next)=>{
     let priceListResp = await FindPriceList(req.body);
     res.json(priceListResp);
 }
+const deletePaymentReleaseCtrl = async (req,res,next)=>{
+    await DeletePaymentRelease(req.body).then(Response => Response ? res.status(200).json(Response) : res.status(404).json("Payment Release Not deleted"))
+    .catch(err => next(err));
+}
 
 module.exports = {
     AddPaymentConfigCtrl:addPaymentConfiguartion,
@@ -80,6 +85,7 @@ module.exports = {
     FindEmpScaleByCtrl:findEmpScaleByCtrl,
     FindRangeListCtrl:findRangeListCtrl,
     FindPriceListCtrl:findPriceListCtrl,
-    FindTaxRateByNameCtrl:findTaxRateByNameCtrl
+    FindTaxRateByNameCtrl:findTaxRateByNameCtrl,
+    DeletePaymentReleaseCtrl:deletePaymentReleaseCtrl
     
 }

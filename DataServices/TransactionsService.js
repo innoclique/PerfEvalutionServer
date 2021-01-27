@@ -49,17 +49,29 @@ const addSubscription = async(paymentreleaseId) => {
         
     }
     if(paymentReleaseDomain && paymentReleaseDomain.Type === "Renewal"){
-        let {Organization,ActivationDate,NoOfMonths} = paymentReleaseDomain;
+        let {Organization,ActivationDate,NoOfMonths,ClientId} = paymentReleaseDomain;
+        if(ClientId){
+            Organization = ClientId;
+        }
         let findSubscription = await SubscriptionsSchema.findOne({Organization:Mongoose.Types.ObjectId(Organization)});
-        let {ActivatedOn,ValidTill} = findSubscription;
-        console.log(`Organization=>${Organization}`);
-        console.log(`ActivatedOn=>${ActivatedOn}`);
-        console.log(`ValidTill=>${ValidTill}`);
+        if(findSubscription){
+            let {ActivatedOn,ValidTill} = findSubscription;
+            console.log(`Organization=>${Organization}`);
+            console.log(`ActivatedOn=>${ActivatedOn}`);
+            console.log(`ValidTill=>${ValidTill}`);
+            
+            ValidTill = moment(ValidTill).startOf('month').add(NoOfMonths,'months');
+            let subscriptions = {Organization,ActivatedOn,ValidTill};
+            console.log(`Update Subscription. id: ${findSubscription._id}`);
+            await SubscriptionsSchema.updateOne({_id:findSubscription._id},subscriptions);
+        }else{
+            let ActivatedOn = ActivationDate;
+            let ValidTill = moment(ActivationDate).startOf('month').add(NoOfMonths,'months');
+            let subscriptions = {Organization,ActivatedOn,ValidTill,Type:paymentReleaseDomain.Type,IsActive:true};
+            const subscriptionDomain = await SubscriptionsSchema(subscriptions);
+            await subscriptionDomain.save();
+        }
         
-        ValidTill = moment(ValidTill).startOf('month').add(NoOfMonths,'months');
-        let subscriptions = {Organization,ActivatedOn,ValidTill};
-        console.log(`Update Subscription. id: ${findSubscription._id}`);
-        await SubscriptionsSchema.updateOne({_id:findSubscription._id},subscriptions);
         
     }
     console.log("end:addSubscription");

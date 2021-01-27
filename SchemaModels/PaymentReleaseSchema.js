@@ -26,7 +26,8 @@ const PaymentReleasesSchema = new mongoose.Schema({
     DurationMonths : { type: String},
     Purpose : { type: String},
     Type : { type: String},/* Initial,  */
-    Paymentdate:{type:Date,default:new Date()}
+    Paymentdate:{type:Date,default:new Date()},
+    ClientId: { type: mongoose.Schema.Types.ObjectId, ref: 'Organization', default: null },
 });
 
 PaymentReleasesSchema.set('toJSON', { versionKey: false });

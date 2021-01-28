@@ -7,6 +7,7 @@ const EvaluationController = require('../Controller/EvaluationAdminController');
 
 router.post("/CreateEvaluation", EvaluationController.CreateEvaluation);
 router.post("/GetEvaluations", EvaluationController.GetEvaluations);
+router.post("/GetAvailableOrgEvaluations", EvaluationController.GetAvailableOrgEvaluations);
 router.post("/dashboard", EvaluationController.GetEvaluationDashboard);
 router.post("/DraftEvaluation", EvaluationController.DraftEvaluation);
 router.post("/GetEvaluationFormById", EvaluationController.GetEvaluationFormById);

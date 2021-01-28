@@ -3,7 +3,8 @@ exports.ValidateEvaluationForm = (data) => {
     const schema = Joi.object().keys({
         Employees:Joi.array().items(Joi.object().required()).min(1).required(),
         EvaluationPeriod: Joi.string().required(),
-        EvaluationDuration: Joi.string().optional(),
+        EvaluationDuration: Joi.string().required(),
+        EvaluationType: Joi.string().required(),
         ActivateKPI: Joi.bool().optional(),
         ActivateActionPlan: Joi.bool().optional(),
         EvaluationForRole: Joi.string().optional(),

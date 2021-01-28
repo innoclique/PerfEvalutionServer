@@ -95,6 +95,7 @@ const Evalution = new mongoose.Schema({
     EvaluationForRole: String,
     EvaluationPeriod: String,
     EvaluationDuration: String,
+    EvaluationType:String,
     CreatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
     CreatedDate: { type: Date, default: Date() },
     UpdatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },

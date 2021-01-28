@@ -201,6 +201,35 @@ exports.AddEvaluation = async (evaluation) => {
     }
 
 };
+
+exports.GetAvailableOrgEvaluations = async (req) => {
+    console.log('inside )GetAvailableOrgEvaluations', req);
+    try {
+        var result = {};
+        var payments = await PaymentReleaseSchema.find({
+            'Status': 'Complete',
+            'Organization': Mongoose.Types.ObjectId(req.clientId),
+            'ActivationDate': { $lt: moment().add(1, "day").startOf("day").toDate() }
+        })
+        var pgs = await KpiFormRepo.find({
+            'Company': Mongoose.Types.ObjectId(req.clientId),
+            'EvaluationYear': '2021'
+        })
+
+        var evaluations = await EvaluationRepo.find({
+            'Company': Mongoose.Types.ObjectId(req.clientId),
+            'EvaluationYear': '2021'
+        })
+        result['payments'] = payments;
+        result['pgs'] = pgs;
+        result['evaluations'] = evaluations;
+        return result;
+    } catch (error) {
+        console.log(error);
+    }
+
+}
+
 exports.GetEvaluations = async (clientId) => {
     var response = {}
     response["kpiList"] = []

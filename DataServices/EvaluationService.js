@@ -203,7 +203,7 @@ exports.AddEvaluation = async (evaluation) => {
 };
 
 exports.GetAvailableOrgEvaluations = async (req) => {
-    console.log('inside )GetAvailableOrgEvaluations', req);
+    console.log('inside GetAvailableOrgEvaluations', req);
     try {
         var result = {};
         var payments = await PaymentReleaseSchema.find({

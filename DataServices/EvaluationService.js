@@ -15,6 +15,7 @@ const moment = require('moment');
 
 const ModelsRepo = require('../SchemaModels/Model');
 const ObjectId = Mongoose.Types.ObjectId;
+const PaymentReleaseSchema = require('../SchemaModels/PaymentReleaseSchema');
 const KpiRepo = require('../SchemaModels/KPI');
 const MeasureCriteriaRepo = require('../SchemaModels/MeasurementCriteria');
 const KpiFormRepo = require('../SchemaModels/KpiForm');

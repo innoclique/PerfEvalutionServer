@@ -208,6 +208,8 @@ exports.GetAvailableOrgEvaluations = async (req) => {
     console.log('inside GetAvailableOrgEvaluations', req);
     try {
         var result = {};
+        let evaluationYear = await EvaluationUtils.GetOrgEvaluationYear(orgId);
+        console.log(`evaluationYear = ${evaluationYear}`);
         var payments = await PaymentReleaseSchema.find({
             'Status': 'Complete',
             'Organization': Mongoose.Types.ObjectId(req.clientId),
@@ -215,12 +217,12 @@ exports.GetAvailableOrgEvaluations = async (req) => {
         })
         var pgs = await KpiFormRepo.find({
             'Company': Mongoose.Types.ObjectId(req.clientId),
-            'EvaluationYear': '2021'
+            'EvaluationYear': evaluationYear
         })
 
         var evaluations = await EvaluationRepo.find({
             'Company': Mongoose.Types.ObjectId(req.clientId),
-            'EvaluationYear': '2021'
+            'EvaluationYear': evaluationYear
         })
         result['payments'] = payments;
         result['pgs'] = pgs;

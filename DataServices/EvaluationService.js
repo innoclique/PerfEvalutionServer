@@ -21,6 +21,7 @@ const KpiFormRepo = require('../SchemaModels/KpiForm');
 const EmployeeService = require('./EmployeeService');
 const EvaluationUtils = require("../utils/EvaluationUtils")
 const statusRepo=require('../SchemaModels/Statuses');
+const EvaluationService=require('../DataServices/EvaluationService');
 
 exports.AddEvaluation = async (evaluation) => {
     try {
@@ -686,6 +687,7 @@ exports.GetEmpEvaluationByEmpId = async (emp) => {
             returnObject.ManagerCompetencies = await this.GetEmpCompetenciesForManager({ EvaluationId: evaluationForm._id, employeeId: employee._id.toString() })
             returnObject.OverallCompetencyRating = await EmployeeService.GetOverallRatingByCompetency({ EvaluationId: evaluationForm._id, ForEmployeeId: employee._id.toString() })
             returnObject.Employee_Evaluation = employee;
+            returnObject.EvaluationYear = evaluationYear;
             return returnObject;
         }
     } catch (error) {
@@ -929,10 +931,21 @@ exports.UpdateEvaluationStatus = async (empId,status) => {
         const evalStatus = await statusRepo.findOne({Key:status});
         if(evalStatus){
             console.log("Updating evaluation status = "+status + ", isEvaluationCompleted:"+isEvaluationCompleted);
-            await EvaluationRepo.update(
+            let updateEvaluationObj = await EvaluationRepo.update(
                 {"status" : "Active","Employees._id":Mongoose.Types.ObjectId(empId)},
                 {$set:{'Employees.$.Status':evalStatus._id,'Employees.$.isEvaluationCompleted':isEvaluationCompleted}}
                 );
+            if(isEvaluationCompleted){
+                console.log("Releasing Kpis for next year.")
+                let {EvaluationYear} = currentEmpEvaluation;
+                let nextValuation = Number(EvaluationYear)+1;
+                let releaseNextYearKPIs=[{
+                    EmployeeId:empId,
+                    Company:_userObj.Organization,
+                    EvaluationYear:""+nextValuation
+                }];
+                await EvaluationService.ReleaseKpiForm(releaseNextYearKPIs)
+            }
         }else{
             console.log("Not Updating status  "+status);
         }
@@ -1279,10 +1292,15 @@ exports.sendmail = async (user) => {
 //new Date().getFullYear()
 exports.GetReporteeEvaluations = async (manager) => {
     try {
+        let {currentEvaluation} = manager;
         const ManagerUserDomain = await UserRepo.findOne({ "_id": manager.id });
-        let evaluationYear = await EvaluationUtils.GetOrgEvaluationYear(ManagerUserDomain.Organization);
-        console.log(`evaluationYear = ${evaluationYear}`);
-
+        let evaluationYear="";
+        if(!currentEvaluation){
+            evaluationYear = await EvaluationUtils.GetOrgEvaluationYear(ManagerUserDomain.Organization);
+        }else{
+            evaluationYear=currentEvaluation;
+        }
+        console.log(`GetReporteeEvaluations:evaluationYear = ${evaluationYear}`);
         const reportees = await UserRepo.aggregate([
             { $match: { Manager: ObjectId(manager.id)} },
             { $addFields: { EmployeeId: "$_id" } },

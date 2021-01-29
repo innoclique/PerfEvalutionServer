@@ -699,7 +699,8 @@ else if (data.Action=='Review') {
       ManagerComments: Joi.optional(),
       IsManaFTSubmited: Joi.any().optional(),
       UpdatedBy: Joi.string().required(),
-      IsActive: Joi.any().required()
+      IsActive: Joi.any().required(),
+      EvaluationYear: Joi.string().optional(),
    });
    return schema;
 
@@ -709,6 +710,7 @@ else if (data.Action=='Review') {
    const schema = Joi.object().keys({
       Kpi: Joi.required(),
       Action: Joi.string().required(),
+      EvaluationYear: Joi.string().optional(),
      
    }).unknown(true);;
    return schema;
@@ -738,8 +740,8 @@ else if (data.Action=='Review') {
     isFinalSignoff:Joi.boolean().optional(),
     isManagerSubmitted:Joi.boolean().optional(),
     isFinalSignoff:Joi.boolean().optional(),
-  
-    UpdatedBy:Joi.string().required()
+    UpdatedBy:Joi.string().required(),
+    EvaluationYear: Joi.string().optional(),
 
 
 

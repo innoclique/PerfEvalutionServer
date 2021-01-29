@@ -19,6 +19,7 @@ route.post('/GetAllEmployees',EmployeeController.GetAllEmployees);
 
 route.post('/AddStrength',EmployeeController.AddStrength);
 route.post('/GetAllStrengths',EmployeeController.GetAllStrengths);
+route.post('/GetEmployeeEvaluationYears',EmployeeController.GetEmpEvaluationYears);
 
 route.post('/AddAccomplishment', EmployeeController.AddAccomplishment);
 route.post('/GetAccomplishmentDataById',EmployeeController.GetAccomplishmentDataById);
@@ -30,6 +31,7 @@ route.post('/GetTSReleasedAccomplishments',EmployeeController.GetTSReleasedAccom
 route.post('/AddKpi', EmployeeController.AddKpi);
 route.post('/GetKpiDataById',EmployeeController.GetKpiDataById);
 route.post('/GetAllKpis',EmployeeController.GetAllKpis);
+route.post('/GetEmployeeCurrentEvaluation',EmployeeController.GetEmpCurrentEvaluation);
 route.post('/GetKpisByManager',EmployeeController.GetKpisByManager);
 route.post('/GetKpisByManagerId',EmployeeController.GetKpisByManagerId);
 route.post('/SubmitKpisForEvaluation',EmployeeController.SubmitKpisForEvaluation);

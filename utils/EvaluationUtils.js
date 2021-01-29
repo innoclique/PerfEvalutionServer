@@ -4,7 +4,40 @@ require('dotenv').config();
 const Mongoose = require("mongoose");
 const OrganizationSchema = require('../SchemaModels/OrganizationSchema');
 const moment = require("moment");
+const userSchema = require("../SchemaModels/UserSchema");
 
+exports.GetEmployeeEvaluationYears = async (userId) => {
+  console.log("inside:GetEmployeeEvaluationYears");
+  const UserDomain = await userSchema.findOne({ "_id": userId });
+  let {JoiningDate} = UserDomain;
+  let joiningMoment = moment(JoiningDate);
+  const Organization = await OrganizationSchema.findOne({ "_id": UserDomain.Organization });
+  let {StartMonth,EndMonth,EvaluationPeriod} = Organization;
+  console.log(`${StartMonth},${EndMonth},${EvaluationPeriod}`);
+  var currentMoment = moment();
+  let yearsStartFrom=joiningMoment;
+  if(EvaluationPeriod === "FiscalYear"){
+    var currentMonth = parseInt(joiningMoment.format('M'));
+    console.log(`${currentMonth} <= ${StartMonth}`)
+    if(currentMonth <= StartMonth){
+      yearsStartFrom = joiningMoment.subtract(1, 'years');
+    }
+  }else if(EvaluationPeriod === "CalendarYear"){
+    currentMoment = moment().add(1, 'years');;
+  }
+  console.log("yearsStartFrom>"+yearsStartFrom.format("YYYY"));
+  let yearsList = [];
+  yearsStartFrom = Number(yearsStartFrom.format("YYYY"));
+  let yearsEndValue = Number(currentMoment.format("YYYY"));
+  let index=0;
+  while(yearsStartFrom<=yearsEndValue){
+    yearsList[index]=yearsStartFrom;
+    yearsStartFrom++;
+    index++;
+  }
+  console.log(`yearsList :`+yearsList)
+  return yearsList;
+}
 exports.GetOrgEvaluationYear = async (organizationId) => {
     const Organization = await OrganizationSchema.findOne({"_id":Mongoose.Types.ObjectId(organizationId)});
     let {StartMonth,EndMonth,EvaluationPeriod} = Organization;

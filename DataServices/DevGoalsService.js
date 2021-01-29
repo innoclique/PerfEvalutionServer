@@ -499,9 +499,15 @@ exports.addDevGoalTrack = async (devGoalModel) => {
 
 exports.GetReporteeReleasedKpiForm = async (manager) => {
     try {
+        let {currentEvaluation} = manager;
         const ManagerUserDomain = await UserRepo.findOne({ "_id": manager.id });
-        let evaluationYear = await EvaluationUtils.GetOrgEvaluationYear(ManagerUserDomain.Organization);
-        console.log(`evaluationYear = ${evaluationYear}`);
+        let evaluationYear="";
+        if(!currentEvaluation){
+            evaluationYear = await EvaluationUtils.GetOrgEvaluationYear(ManagerUserDomain.Organization);
+        }else{
+            evaluationYear=currentEvaluation;
+        }
+        console.log(`GetReporteeReleasedKpiForm:evaluationYear = ${evaluationYear}`);
 
         const reportees = await UserRepo.aggregate([
             { $match: { Manager: ObjectId(manager.id) } },
@@ -572,7 +578,8 @@ exports.GetReporteeReleasedKpiForm = async (manager) => {
                             "as": "goalresult",
                             "cond": {
                                 "$and": [
-                                    { "$eq": ["$$goalresult.CreatedYear", new Date().getFullYear()+""] },
+                                    //{ "$eq": ["$$goalresult.CreatedYear", new Date().getFullYear()+""] },
+                                    { "$eq": ["$$goalresult.CreatedYear", currentEvaluation+""] },
                                     { "$eq": ["$$goalresult.IsDraft", false] },
                                     { "$eq": ["$$goalresult.IsGoalSubmited", true] }
                                 ]
@@ -585,7 +592,8 @@ exports.GetReporteeReleasedKpiForm = async (manager) => {
                             "as": "strresult",
                             "cond": {
                                 "$and": [
-                                    { "$eq": ["$$strresult.CreatedYear", new Date().getFullYear()+""] },
+                                    //{ "$eq": ["$$strresult.CreatedYear", new Date().getFullYear()+""] },
+                                    { "$eq": ["$$strresult.CreatedYear", currentEvaluation+""] },
                                     { "$eq": ["$$strresult.IsDraft", false] },
                                     { "$eq": ["$$strresult.IsStrengthSubmited", true] }
                                 ]

@@ -98,7 +98,7 @@ exports.CreateOrganization = async (organization) => {
 
             var mailObject = SendMail.GetMailObject(
                 config.PSAEmail,
-                "New Organization added",
+                "Client successfully added",
                 content,
                 null,
                 null
@@ -123,13 +123,13 @@ exports.CreateOrganization = async (organization) => {
 
             var mailObject = SendMail.GetMailObject(
                 userRecord.Email,
-                "Oraganization Added",
+                "Client successfully updated",
                 content,
                 null,
                 null
             );
 
-            await SendMail.SendEmail(mailObject, function (res) {
+            await SendMail.SendEmail(mailObject, function (res) { 
                 console.log(res);
             });
             var content = bufcontent.toString();

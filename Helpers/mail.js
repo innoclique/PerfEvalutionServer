@@ -16,12 +16,12 @@ var smtpConfig = {
 
     }
 }
-console.log('smtpConfig',smtpConfig)
+//console.log('smtpConfig',smtpConfig)
 
 let transporter = nodemailer.createTransport(smtpConfig);
 
 exports.GetMailObject = function (to, subject, html, cc, bcc) {
-console.log('getmailobj')
+//console.log('getmailobj')
     function MailException(message) {
         this.message = message;
         this.name = 'MailException';
@@ -65,7 +65,7 @@ exports.SendEmail = function (contents, cb) {
     contents.from = config.smtp2.smtp_user; 
     return transporter.sendMail(contents, function (error, info) {
         if (error) {
-            console.log('error',error);
+         //   console.log('error',error);
             cb({
                 mailsuccess: false,
                 data: null

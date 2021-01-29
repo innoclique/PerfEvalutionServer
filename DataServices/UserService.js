@@ -310,7 +310,7 @@ exports.ConfirmTnC = async (id) => {
 
 exports.CreateEmployee = async (employee) => {
     try {
-
+//console.log(employee)
         const EmployeeName = await UserRepo.findOne({ FirstName: employee.FirstName, LastName: employee.LastName });
         const EmployeeEmail = await UserRepo.findOne({ Email: employee.Email });
         const EmployeePhone = await UserRepo.findOne({ Phone: employee.PhoneNumber });
@@ -324,9 +324,12 @@ exports.CreateEmployee = async (employee) => {
         // need to do some other impl should not use ids
         const EvalAdminFound = await UserRepo.findOne({ ParentUser: employee.ParentUser, ApplicationRole: Messages.constants.EA_ID });
 
+     
 
         if (EvalAdminFound) {
-            //send email to Evalution admin
+console.clear();
+            console.log("INNNNNNNNNNNNNNN", EvalAdminFound.Email)
+          //  this.sendEmailCreateToEA()
         }
         else if (!employee.IgnoreEvalAdminCreated && employee.ApplicationRole == Messages.constants.EO_ID && EvalAdminFound == null) {
             throw Error("Evaluation Administrator Not Found");
@@ -343,7 +346,7 @@ exports.CreateEmployee = async (employee) => {
         //send email to employee
          //send email to  user
          if(employee.IsDraft=='false'){
-             this.sendEmpCreateEamils(newemp,_temppwd);
+             this.sendEmpCreateEmails(newemp,_temppwd);
         
         }
         
@@ -363,27 +366,21 @@ exports.CreateEmployee = async (employee) => {
 
 exports.UpdateEmployee = async (employee) => {
     try {
-
         let empId = employee._id;
         const EmployeeName = await UserRepo.findOne({ FirstName: employee.FirstName, LastName: employee.LastName });
 
         const EmployeePhone = await UserRepo.findOne({ PhoneNumber: employee.PhoneNumber });
-
-       // if (EmployeeName !== null && EmployeeName._id != employee._id) { throw Error("Employee Name Already Exist"); }
-
-        //if (employee.PhoneNumber!="" && EmployeePhone !== null && EmployeePhone._id != employee._id) { throw Error("Employee Phone Number Already Exist"); }
-
-      
-
         delete employee._id;
         employee.UpdatedOn = new Date();
         const emp = await UserRepo.findOneAndUpdate({_id:empId}, employee)  .select("+Password");;
 
         if(employee.IsDraft=='false'&& emp.Password==''){
             var _temppwd=AuthHelper.GenerateRandomPassword()
-           // emp.Password = Bcrypt.hashSync(_temppwd, 10);
             await UserRepo.update({_id:empId}, {Password:Bcrypt.hashSync(_temppwd, 10)} );
-            this.sendEmpCreateEamils(emp,_temppwd);
+            this.sendEmpCreateEmails(emp, _temppwd);
+        }
+        else{
+            this.sendEmpUpdateEmails(emp)
         }
         return true;
     }
@@ -397,49 +394,92 @@ exports.UpdateEmployee = async (employee) => {
 
 }
 
+exports.sendEmpUpdateEmails = async (newemp) =>{
+// MAIL TO CSA
+let csaDetails = await UserRepo.findById(newemp.CreatedBy);
+let mailBody= "Dear " + csaDetails.FirstName +",<br><br>"
+mailBody = mailBody + "You have successfully updated the details for <b>" + newemp.FirstName + " "+ newemp.LastName + "</b><br><br>"
+mailBody=mailBody + "<br>To view details  "+ " <a href=http://15.223.26.103>click here</a> to login<br><br>Thanks,<br>Administrator<br>"
 
-exports.sendEmpCreateEamils = async (newemp,_temppwd) =>{
+var mailObject = SendMail.GetMailObject(
+    newemp.Email,
+    "Employee successfully updated",
+mailBody
+          ,
+          null,
+          null
+        );
+
+        
+
+await SendMail.SendEmail(mailObject, function (res) {
+    console.log("mail to CSA", res);
+});
+
+// END CSA MAIL
+
+// MAIL TO EA 
+
+const EvalAdminFound = await UserRepo.findOne({ ParentUser: newemp.ParentUser, ApplicationRole: Messages.constants.EA_ID });
+
+if(EvalAdminFound){
+
+}
+// MAIL TO EA END
+
+// MAIL TO EMPLOYEE START
+ mailBody= "Dear " + newemp.FirstName +",<br><br>"
+ mailBody = mailBody + "Your details have been updated by admin.<br><br>"
+ mailBody=mailBody + "<br>To view details  "+ " <a href=http://15.223.26.103>click here</a> to login<br><br>Thanks,<br>Administrator<br>"
+
+ var mailObject = SendMail.GetMailObject(
+    newemp.Email,
+    "Your account has been updated.",
+mailBody
+          ,
+          null,
+          null
+        );
+
+        
+
+await SendMail.SendEmail(mailObject, function (res) {
+    console.log("INNNNNNNNNNNNNNNNNNNNNNNNNNNNN", res);
+});
+
+// MAIL TO EMPLOYEE END
+}
+
+exports.sendEmpCreateEmails = async (newemp,_temppwd) =>{
     
+        let mailBody = "Dear " + newemp.FirstName +",<br><br> Congratulations, Employee account has been created. Your login id is your email. You will receive a separate email for password. Please change your password when you login first time."
+    mailBody= mailBody + "<br><br>Email:<a href=mailto:"+newemp.Email+">"+ newemp.Email + "</a><br>"
+    mailBody=mailBody + "<br>please  "+ " <a href=http://15.223.26.103>click here</a> to login<br><br>Thanks,<br>Administrator"
+
     var mailObject = SendMail.GetMailObject(
         newemp.Email,
         "Employee account created",
-
-              `Dear ${newemp.FirstName},
-
-              <br> Congratulations, Employee account has been created. Your login id is your email. You will receive a separate email for password. Please change your password when you login first time.
-              
-              Email: ${newemp.Email},
-              
-              <br> Please click here to login.
-              
-              <br> Thank you,
-              Administrator
-              `,
+mailBody
+              ,
               null,
               null
             );
 
-            //Password: ${_temppwd}
+            
 
     await SendMail.SendEmail(mailObject, function (res) {
         console.log(res);
     });
+     mailBody = "Dear " + newemp.FirstName + "<br><br>"
+mailBody=mailBody + " Congratulations, Employee account has been created. Please change your password when you login first time.<br><br>" 
+mailBody = mailBody + "<b>Password:</b> " + _temppwd + "<br><br>"
+mailBody=mailBody + "<br>please  "+ " <a href=http://15.223.26.103>click here</a> to login<br><br>Thanks,<br>Administrator<br><br>"
 
     var mailObject = SendMail.GetMailObject(
         newemp.Email,
               "Employee account created",
-
-              `Dear ${newemp.FirstName},
-
-              <br>  Congratulations, Employee account has been created. Please change your password when you login first time.
-              
-              Password: ${_temppwd},
-              
-              <br> Please click here to login.
-              
-              <br> Thank you,
-              Administrator
-              `,
+mailBody
+             ,
               null,
               null
             );
@@ -448,6 +488,26 @@ exports.sendEmpCreateEamils = async (newemp,_temppwd) =>{
     await SendMail.SendEmail(mailObject, function (res) {
         console.log(res);
     });
+
+   // SEND EMAIL TO CSA
+   let csaDetails = await UserRepo.findById(newemp.CreatedBy);
+    mailBody="Dear " + csaDetails.FirstName +",<br>"
+    mailBody = mailBody + "Congratulations, you have successfully added <b>" + newemp.FirstName + " " + newemp.LastName  + "</b> to the system.<br>"
+    mailBody=mailBody + "<br>To view details,  "+ " <a href=http://15.223.26.103>click here</a> to login<br><br>Thanks,<br>Administrator<br><br>"
+    var mailObject = SendMail.GetMailObject(
+        csaDetails.Email,
+              "Employee successfully added",
+mailBody
+             ,
+              null,
+              null
+            );
+
+
+    await SendMail.SendEmail(mailObject, function (res) {
+        console.log(res);
+    });
+    // END CSA MAIL
 }
 
 

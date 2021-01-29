@@ -208,7 +208,7 @@ exports.GetAvailableOrgEvaluations = async (req) => {
     console.log('inside GetAvailableOrgEvaluations', req);
     try {
         var result = {};
-        let evaluationYear = await EvaluationUtils.GetOrgEvaluationYear(orgId);
+        let evaluationYear = await EvaluationUtils.GetOrgEvaluationYear(req.clientId);
         console.log(`evaluationYear = ${evaluationYear}`);
         var payments = await PaymentReleaseSchema.find({
             'Status': 'Complete',

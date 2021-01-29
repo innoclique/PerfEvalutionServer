@@ -337,6 +337,8 @@ exports.CreateEmployee = async (employee) => {
         employee.Password = Bcrypt.hashSync(_temppwd, 10);
         }
 
+        employee.CreatedOn = new Date();
+        employee.UpdatedOn = new Date();
         const newemp = new UserRepo(employee);
         await newemp.save();
 

@@ -396,6 +396,8 @@ exports.OrganizationSchema=(schema)=>{
 
 }
 exports.UpdateOrganizationSchema=(schema)=>{
+
+   if(!schema.IsDraft){
    const organization =  Joi.object().keys({
       id:Joi.string().required().trim(),
       Name: Joi.string().required().trim(),
@@ -455,6 +457,16 @@ exports.UpdateOrganizationSchema=(schema)=>{
 
  return organization;
 
+}else{
+
+   const organization = Joi.object().keys({
+     id:Joi.string().required().trim(),
+    
+  }).unknown(true);;
+  return organization;
+  
+   }
+
 }
 exports.ValidateAddReseller=(schema)=>{
    const organization =  Joi.object().keys({
@@ -498,7 +510,7 @@ exports.ValidateAddReseller=(schema)=>{
       
       PhoneExt:Joi.string().allow(['',null]),
       IsActive:Joi.optional(),
-      CreatedBy:Joi.string().required().trim(),
+      CreatedBy:Joi.string().optional().trim(),
       CreatedOn:Joi.optional(),
       
       IsDraft:Joi.optional(),
@@ -509,6 +521,8 @@ exports.ValidateAddReseller=(schema)=>{
 
 }
 exports.ValidateUpdateReseller=(schema)=>{
+
+   if(!schema.IsDraft){
    const organization =  Joi.object().keys({
       id:Joi.string().required().trim(),
       Name: Joi.string().required().trim(),
@@ -556,6 +570,16 @@ exports.ValidateUpdateReseller=(schema)=>{
  });
 
  return organization;
+
+}else{
+
+ const organization = Joi.object().keys({
+   id:Joi.string().required().trim(),
+  
+}).unknown(true);;
+return organization;
+
+ }
 
 }
 exports.ValidateStrength = ( data)=>{

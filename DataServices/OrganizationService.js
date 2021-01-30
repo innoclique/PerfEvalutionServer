@@ -88,9 +88,7 @@ exports.CreateOrganization = async (organization) => {
         fs.readFile("./EmailTemplates/EmailTemplate.html", async function read(err, bufcontent) {
             var content = bufcontent.toString();
 
-            var des = `Congratulations, you have successfully set up an account for ${organization.Name}
-    To view details, click here
-    `
+            var des ="Congratulations, you have successfully set up an account for " + organization.Name + "  To view details, <a href=http://15.223.26.103>click here</a><br><br>"
             content = content.replace("##FirstName##", "PSA");
             content = content.replace("##ProductName##", config.ProductName);
             content = content.replace("##Description##", des);

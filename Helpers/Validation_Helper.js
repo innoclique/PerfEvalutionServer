@@ -396,6 +396,8 @@ exports.OrganizationSchema=(schema)=>{
 
 }
 exports.UpdateOrganizationSchema=(schema)=>{
+
+   if(!schema.IsDraft){
    const organization =  Joi.object().keys({
       id:Joi.string().required().trim(),
       Name: Joi.string().required().trim(),
@@ -455,6 +457,16 @@ exports.UpdateOrganizationSchema=(schema)=>{
 
  return organization;
 
+}else{
+
+   const organization = Joi.object().keys({
+     id:Joi.string().required().trim(),
+    
+  }).unknown(true);;
+  return organization;
+  
+   }
+
 }
 exports.ValidateAddReseller=(schema)=>{
    const organization =  Joi.object().keys({
@@ -498,7 +510,7 @@ exports.ValidateAddReseller=(schema)=>{
       
       PhoneExt:Joi.string().allow(['',null]),
       IsActive:Joi.optional(),
-      CreatedBy:Joi.string().required().trim(),
+      CreatedBy:Joi.string().optional().trim(),
       CreatedOn:Joi.optional(),
       
       IsDraft:Joi.optional(),
@@ -509,6 +521,8 @@ exports.ValidateAddReseller=(schema)=>{
 
 }
 exports.ValidateUpdateReseller=(schema)=>{
+
+   if(!schema.IsDraft){
    const organization =  Joi.object().keys({
       id:Joi.string().required().trim(),
       Name: Joi.string().required().trim(),
@@ -556,6 +570,16 @@ exports.ValidateUpdateReseller=(schema)=>{
  });
 
  return organization;
+
+}else{
+
+ const organization = Joi.object().keys({
+   id:Joi.string().required().trim(),
+  
+}).unknown(true);;
+return organization;
+
+ }
 
 }
 exports.ValidateStrength = ( data)=>{
@@ -699,7 +723,8 @@ else if (data.Action=='Review') {
       ManagerComments: Joi.optional(),
       IsManaFTSubmited: Joi.any().optional(),
       UpdatedBy: Joi.string().required(),
-      IsActive: Joi.any().required()
+      IsActive: Joi.any().required(),
+      EvaluationYear: Joi.string().optional(),
    });
    return schema;
 
@@ -709,6 +734,7 @@ else if (data.Action=='Review') {
    const schema = Joi.object().keys({
       Kpi: Joi.required(),
       Action: Joi.string().required(),
+      EvaluationYear: Joi.string().optional(),
      
    }).unknown(true);;
    return schema;
@@ -738,8 +764,8 @@ else if (data.Action=='Review') {
     isFinalSignoff:Joi.boolean().optional(),
     isManagerSubmitted:Joi.boolean().optional(),
     isFinalSignoff:Joi.boolean().optional(),
-  
-    UpdatedBy:Joi.string().required()
+    UpdatedBy:Joi.string().required(),
+    EvaluationYear: Joi.string().optional(),
 
 
 

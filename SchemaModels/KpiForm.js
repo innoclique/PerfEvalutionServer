@@ -14,6 +14,8 @@ const KpiForm = new mongoose.Schema({
     Company: { type: mongoose.Schema.Types.ObjectId, ref: 'Organization', default: null },
     IsActive: { type: Boolean, default: true },
     EvaluationYear: { type: String, default: new Date().getFullYear() },
+    EvaluationType: { type: String, default: 'Year-end' },
+    EvaluationDuration: { type: String, default: '12 Months' },
     IsDraft:{type:Boolean,default:false}
 });
 

@@ -78,6 +78,9 @@ exports.GetAllStrengths = async (empId) => {
     'CreatedYear': ""+new Date().getFullYear() }).sort({ UpdatedOn: -1 });;
     return Strengths;
 };
+exports.GetEvaluationsYears = async (empId) => {
+    return await EvaluationUtils.GetEmployeeEvaluationYears(empId);
+};
 exports.AddAccomplishment = async (accomplishment) => {
     try {
         // const organizationName = await strengthRepo.findOne({ Name: organization.Name });
@@ -143,14 +146,18 @@ exports.GetEmpSetupBasicData = async (industry) => {
 };
 
 
-exports.GetKpiSetupBasicData = async (empId, orgId) => {
-
+exports.GetKpiSetupBasicData = async (options) => {
+    console.log("inside:GetKpiSetupBasicData")
 try{
+    let {orgId,empId,currentEvaluation} = options;
     let evaluationYear = await EvaluationUtils.GetOrgEvaluationYear(orgId);
-    console.log(`evaluationYear = ${evaluationYear}`);
     if(!evaluationYear){
         evaluationYear = new Date().getFullYear();
     }
+    if(currentEvaluation){
+        evaluationYear = currentEvaluation;
+    }
+    console.log(`GetKpiSetupBasicData:evaluationYear = ${evaluationYear}`);
     const KpiStatus = Messages.constants.KPI_STATUS;
     //const KpiScore = Messages.constants.KPI_SCORE;
     // const coachingRem = Messages.constants.COACHING_REM_DAYS;
@@ -275,13 +282,18 @@ exports.AddKpi = async (kpiModel) => {
         const OwnerUserDomain = await UserRepo.findOne({ "_id": kpiModel.Owner });
         let evaluationYear = await EvaluationUtils.GetOrgEvaluationYear(OwnerUserDomain.Organization);
         console.log(`evaluationYear = ${evaluationYear}`);
+        if(!kpiModel.EvaluationYear){
+            kpiModel.EvaluationYear = evaluationYear;
+        }else{
+            evaluationYear=kpiModel.EvaluationYear;
+        }
         //isManagerSubmitted
         if(kpiModel.isFinalSignoff && kpiModel.isManagerSubmitted){
             kpiModel.IsDraft = true;
             const User = await UserRepo.findOne({ "_id": kpiModel.CreatedBy });
             kpiModel.ManagerSignOff = { SignOffBy: User.FirstName+" "+User.LastName, SignOffOn: new Date() ,submited : true};
         }
-        kpiModel.EvaluationYear = evaluationYear;
+        
         var Kpi = new KpiRepo(kpiModel);
         Kpi = await Kpi.save();
         //Updateing other kpis waiting 
@@ -324,9 +336,34 @@ exports.GetKpiDataById = async (Id) => {
 
 
 };
+exports.GetEmployeeCurrentEvaluationYear = async (data) => {
+    var kpiFormData = await KpiFormRepo.findOne({
+        'EmployeeId': Mongoose.Types.ObjectId(data.empId),
+        IsDraft: false, IsActive: true,
+    });
+    if(kpiFormData){
+        let {EvaluationYear} = kpiFormData;
+        return EvaluationYear;
+    }
+    var evaluation = await EvaluationRepo.findOne({
+        Employees: { $elemMatch: { _id: Mongoose.Types.ObjectId(data.empId),isEvaluationCompleted:false } },
+        Company: data.orgId
+    }).sort({ CreatedDate: -1 });
+    if(evaluation){
+        let {EvaluationYear} = evaluation;
+        return EvaluationYear;
+    }
+    let OrgEvaluationYear = await EvaluationUtils.GetOrgEvaluationYear(data.orgId);
+    return OrgEvaluationYear;
+
+
+}
 exports.GetAllKpis = async (data) => {
     
     let evaluationYear = await EvaluationUtils.GetOrgEvaluationYear(data.orgId);
+    if(data && data.evaluationYear){
+        evaluationYear = data.evaluationYear;
+    }
     console.log(`evaluationYear => ${evaluationYear}`)
     var evaluation = await EvaluationRepo.findOne({
         Employees: { $elemMatch: { _id: Mongoose.Types.ObjectId(data.empId) } },
@@ -379,9 +416,15 @@ exports.GetAllKpis = async (data) => {
 
 
 exports.GetKpisByManager = async (data) => {
-
+    let {currentEvaluation} = data;
     const OwnerUserDomain = await UserRepo.findOne({ "_id": data.empId });
-    let evaluationYear = await EvaluationUtils.GetOrgEvaluationYear(OwnerUserDomain.Organization);
+    let evaluationYear="";
+    if(!currentEvaluation){
+        evaluationYear = await EvaluationUtils.GetOrgEvaluationYear(OwnerUserDomain.Organization);
+    }else{
+        evaluationYear = currentEvaluation;
+    }
+    
     console.log(`evaluationYear = ${evaluationYear}`);
 
     var allKpis = []
@@ -535,12 +578,17 @@ exports.SubmitKpisByEmployee = async (options) => {
 
 };
 
-exports.DenyAllEmployeeSignOffKpis = async (empId) => {
+exports.DenyAllEmployeeSignOffKpis = async (options) => {
     try {
-
+        let {empId,currentEvaluation} = options;
         const User = await UserRepo.find({ "_id": empId })
             .populate('Manager');
-            let evaluationYear = await EvaluationUtils.GetOrgEvaluationYear(User[0].Organization);
+            let evaluationYear="";
+            if(!currentEvaluation){
+                evaluationYear = await EvaluationUtils.GetOrgEvaluationYear(User[0].Organization);
+            }else{
+                evaluationYear=currentEvaluation;
+            }
             console.log(`evaluationYear = ${evaluationYear}`);
 
             let kpis = await KpiRepo.find({
@@ -585,12 +633,17 @@ exports.DenyAllEmployeeSignOffKpis = async (empId) => {
 
 };
 
-exports.SubmitAllSignOffKpis = async (empId) => {
+exports.SubmitAllSignOffKpis = async (options) => {
     try {
-
+        let {empId,currentEvaluation} = options;
         const User = await UserRepo.find({ "_id": empId })
             .populate('Manager');
-            let evaluationYear = await EvaluationUtils.GetOrgEvaluationYear(User[0].Organization);
+            let evaluationYear="";
+            if(!currentEvaluation){
+                evaluationYear = await EvaluationUtils.GetOrgEvaluationYear(User[0].Organization);
+            }else{
+                evaluationYear=currentEvaluation;
+            }
             console.log(`evaluationYear = ${evaluationYear}`);
 
             let kpis = await KpiRepo.find({
@@ -684,13 +737,20 @@ exports.SubmitAllSignOffKpis = async (empId) => {
 };
 
 
-exports.SubmitAllKpis = async (empId) => {
+exports.SubmitAllKpis = async (options) => {
     try {
+        let {empId,currentEvaluation} = options;
         const User = await UserRepo.find({ "_id": empId })
             .populate('Manager');
-            let evaluationYear = await EvaluationUtils.GetOrgEvaluationYear(User[0].Organization);
+            let evaluationYear="";
+            if(!currentEvaluation){
+                evaluationYear = await EvaluationUtils.GetOrgEvaluationYear(User[0].Organization);
+            }else{
+                evaluationYear=currentEvaluation;
+            }
+            
             console.log(`evaluationYear = ${evaluationYear}`);
-
+        
             let kpis = await KpiRepo.find({
                 'Owner': Mongoose.Types.ObjectId(empId),
                 'IsDraft': false,
@@ -901,15 +961,19 @@ exports.addAccompTrack = async (accomp) => {
 
 
 
-exports.SubmitAllKpisByManager = async (empId) => {
+exports.SubmitAllKpisByManager = async (options) => {
     debugger
     try {
-
+            let {empId,currentEvaluation} = options;
             const User = await UserRepo.find({ "_id": empId })
             .populate('Manager');
 
             
-        let evaluationYear = await EvaluationUtils.GetOrgEvaluationYear(User[0].Organization);
+        if(!currentEvaluation){
+            evaluationYear = await EvaluationUtils.GetOrgEvaluationYear(User[0].Organization);
+        }else{
+            evaluationYear=currentEvaluation;
+        }
         console.log(`evaluationYear = ${evaluationYear}`);
 
             let submitingKpis = await KpiRepo.find({

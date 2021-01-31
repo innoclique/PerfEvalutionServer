@@ -392,7 +392,7 @@ exports.sendEmailOnManagerSignoff = async (manager, kpiOwnerInfo) => {
         // send email to manager 
         let mailBody= "Dear "+ manager.FirstName +", <br><br>"
         mailBody = mailBody + "You have successfully added comments to the action plan for  " + kpiOwnerInfo.FirstName +  ".<br><br>"
-        mailBody=mailBody + "<br>To view details  "+ " <a href=http://15.223.26.103>click here</a><br><br>Thanks,<br>Administrator"
+        mailBody=mailBody + "<br>To view details  "+ " <a href=http://15.223.26.103>click here</a><br><br>Thanks,<br>Administrator " + config.ProductName + "<br>"
         var mailObject = SendMail.GetMailObject(
             manager.Email,
             "Developmental Goal signed-off",
@@ -409,7 +409,7 @@ exports.sendEmailOnManagerSignoff = async (manager, kpiOwnerInfo) => {
         // send email to User 
         mailBody = "Dear "+ kpiOwnerInfo.FirstName +", <br><br>"
         mailBody = mailBody + "Your manager "+ manager.FirstName + " successfully added comments. <br><br>"
-        mailBody = mailBody +"Thank you, <br>Administrator<br>"
+        mailBody = mailBody +"Thank you, <br>Administrator" +config.ProductName+  "<br>"
         var mailObject = SendMail.GetMailObject(
             kpiOwnerInfo.Email,
             "Developmental Goal sign-off",
@@ -433,7 +433,7 @@ exports.sendEmailEmpOnManagerViewed = async (manager, kpiOwnerInfo) => {
        
         // send email to User
                 mailBody= "Dear "+kpiOwnerInfo.FirstName + ", <br><br>Your manager  has opened your action plan. You may want to initiate a offline discussion for this.<br><br>" 
-                mailBody = mailBody + "Thank you,<br>Administrator<br>"
+                mailBody = mailBody + "Thank you,<br>Administrator "+config.ProductName+"<br>"
         var mailObject = SendMail.GetMailObject(
             kpiOwnerInfo.Email,
             "Action plan viewed",

@@ -526,7 +526,7 @@ exports.SubmitKpisByEmployee = async (options) => {
             if (User[0].Manager) {
                 let mailBody = "Dear "+ User[0].Manager.FirstName +", <br><br>"
                 mailBody = mailBody + "Your Direct Report, "+ User[0].FirstName + " has submitted the Performance Goals."
-                mailBody=mailBody + "<br>Please   "+ " <a href=http://15.223.26.103>click here</a> to login and review<br><br>Thanks,<br>Administrator<br>"
+                mailBody=mailBody + "<br>Please   "+ " <a href="+ config.APP_URL + ">click here</a> to login and review<br><br>Thanks,<br>Administrator " + config.ProductName+"<br>"
                 var mailObject = SendMail.GetMailObject(
                     User[0].Manager.Email,
                     "Performance Goals submited for review",
@@ -543,7 +543,7 @@ exports.SubmitKpisByEmployee = async (options) => {
             // send email to User 
             let emailBody  = "Dear "+ User[0].FirstName +", <br><br>"
             emailBody = emailBody + "Your KPIs have been successfully submitted to your manager.<br><br>"
-            mailBody=mailBody + "<br>To view details,  "+ " <a href=http://15.223.26.103>click here</a><br><br>Thanks,<br>Administrator<br><br>"
+            mailBody=mailBody + "<br>To view details,  "+ " <a href="+ config.APP_URL + ">click here</a><br><br>Thanks,<br>Administrator " + config.ProductName+ "<br><br>"
             var mailObject = SendMail.GetMailObject(
                 User[0].Email,
                 "Performance Goals submited for review",
@@ -675,20 +675,11 @@ exports.SubmitAllSignOffKpis = async (options) => {
             if (User[0].Manager) {
                 let mailBody = "Dear "+User[0].Manager.FirstName+",<br>"
                 mailBody = mailBody + "Your Direct Report, " + User[0].FirstName + " has submitted the Performance Goals.<br><br>" 
-                mailBody=mailBody + "<br>Please  "+ " <a href=http://15.223.26.103>click here</a> to login and review <br><br>Thanks,<br>Administrator<br>"
+                mailBody=mailBody + "<br>Please  "+ " <a href="+ config.APP_URL + ">click here</a> to login and review <br><br>Thanks,<br>Administrator " + config.ProductName+"<br>"
                 var mailObject = SendMail.GetMailObject(
                     User[0].Manager.Email,
                     "Performance Goals submited for review",
-                    `Dear ${User[0].Manager.FirstName},<br>
-
-                                  Your Direct Report, ${User[0].FirstName} has submitted the Performance Goals.
-
-                                    Please click here to login and review.
-
-                                  
-                                    <br>  Thank you,
-                                  <product name> Administrator
-                                  `,
+             mailBody,
                     null,
                     null
                 );
@@ -701,7 +692,7 @@ exports.SubmitAllSignOffKpis = async (options) => {
             // send email to User 
             mailBody = "Dear " + User[0].FirstName + ", <br><br>"
             mailBody = mailBody + "Your KPIs have been successfully submitted to your manager."
-            mailBody=mailBody + "<br>To view details  "+ " <a href=http://15.223.26.103>click here</a> to login<br><br>Thanks,<br>Administrator"
+            mailBody=mailBody + "<br>To view details  "+ " <a href=" + config.APP_URL + ">click here</a> to login<br><br>Thanks,<br>Administrator " + config.ProductName+ "<br>"
             var mailObject = SendMail.GetMailObject(
                 User[0].Email,
                 "Performance Goals submited for review",
@@ -777,7 +768,7 @@ exports.SubmitAllKpis = async (options) => {
             if (User[0].Manager) {
                 mailBody = "Dear " + User[0].Manager.FirstName + ", <br>"
                 mailBody = mailBody + "Your Direct Report, "+ User[0].FirstName+" has submitted the Performance Goals.<br><br>"
-                mailBody=mailBody + "<br>Please  "+ " <a href=http://15.223.26.103>click here</a> to login and review.<br><br>Thanks,<br>Administrator<br>"
+                mailBody=mailBody + "<br>Please  "+ " <a href=" + config.APP_URL + ">click here</a> to login and review.<br><br>Thanks,<br>Administrator " +config.ProductName+ "<br>"
                 var mailObject = SendMail.GetMailObject(
                     User[0].Manager.Email,
                     "Performance Goals submited for review",
@@ -794,7 +785,7 @@ exports.SubmitAllKpis = async (options) => {
             // send email to User 
             mailBody = "Dear " + User[0].FirstName +", <br><br>"
             mailBody = mailBody + "Your KPIs have been successfully submitted to your manager."
-            mailBody=mailBody + "<br>To view details  "+ " <a href=http://15.223.26.103>click here</a> to login<br><br>Thanks,<br>Administrator<br>"
+            mailBody=mailBody + "<br>To view details  "+ " <a href="+ config.APP_URL +">click here</a> to login<br><br>Thanks,<br>Administrator "+config.ProductName+"<br>"
             var mailObject = SendMail.GetMailObject(
                 User[0].Email,
                 "Performance Goals submited for review",
@@ -1135,7 +1126,7 @@ exports.sendEmailOnManagerSignoff = async (manager, kpiOwnerInfo) => {
         // send email to manager 
 mailBody = mailBody + "Dear " + manager.FirstName + ",<br><br>"
 mailBody = mailBody + "You have successfully signed-off the Performance Goals for " +  kpiOwnerInfo.FirstName+".<br>"
-mailBody=mailBody + "<br>To view details  "+ " <a href=http://15.223.26.103>click here</a> to login<br><br>Thanks,<br>Administrator<br>"
+mailBody=mailBody + "<br>To view details  "+ " <a href="+ config.APP_URL + ">click here</a> to login<br><br>Thanks,<br>Administrator " + config.ProductName+ "<br>"
         var mailObject = SendMail.GetMailObject(
             manager.Email,
             "Performance Goals signed-off",
@@ -1152,7 +1143,7 @@ mailBody=mailBody + "<br>To view details  "+ " <a href=http://15.223.26.103>clic
         // send email to User 
         mailBody = "Dear "+ kpiOwnerInfo.FirstName + ", <br><br>"
         mailBody = mailBody + "Your manager, "+  manager.FirstName + " has <edited> and signed-off your Performance Goals.<br><br>"
-        mailBody=mailBody + "<br>Please  "+ " <a href=http://15.223.26.103>click here</a> to login and review. You may want to discuss the updates, if any, with your manager.<br><br>Thanks,<br>Administrator<br>"
+        mailBody=mailBody + "<br>Please  "+ " <a href="+config.APP_URL + ">click here</a> to login and review. You may want to discuss the updates, if any, with your manager.<br><br>Thanks,<br>Administrator "+config.ProductName+"<br>"
         var mailObject = SendMail.GetMailObject(
             kpiOwnerInfo.Email,
             "Performance Goals sign-off",
@@ -1988,7 +1979,7 @@ exports.SaveTSFinalRating = async (finalRating) => {
                     let revType = finalRating.ReqRevision ? 'Request Revision' : 'Submitted'
                     let mailBody = "Dear "+ ts.FirstName +", <br><br>"
                     mailBody=mailBody+ "You have successfully "+ revType + " your year-end review<br><br>"
-mailBody=mailBody+"Thank you,<br>Administrator<br>"
+mailBody=mailBody+"Thank you,<br>Administrator "+config.ProductName+"<br>"
 
                     var mailObject = SendMail.GetMailObject(
                         ts.Email,
@@ -2006,7 +1997,7 @@ mailBody=mailBody+"Thank you,<br>Administrator<br>"
                     let finalRating = finalRating.ReqRevision ? 'Request Revision' : 'Submitted'
                     mailBody="Dear " + empoyee.FirstName + ", <br><br>"
                     mailBody = mailBody + " Your Third Signatory "+ manager.FirstName+" has successfully "+ finalRating +"  year-end review.<br><br>"
-                    mailBody = mailBody + " Kindly access portal to review the year-end review.<br><br> Thank you,<br> Administrator<br>"
+                    mailBody = mailBody + " Kindly access portal to review the year-end review.<br><br> Thank you,<br> Administrator "+config.ProductName+"<br>"
 
                     var mailObject = SendMail.GetMailObject(
                         empoyee.Email,
@@ -2026,7 +2017,7 @@ mailBody=mailBody+"Thank you,<br>Administrator<br>"
                     let finalrate = finalRating.ReqRevision ? 'Request Revision' : 'Submitted'
                     mailBody = "Dear " + manager.FirstName + ", <br><br>"
                     mailBody = mailBody + empoyee.FirstName + " Third Signatory" +  ts.FirstName  + " has successfully " + finalrate +  " year-end review.<br><br>"
-                    mailBody = mailBody + "Kindly access portal to review the year-end review.<br><br>Thanks, <br>Administrator<br>"
+                    mailBody = mailBody + "Kindly access portal to review the year-end review.<br><br>Thanks, <br>Administrator "+config.ProductName+"<br>"
                     var mailObject = SendMail.GetMailObject(
                         manager.Email,
                         "Final Rating " + finalrate,
@@ -2133,7 +2124,7 @@ exports.SaveManagerFinalRating = async (finalRating) => {
                 if (manager) {
 let frate = finalRating?"Request Revision":"Submitted"
 mailBody = "Dear "+ manager.FirstName + ",<br><br>"
-mailBody = mailBody + "You have successfully " + frate +  " your year-end review<br><br>Thanks,<br>Administrator<br>"
+mailBody = mailBody + "You have successfully " + frate +  " your year-end review<br><br>Thanks,<br>Administrator "+config.ProductName+"<br>"
 
                     var mailObject = SendMail.GetMailObject(
                         manager.Email,
@@ -2152,7 +2143,7 @@ mailBody = mailBody + "You have successfully " + frate +  " your year-end review
                     mailBody = "Dear "+ empoyee.FirstName + ", <br><br>"
                     mailBody = mailBody + " Your Manager " + manager.FirstName + " has successfully "+ rev +"  year-end review.<br><br>"
                     mailBody = mailBody + "Kindly access portal to review the year-end review.<br>"
-                    mailBody = mailBody + "Thanks,<br>Administrator<br>"
+                    mailBody = mailBody + "Thanks,<br>Administrator "+config.ProductName+"<br>"
                     var mailObject = SendMail.GetMailObject(
                         empoyee.Email,
                         "Final Rating " + rev,
@@ -2249,7 +2240,7 @@ exports.SaveEmployeeFinalRating = async (finalRating) => {
                 var manager = c[0].CurrentEmployeeManager[0];
                 if (employee) {
 mailBody = "Dear " + employee.FirstName +",<br>"
-mailBody= mailBody + "You have successfully submitted your year-end review<br><br>Thanks,<br>Administrator<br>"
+mailBody= mailBody + "You have successfully submitted your year-end review<br><br>Thanks,<br>Administrator "+config.ProductName+"<br>"
                     var mailObject = SendMail.GetMailObject(
                         employee.Email,
                         "Final Rating Submitted",
@@ -2266,7 +2257,7 @@ mailBody= mailBody + "You have successfully submitted your year-end review<br><b
                     mailBody="Dear "+ manager.FirstName +",<br><br>"
                     mailBody = mailBody + "Your reportee " + employee.FirstName+" has successfully submitted  year-end review.<br>"
                     mailBody=mailBody + " Kindly access portal to review the year-end review.<br><br>"
-                    mailBody = mailBody + "Thanks,<br>Administrator<br>"
+                    mailBody = mailBody + "Thanks,<br>Administrator "+config.ProductName+"<br>"
                     var mailObject = SendMail.GetMailObject(
                         manager.Email,
                         "Final Rating Submitted",
@@ -2967,7 +2958,7 @@ return reportees;
 
 
 exports.sendEmailOnAccompCreate = async (manager,OwnerInfo,accomplishment) => {
-
+console.log("INNNNNNNNNNNNNNNNN", manager)
     // if ( OwnerInfo) {
     if (manager && OwnerInfo) {
         

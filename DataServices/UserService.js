@@ -13,6 +13,8 @@ var permissions=require('../SchemaModels/Permissions');
 const Permissions = require("../SchemaModels/Permissions");
 const { messages } = require("../Helpers/Messages");
 const OrganizationRepo = require('../SchemaModels/OrganizationSchema');
+var env = process.env.NODE_ENV || "dev";
+var config = require(`../Config/${env}.config`);
 
 exports.GetAllUsers = async () => {
 
@@ -401,7 +403,7 @@ exports.sendEmpUpdateEmails = async (newemp) =>{
 let csaDetails = await UserRepo.findById(newemp.CreatedBy);
 let mailBody= "Dear " + csaDetails.FirstName +",<br><br>"
 mailBody = mailBody + "You have successfully updated the details for <b>" + newemp.FirstName + " "+ newemp.LastName + "</b><br><br>"
-mailBody=mailBody + "<br>To view details  "+ " <a href=http://15.223.26.103>click here</a> to login<br><br>Thanks,<br>Administrator<br>"
+mailBody=mailBody + "<br>To view details  "+ " <a href=" +config.APP_URL +">click here</a> to login<br><br>Thanks,<br>Administrator " + config.ProductName + "<br>"
 
 var mailObject = SendMail.GetMailObject(
     newemp.Email,
@@ -432,7 +434,7 @@ if(EvalAdminFound){
 // MAIL TO EMPLOYEE START
  mailBody= "Dear " + newemp.FirstName +",<br><br>"
  mailBody = mailBody + "Your details have been updated by admin.<br><br>"
- mailBody=mailBody + "<br>To view details  "+ " <a href=http://15.223.26.103>click here</a> to login<br><br>Thanks,<br>Administrator<br>"
+ mailBody=mailBody + "<br>To view details  "+ " <a href=" + config.APP_URL +">click here</a> to login<br><br>Thanks,<br>Administrator" + config.ProductName + "<br>"
 
  var mailObject = SendMail.GetMailObject(
     newemp.Email,
@@ -446,7 +448,7 @@ mailBody
         
 
 await SendMail.SendEmail(mailObject, function (res) {
-    console.log("INNNNNNNNNNNNNNNNNNNNNNNNNNNNN", res);
+    
 });
 
 // MAIL TO EMPLOYEE END
@@ -456,7 +458,7 @@ exports.sendEmpCreateEmails = async (newemp,_temppwd) =>{
     
         let mailBody = "Dear " + newemp.FirstName +",<br><br> Congratulations, Employee account has been created. Your login id is your email. You will receive a separate email for password. Please change your password when you login first time."
     mailBody= mailBody + "<br><br>Email:<a href=mailto:"+newemp.Email+">"+ newemp.Email + "</a><br>"
-    mailBody=mailBody + "<br>please  "+ " <a href=http://15.223.26.103>click here</a> to login<br><br>Thanks,<br>Administrator"
+    mailBody=mailBody + "<br>please  "+ " <a href="+ config.APP_URL+">click here</a> to login<br><br>Thanks,<br>Administrator " + config.ProductName + "<br>"
 
     var mailObject = SendMail.GetMailObject(
         newemp.Email,
@@ -475,11 +477,11 @@ mailBody
      mailBody = "Dear " + newemp.FirstName + "<br><br>"
 mailBody=mailBody + " Congratulations, Employee account has been created. Please change your password when you login first time.<br><br>" 
 mailBody = mailBody + "<b>Password:</b> " + _temppwd + "<br><br>"
-mailBody=mailBody + "<br>please  "+ " <a href=http://15.223.26.103>click here</a> to login<br><br>Thanks,<br>Administrator<br><br>"
+mailBody=mailBody + "<br>please  "+ " <a href=" + config.APP_URL +">click here</a> to login<br><br>Thanks,<br>Administrator " +config.ProductName +  "<br><br>"
 
     var mailObject = SendMail.GetMailObject(
         newemp.Email,
-              "Employee account created",
+        config.ProductName + " account created",
 mailBody
              ,
               null,
@@ -495,7 +497,7 @@ mailBody
    let csaDetails = await UserRepo.findById(newemp.CreatedBy);
     mailBody="Dear " + csaDetails.FirstName +",<br>"
     mailBody = mailBody + "Congratulations, you have successfully added <b>" + newemp.FirstName + " " + newemp.LastName  + "</b> to the system.<br>"
-    mailBody=mailBody + "<br>To view details,  "+ " <a href=http://15.223.26.103>click here</a> to login<br><br>Thanks,<br>Administrator<br><br>"
+    mailBody=mailBody + "<br>To view details,  "+ " <a href="+ config.APP_URL + ">click here</a> to login<br><br>Thanks,<br>Administrator "+config.ProductName+"<br><br>"
     var mailObject = SendMail.GetMailObject(
         csaDetails.Email,
               "Employee successfully added",

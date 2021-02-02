@@ -99,6 +99,7 @@ const checkPayment = async (User)=>{
         "Type" : "Initial",
         "Status" : "Complete",
     };
+    console.log("INNNNNNNNNNNNNNNN", options);
     let paymentConfig = await FindPaymentReleaseByOrgId(options);
     if(!paymentConfig){
         if(User.Role!='CSA'){

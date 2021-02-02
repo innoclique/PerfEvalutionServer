@@ -12,6 +12,7 @@ var env = process.env.NODE_ENV || "dev";
 var config = require(`../Config/${env}.config`);
 const moment = require('moment');
 const { createIndexes } = require("../SchemaModels/OverridePriceScale");
+const SendMail = require("../Helpers/mail.js");
 
 const addPaymentConfiguration = async (paymentConfig) => {
     const _paymentConfig = await PaymentConfigSchema(paymentConfig);
@@ -106,15 +107,38 @@ const savePaymentRelease = async (paymentRelease) => {
 
 const deletePaymentRelease = async (request) => {
     console.log("remove payment release.");
-    console.log(request.paymentReleaseId)
+
     const _paymentrelease = await PaymentReleaseSchema.remove({_id:request.paymentReleaseId});
     return _paymentrelease;
 }
 const findPaymentReleaseByOrgId = async (paymentRelease) => {
-    console.log("Inside:findPaymentReleaseByOrgId");
+   // console.log("Inside:findPaymentReleaseByOrgId");
     console.log(paymentRelease)
+    const _paymentreleaseOrg = await PaymentReleaseSchema.findOne(paymentRelease).populate('Organization');
+   // sendPaymentEmail(paymentRelease)
+   console.log(_paymentreleaseOrg)
+
     const _paymentrelease = await PaymentReleaseSchema.findOne(paymentRelease);
     return _paymentrelease;
+}
+
+const sendPaymentEmail=async(newpaymentRelease)=>{
+    
+    console.log("INNnn", newpaymentRelease.Organization)
+    
+
+    mailBody= "Dear Test,<br><br>"
+    var mailObject = SendMail.GetMailObject(
+        "CS4@xyz.com",
+        "Payment for <evaluation period> successful",
+    mailBody
+              ,
+              null,
+              null
+            );
+    await SendMail.SendEmail(mailObject, function (res) {
+ 
+    });
 }
 const findAdhocRequestList = async () => {
     let responseObj=[];

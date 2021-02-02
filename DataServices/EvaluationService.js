@@ -23,6 +23,7 @@ const EmployeeService = require('./EmployeeService');
 const EvaluationUtils = require("../utils/EvaluationUtils")
 const statusRepo=require('../SchemaModels/Statuses');
 const EvaluationService=require('../DataServices/EvaluationService');
+const { cli } = require("winston/lib/winston/config");
 
 exports.AddEvaluation = async (evaluation) => {
     try {
@@ -208,6 +209,7 @@ exports.GetAvailableOrgEvaluations = async (req) => {
     console.log('inside GetAvailableOrgEvaluations', req);
     try {
         var result = {};
+      //  var client = await OrganizationSchema.find({'_id': Mongoose.Types.ObjectId(req.clientId)});
         let evaluationYear = await EvaluationUtils.GetOrgEvaluationYear(req.clientId);
         console.log(`evaluationYear = ${evaluationYear}`);
         var payments = await PaymentReleaseSchema.find({
@@ -222,11 +224,13 @@ exports.GetAvailableOrgEvaluations = async (req) => {
 
         var evaluations = await EvaluationRepo.find({
             'Company': Mongoose.Types.ObjectId(req.clientId),
-            'EvaluationYear': evaluationYear
+            'EvaluationYear': evaluationYear.toString()
         })
+   //     console.log('evaluations :::', evaluations);
         result['payments'] = payments;
         result['pgs'] = pgs;
         result['evaluations'] = evaluations;
+      //  result['client'] = client;
         return result;
     } catch (error) {
         console.log(error);

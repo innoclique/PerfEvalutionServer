@@ -14,6 +14,7 @@ var fs = require("fs");
 const moment = require('moment');
 
 const ModelsRepo = require('../SchemaModels/Model');
+const ModelMappingsRepo = require('../SchemaModels/ModelMappings');
 const ObjectId = Mongoose.Types.ObjectId;
 const PaymentReleaseSchema = require('../SchemaModels/PaymentReleaseSchema');
 const KpiRepo = require('../SchemaModels/KPI');
@@ -413,12 +414,12 @@ exports.GetCompetencyValues = async (evaluation) => {
         if (employee && employee.Competencies && employee.Competencies.length > 0) {
             return { EvaluationId: evaluationForm._id, Employee: employee };
         } else {
-            var modelAggregation = await ModelsRepo.aggregate([
+            var modelAggregation = await ModelMappingsRepo.aggregate([
                 { $match: { _id: ObjectId(employee.Model) } },
                 {
                     $lookup:
                     {
-                        from: "competencies",
+                        from: "competenciesmappings",
                         localField: "Competencies",
                         foreignField: "_id",
                         as: "competenciesList"
@@ -738,7 +739,7 @@ exports.GetEmployeePeersCompetencies = async (peer) => {
         var emp = evaluationForm.Employees.find(x => x._id.toString() === peer.empId);
         var currentPeer = emp.Peers.find(x => x._id.toString() === peer.peerId);
         var competencyId = currentPeer.PeersCompetencyList.map(x => { return x._id });
-        var modelAggregation = await ModelsRepo.aggregate([
+        var modelAggregation = await ModelMappingsRepo.aggregate([
             {
                 $match: {
                     _id: ObjectId(emp.Model)
@@ -747,7 +748,7 @@ exports.GetEmployeePeersCompetencies = async (peer) => {
             {
                 $lookup:
                 {
-                    from: "competencies",
+                    from: "competenciesmappings",
                     localField: "Competencies",
                     foreignField: "_id",
                     as: "competenciesList"
@@ -1492,12 +1493,12 @@ exports.GetEmpCompetenciesForManager = async (evaluation) => {
         if (employee && employee.Manager && employee.Manager.Competencies && employee.Manager.Competencies.length > 0) {
             return { EvaluationId: evaluationForm._id, Manager: employee.Manager };
         } else {
-            var modelAggregation = await ModelsRepo.aggregate([
+            var modelAggregation = await ModelMappingsRepo.aggregate([
                 { $match: { _id: ObjectId(employee.Model) } },
                 {
                     $lookup:
                     {
-                        from: "competencies",
+                        from: "competenciesmappings",
                         localField: "Competencies",
                         foreignField: "_id",
                         as: "competenciesList"

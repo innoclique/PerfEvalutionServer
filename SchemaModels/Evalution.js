@@ -47,7 +47,7 @@ const Evalution = new mongoose.Schema({
             }
         ],
         drCompetenceMapping:[],
-        Model: { type: mongoose.Schema.Types.ObjectId, ref: 'models', default: null },
+        Model: { type: mongoose.Schema.Types.ObjectId, ref: 'modelsMappings', default: null },
         Competencies: [],
         CompetencyComments: { type: String, default: "" },
         CompetencyOverallRating: { type: String, default: "" },

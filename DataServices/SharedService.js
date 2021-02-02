@@ -13,6 +13,7 @@ const logger = require('../logger');
 const Questions=require('../SchemaModels/Questions');
 const Competency=require('../SchemaModels/Competency');
 const ModelsRepo=require('../SchemaModels/Model');
+const ModelsMappingRepo=require('../SchemaModels/ModelMappings');
 
 exports.GetIndustries = async () => {      
     const industries = await IndustryRepo.find({}).sort({Name:1});
@@ -34,14 +35,30 @@ exports.GetModelsByIndustry=async (industryId)=>{
         return null;
     }
 }
+
+exports.GetModelsByIndustryByOrgId=async (options)=>{
+    console.log("GetModelsByIndustryByOrgId")
+    console.log(options)
+    let {id,Organization} = options;
+    const indId=await IndustryRepo.findOne({Name:id});
+    if(indId){
+
+        const _models=await ModelsMappingRepo.find({Industry:indId.id,Organization:Organization});
+        return _models;
+    }else{
+        return null;
+    }
+}
+
+
 exports.GetCompetencyList=async (company)=>{
 
-var modelAggregation= await ModelsRepo.aggregate([
+var modelAggregation= await ModelsMappingRepo.aggregate([
     {$match:{_id:Mongoose.Types.ObjectId(company.modelId)}},  
 {
     $lookup:
        {
-         from: "competencies",
+         from: "competenciesmappings",
          localField: "Competencies",
          foreignField: "_id",
          

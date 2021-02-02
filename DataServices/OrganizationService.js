@@ -4,6 +4,10 @@ const Mongoose = require("mongoose");
 const Bcrypt = require('bcrypt');
 const OrganizationRepo = require('../SchemaModels/OrganizationSchema');
 const UserRepo = require('../SchemaModels/UserSchema');
+const ModelRepo = require('../SchemaModels/Model');
+const CompetencyRepo = require('../SchemaModels/Competency');
+const ModelMappingRepo = require('../SchemaModels/ModelMappings');
+const CompetencyMappingRepo = require('../SchemaModels/CompetencyMappings');
 const RoleRepo = require('../SchemaModels/Roles');
 const NoteRepo = require('../SchemaModels/Notes');
 const AuthHelper = require('../Helpers/Auth_Helper');
@@ -64,7 +68,11 @@ exports.CreateOrganization = async (organization) => {
             const Organization = new OrganizationRepo(organization);
             await Organization.save();
             const userObj = await UserRepo.findByIdAndUpdate(createdUser.id, { 'Organization': Organization._id });
-
+           
+             if(Organization._id && !organization.IsDraft){
+            //if(!organization.IsDraft){
+                loadOrganizationModels(Organization._id,organization.EvaluationModels)
+            }
             // If all queries are successfully executed then session commit the transactions and changes get refelected
             await session.commitTransaction();
 
@@ -173,6 +181,40 @@ exports.CreateOrganization = async (organization) => {
         console.log(err);
         throw (err);
     }
+}
+const loadOrganizationModels = async (OrganizationId,ModelsList)=>{
+    let modelMappingList = [];
+    let competencyMappingList = [];
+    for(var i=0;i<ModelsList.length;i++){
+        let modelId = ModelsList[i];
+        let _modelDomain = await ModelRepo.findOne({_id:Mongoose.Types.ObjectId(modelId)});
+        let {Competencies} = _modelDomain;
+        let competencyIdList = [];
+        for(var j=0;j<Competencies.length;j++){
+            let competency = Competencies[j];
+            let competencyDomain = await CompetencyRepo.findOne({"_id":""+competency.toString()},{_id:0});
+            if(competencyDomain){
+                competencyDomain = competencyDomain.toObject();
+                competencyDomain['Organization'] = OrganizationId;
+                let id = Mongoose.Types.ObjectId().toString();
+                competencyDomain['_id']=id;
+                competencyIdList.push(id);
+                competencyMappingList.push(competencyDomain);
+            }
+            
+        }
+        _modelDomain = _modelDomain.toObject();
+        delete _modelDomain._id;
+        _modelDomain.Competencies = competencyIdList;
+        _modelDomain.Organization = OrganizationId;
+        modelMappingList.push(_modelDomain);
+    }
+    //console.log(modelMappingList);
+    //console.log(competencyMappingList);
+    //ModelMappingRepo,CompetencyMappingRepo
+    await ModelMappingRepo.insertMany(modelMappingList);
+    await CompetencyMappingRepo.insertMany(competencyMappingList);
+    
 }
 exports.UpdateOrganization = async (organization) => {
     try {

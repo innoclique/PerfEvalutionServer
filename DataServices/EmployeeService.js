@@ -1823,7 +1823,7 @@ exports.GetPendingPeerReviewsToSubmit = async (emp) => {
             {
                 $lookup:
                 {
-                    from: "competencies",
+                    from: "competenciesmappings",
                     localField: "Peer.PeersCompetencyList._id",
                     foreignField: "_id",
                     as: "Competencies"
@@ -2506,7 +2506,7 @@ exports.GetPendingDRReviewsToSubmit = async (emp) => {
             {
                 $lookup:
                 {
-                    from: "competencies",
+                    from: "competenciesmappings",
                     localField: "DirectReportee.DirectReporteeCompetencyList._id",
                     foreignField: "_id",
                     as: "Competencies"
@@ -2692,7 +2692,7 @@ exports.GetCompetenciesForManagerToSubmit = async (emp) => {
             {
                 $lookup:
                 {
-                    from: "competencies",
+                    from: "competenciesmappings",
                     localField: "DirectReportee.DirectReporteeCompetencyList._id",
                     foreignField: "_id",
                     as: "Competencies"
@@ -2848,7 +2848,7 @@ exports.GetOverallRatingByCompetency = async (emp) => {
                         for (let d = 0; d < alldrs.length; p++) {
                             const currentDr = alldrs[d];
                             var currentDrCompetency = currentDr.filter(x => x.CompetencyId === element)
-                            var _avg = calcAverage(currentDrCompetency.map(x => x.Answer))
+                            var _avg = calcAverage(currentDrCompetency.map(x => x.Answer));
                             _drScore.push(_avg);
                         }
                     }
@@ -2867,7 +2867,7 @@ exports.GetOverallRatingByCompetency = async (emp) => {
                             _managerScore.push(_avg);
                     }
                 }
-                var _overallScore=calcAverage(_pcScore)+calcAverage(_drScore)+_managerScore[0]
+                var _overallScore=calcAverage(_pcScore)+calcAverage(_drScore)+_managerScore[0];
                 _clist.push({ competencyId: element, allSubmitted: true, overallScore: (_overallScore/3).toFixed(2) })
             }
         }

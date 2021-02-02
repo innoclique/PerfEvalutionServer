@@ -18,6 +18,7 @@ const EvaluationUtils = require("../utils/EvaluationUtils")
 exports.CreateOrganization = async (organization) => {
     try {
         //save user account for this organization
+        var allowPhone=false;
         const _temppwd = AuthHelper.GenerateRandomPassword();
         const pwd = Bcrypt.hashSync(_temppwd, 10);
         var AppRoles = await RoleRepo.find({ RoleLevel: { $in: ['4', '5'] } })
@@ -40,20 +41,34 @@ exports.CreateOrganization = async (organization) => {
             IsActive: true
         }
         // const UserNameUser = await UserRepo.findOne({ Email: UserModel.Username });
+
+        const organizationPhone = await OrganizationRepo.findOne({ Phone: organization.Phone }).sort({ CreatedOn: -1 });
+        if (organization.Phone && organizationPhone !== null) { 
+            let _PhoneNumberUser = await UserRepo.findOne({Organization:organizationPhone._id, PhoneNumber: userRecord.PhoneNumber });
+            if(organizationPhone.ClientType == 'Reseller' && _PhoneNumberUser!==null)
+            allowPhone=true;
+           
+        }
         const EmailUser = await UserRepo.findOne({ Email: userRecord.Email });
         const PhoneNumberUser = await UserRepo.findOne({ PhoneNumber: userRecord.PhoneNumber });
 
         if (userRecord.Email!="" && EmailUser !== null) { throw Error("Admin Email Already Exist"); }
-        if ( userRecord.PhoneNumber && PhoneNumberUser !== null) { throw Error("Admin Phone Number Already Exist"); }
+        if ( userRecord.PhoneNumber && PhoneNumberUser !== null) { 
+            if(allowPhone==false)
+            throw Error("Admin Phone Number Already Exist"); 
+        }
 
 
         const organizationName = await OrganizationRepo.findOne({ Name: organization.Name });
         const organizationEmail = await OrganizationRepo.findOne({ Email: organization.Email });
-        const organizationPhone = await OrganizationRepo.findOne({ Phone: organization.Phone });
+        // const organizationPhone = await OrganizationRepo.findOne({ Phone: organization.Phone }).sort({ CreatedOn: -1 });
 
         if (organizationName !== null) { throw Error("Organization Name Already Exist"); }
         if (organizationEmail !== null) { throw Error("Organization Email Already Exist "); }
-        if (organization.Phone && organizationPhone !== null) { throw Error("Organization Phone Number Already Exist"); }
+        if (organization.Phone && organizationPhone !== null) { 
+            if(organizationPhone.ClientType == 'Client')
+            throw Error("Organization Phone Number Already Exist"); 
+        }
         const session = await Mongoose.startSession();
         session.startTransaction();
         try {
@@ -221,8 +236,28 @@ exports.GetOrganizationDataById = async (Id) => {
     return Organization;
 };
 exports.GetAllOrganizations = async (parent) => {
-    const Organizations = await OrganizationRepo.find({ ParentOrganization: ObjectId(parent.companyId) }).sort({ CreatedOn: -1 });
-    return Organizations;
+
+    try {
+
+
+        var allReseller = await OrganizationRepo.find({ ClientType: "Client" });
+        var Organizations = await OrganizationRepo.find({ ParentOrganization: ObjectId(parent.companyId) }).sort({ CreatedOn: -1 });
+    
+        return Organizations.map(e => {
+            let licenceType = allReseller.filter(k => k.ParentOrganization && k.ParentOrganization.toString() == e._id.toString() && k.UsageType == 'License').length;
+            let empType = allReseller.filter(k => k.ParentOrganization && k.ParentOrganization.toString() == e._id.toString() && k.UsageType == 'Employees').length;
+            e.LicenceTypeCount = licenceType;
+            e.EmpTypeCount = empType;
+            return e;
+        });
+
+    } catch (err) {
+        logger.error(err)
+
+        console.log(err);
+        throw (err);
+
+    }
 };
 exports.GetAllOrganizationsForReseller = async (parent) => {
     const Organizations = await OrganizationRepo.find({ ParentOrganization: ObjectId(parent.companyId) }).sort({ CreatedOn: -1 });

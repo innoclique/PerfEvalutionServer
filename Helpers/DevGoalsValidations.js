@@ -25,6 +25,7 @@ exports.ValidateDevGoal = ( data)=>{
          empId: Joi.string().required(),
          ViewedByManagerOn: Joi.required(),
          Action: Joi.string().required(),
+         CreatedYear: Joi.optional(),
          });
       return schema;
    
@@ -53,6 +54,7 @@ exports.ValidateDevGoal = ( data)=>{
       const schema = Joi.object().keys({
          DevGoal: Joi.required(),
          Action: Joi.string().required(),
+         CreatedYear: Joi.optional(),
         
       }).unknown(true);;
       return schema;
@@ -82,7 +84,7 @@ exports.ValidateDevGoal = ( data)=>{
        CreatedBy:Joi.string().optional(),
        Owner:Joi.string().optional(),
        EvaluationId:Joi.string().optional(),
-     
+       CreatedYear: Joi.optional(),
        UpdatedBy:Joi.string().required()
    
    

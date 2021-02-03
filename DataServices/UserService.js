@@ -89,8 +89,17 @@ const checkPayment = async (User)=>{
     console.log("Inside:checkPayment");
     console.log(User.Role);
     let {Organization} = User;
-    let ParentOrganization=await OrganizationRepo.findOne({_id:Organization._id}).populate("ParentOrganization");
-    
+    let organizationDomain=await OrganizationRepo.findOne({_id:Organization._id}).populate("ParentOrganization");
+    console.log(organizationDomain.ParentOrganization.ClientType);
+    if(organizationDomain && organizationDomain.ParentOrganization && organizationDomain.ParentOrganization.ClientType){
+        if(organizationDomain.ParentOrganization.ClientType === "Reseller" && User.Role ==='CSA'){
+            return {
+                initialPayment:true,
+                renewal:true
+            };
+        }
+    }
+        
     let options = {
         Organization:Organization._id,
         "Type" : "Initial",
@@ -98,7 +107,7 @@ const checkPayment = async (User)=>{
     };
     let paymentConfig = await FindPaymentReleaseByOrgId(options);
     if(!paymentConfig){
-        if(User.Role!='CSA'){
+        if(User.Role!='CSA' && User.Role!='RSA'){
             throw "Account suspended";
         }
         return {
@@ -109,7 +118,7 @@ const checkPayment = async (User)=>{
     }else{
         let Subscriptions = await SubscriptionsSchema.findOne({Organization:Organization._id}).sort({_id:-1});
         if(!Subscriptions){
-            if(User.Role!='CSA'){
+            if(User.Role!='CSA' && User.Role!='RSA'){
                 throw "Account suspended";
             }
             return {
@@ -121,7 +130,7 @@ const checkPayment = async (User)=>{
             let validTillMoment = moment(ValidTill);
             let isBeforeDuedate = validTillMoment.isBefore(moment())
             if(!Subscriptions.IsActive || isBeforeDuedate){
-                if(User.Role!='CSA'){
+                if(User.Role!='CSA' && User.Role!='RSA'){
                     throw "Account suspended";
                 }
                 return {
@@ -145,7 +154,7 @@ exports.Authenticate = async (LoginModel) => {
         const User = await  UserRepo.findOne({ 'Email': Email }) .populate('ThirdSignatory CopiesTo DirectReports Manager Organization JobLevel').select("+Password");
         let payInfo;
         if(User && User.Role!='PSA'){
-            payInfo = await checkPayment(User)
+            payInfo = await checkPayment(User);
         }
         if (User && Bcrypt.compareSync(Password, User.Password)) {
             var AccesToken = AuthHelper.CreateShortAccesstoken(User);

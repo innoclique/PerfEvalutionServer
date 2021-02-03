@@ -4,7 +4,7 @@ const mongoose = require("mongoose");
 
 
 const ModelMappingSchema = new mongoose.Schema({
-    Name: { type: String, required: true, unique: true },
+    Name: { type: String, required: true },
     Industry :[],
     JobRole:[],
     JobLevel:[],

@@ -81,12 +81,16 @@ exports.CreateOrganization = async (organization) => {
             organization.Admin = createdUser.id;
 
             const Organization = new OrganizationRepo(organization);
-            await Organization.save();
+            let _orgDomain = await Organization.save();
             const userObj = await UserRepo.findByIdAndUpdate(createdUser.id, { 'Organization': Organization._id });
-           
-             if(Organization._id && !organization.IsDraft){
+            console.log(`${_orgDomain._id} : ${organization.IsDraft}`);
+
+             if(_orgDomain._id && !organization.IsDraft){
+                 console.log("Creating models");
             //if(!organization.IsDraft){
-                loadOrganizationModels(Organization._id,organization.EvaluationModels)
+                await loadOrganizationModels(_orgDomain._id,organization.EvaluationModels)
+            }else{
+                console.log("Models are not created ");
             }
             // If all queries are successfully executed then session commit the transactions and changes get refelected
             await session.commitTransaction();

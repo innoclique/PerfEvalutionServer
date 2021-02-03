@@ -30,8 +30,7 @@ const AccomplishmentsSchema = new mongoose.Schema({
         },
         comment: String,
         CreatedOn: {
-            type: Date,
-            default: Date.now
+            type: Date
         }
        
     }],

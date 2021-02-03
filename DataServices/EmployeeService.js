@@ -929,8 +929,9 @@ exports.addKpiTrack = async (kpi) => {
 
     var track = {
         actorId: kpi.UpdatedBy,
+        CreatedOn: new Date(),
         action: kpi.Action,
-        comment: actor.FirstName + " " + "has " + kpi.Action + " at "  + moment().format('lll')
+        comment: actor.FirstName + " " + "has been " + kpi.Action=="Review"?"reviewed":kpi.Action + " at "  + moment().format('lll')
     }
     reportOBJ.tracks.push(track);
     return await reportOBJ.save();
@@ -951,6 +952,7 @@ exports.addAccompTrack = async (accomp) => {
 
     var track = {
         actorId: accomp.UpdatedBy,
+        CreatedOn: new Date(),
         action: accomp.Action,
         comment: actor.FirstName + " " + "has " + accomp.Action + " at " + moment().format('lll')
     }
@@ -1957,6 +1959,17 @@ exports.SaveTSFinalRating = async (finalRating) => {
                     }
                 },
                 {
+                    $lookup:
+                    {
+                        from: "users",
+                        localField: "CurrentEmployee.CopiesTo",
+                        foreignField: "_id",
+                        as: "CurrentEmployeeCT"
+
+                    }
+                },
+
+                {
                     $project: {
                         "CurrentEmployee.FirstName": 1,
                         "CurrentEmployee.LastName": 1,
@@ -1966,7 +1979,10 @@ exports.SaveTSFinalRating = async (finalRating) => {
                         "CurrentEmployeeManager.Email": 1,
                         "CurrentEmployeeTS.FirstName": 1,
                         "CurrentEmployeeTS.LastName": 1,
-                        "CurrentEmployeeTS.Email": 1
+                        "CurrentEmployeeTS.Email": 1,
+                        "CurrentEmployeeCT.FirstName": 1,
+                        "CurrentEmployeeCT.LastName": 1,
+                        "CurrentEmployeeCT.Email": 1
 
                     }
 
@@ -1985,6 +2001,7 @@ exports.SaveTSFinalRating = async (finalRating) => {
                 var empoyee = c[0].CurrentEmployee[0];
                 var manager = c[0].CurrentEmployeeManager[0];
                 var ts = c[0].CurrentEmployeeTS[0];
+                var ct = c[0].CurrentEmployeeCT[0];
                 if (ts) {
                     let revType = finalRating.ReqRevision ? 'Request Revision' : 'Submitted'
                     let mailBody = "Dear "+ ts.FirstName +", <br><br>"
@@ -2004,14 +2021,14 @@ mailBody=mailBody+"Thank you,<br>Administrator "+config.ProductName+"<br>"
                     });
                 }
                 if (empoyee) {
-                    let finalRating = finalRating.ReqRevision ? 'Request Revision' : 'Submitted'
+                    let fr = finalRating.ReqRevision ? 'Request Revision' : 'Submitted'
                     mailBody="Dear " + empoyee.FirstName + ", <br><br>"
-                    mailBody = mailBody + " Your Third Signatory "+ manager.FirstName+" has successfully "+ finalRating +"  year-end review.<br><br>"
+                    mailBody = mailBody + " Your Third Signatory "+ manager.FirstName+" has successfully "+ fr +"  year-end review.<br><br>"
                     mailBody = mailBody + " Kindly access portal to review the year-end review.<br><br> Thank you,<br> Administrator "+config.ProductName+"<br>"
 
                     var mailObject = SendMail.GetMailObject(
                         empoyee.Email,
-                        "Final Rating " + finalRating,
+                        "Final Rating " + fr,
                        mailBody,
                         null,
                         null
@@ -2040,6 +2057,38 @@ mailBody=mailBody+"Thank you,<br>Administrator "+config.ProductName+"<br>"
                         console.log(res);
                     });
                 }
+
+                if (ct && !finalRating.ReqRevision && !finalRating.IsDraft ) {
+
+
+
+                    fs.readFile("./EmailTemplates/EmailTemplate.html", async function read(err, bufcontent) {
+                        var content = bufcontent.toString();
+                
+                        let des= "Evaluation for" + empoyee.FirstName +" "+empoyee.LastName+" has been completed."+ ` <br>
+                        To view details, <a href="${config.APP_BASE_URL}#/employee/copiesTo">click here</a>.
+                           `
+                        content = content.replace("##FirstName##",ct.FirstName);
+                        content = content.replace("##ProductName##", config.ProductName);
+                        content = content.replace("##Description##", des);
+                        content = content.replace("##Title##", "Evaluation for" + empoyee.FirstName +" "+empoyee.LastName+" has been signed off");
+            
+                    var mailObject = SendMail.GetMailObject(
+                        ct.Email,
+                        "Evaluation for" + empoyee.FirstName +" "+empoyee.LastName+" has been signed off",
+                              content,
+                              null,
+                              null
+                            );
+            
+                    await SendMail.SendEmail(mailObject, function (res) {
+                        console.log(res);
+                    });
+            
+                });
+
+
+            }
 
 
             }

@@ -467,6 +467,7 @@ exports.addDevGoalTrack = async (devGoalModel) => {
 
     var track = {
         actorId: devGoalModel.UpdatedBy,
+        CreatedOn: new Date(),
         action: devGoalModel.Action,
         comment: actor.FirstName + " " + "has " + devGoalModel.Action + " at " + moment().format('lll')
         

@@ -546,7 +546,7 @@ exports.SubmitKpisByEmployee = async (options) => {
                     console.log(res);
                 });
             }
-            var generatedlink = config.APP_BASE_URL;
+            var generatedlink = config.APP_BASE_REDIRECT_URL;
             generatedlink = generatedlink+'#/login?redirectTo=/employee/review-perf-goals-list';
             console.log(' generatedlink ::: ',generatedlink);
             // send email to User 
@@ -708,7 +708,7 @@ exports.SubmitAllSignOffKpis = async (options) => {
                     console.log(res);
                 });
             }
-            var generatedlink = config.APP_BASE_URL;
+            var generatedlink = config.APP_BASE_REDIRECT_URL;
             generatedlink = generatedlink+'#/login?redirectTo=/employee/review-perf-goals-list';
             console.log(' generatedlink ::: ',generatedlink);
             // send email to User 
@@ -814,9 +814,9 @@ exports.SubmitAllKpis = async (options) => {
                     console.log(res);
                 });
             }
-            
-            var generatedlink = config.APP_BASE_URL;
-        generatedlink = generatedlink+'#/login?redirectTo=/employee/review-perf-goals-list';
+
+            var generatedlink = config.APP_BASE_REDIRECT_URL;
+        generatedlink = generatedlink+'employee/review-perf-goals-list';
         console.log(' generatedlink ::: ',generatedlink);
 
             // send email to User 
@@ -3040,7 +3040,7 @@ exports.sendEmailOnAccompCreate = async (manager,OwnerInfo,accomplishment) => {
             var content = bufcontent.toString();
     
             let des= `The accomplishment has been added successfully. <br>
-            To view details, <a href="${config.APP_BASE_URL}#/employee/accomplishments-list">click here</a>.
+            To view details, <a href="${config.APP_BASE_REDIRECT_URL}#/employee/accomplishments-list">click here</a>.
                `
             content = content.replace("##FirstName##",OwnerInfo.FirstName);
             content = content.replace("##ProductName##", config.ProductName);
@@ -3069,7 +3069,7 @@ exports.sendEmailOnAccompCreate = async (manager,OwnerInfo,accomplishment) => {
             var content = bufcontent.toString();
     
             let des= `Employee ${OwnerInfo.FirstName} ${OwnerInfo.LastName} has added accomplishments
-            To view details, <a href="${config.APP_BASE_URL}#/employee/review-accomplishments">click here</a>.
+            To view details, <a href="${config.APP_BASE_REDIRECT_URL}#/employee/review-accomplishments">click here</a>.
                `
             content = content.replace("##FirstName##",manager.FirstName);
             content = content.replace("##ProductName##", config.ProductName);

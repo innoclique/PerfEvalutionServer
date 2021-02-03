@@ -392,7 +392,7 @@ exports.sendEmailOnManagerSignoff = async (manager, kpiOwnerInfo) => {
         // send email to manager 
         let mailBody= "Dear "+ manager.FirstName +", <br><br>"
         mailBody = mailBody + "You have successfully added comments to the action plan for  " + kpiOwnerInfo.FirstName +  ".<br><br>"
-        mailBody=mailBody + "<br>To view details  "+ " <a href=http://15.223.26.103>click here</a><br><br>Thanks,<br>Administrator " + config.ProductName + "<br>"
+        mailBody=mailBody + "<br>To view details  "+ " <a href="+ config.APP_URL + ">click here</a><br><br>Thanks,<br>Administrator " + config.ProductName + "<br>"
         var mailObject = SendMail.GetMailObject(
             manager.Email,
             "Developmental Goal signed-off",

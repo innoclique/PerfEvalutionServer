@@ -42,7 +42,6 @@ exports.AddStrength = async (strength) => {
             delete strength.StrengthId;
             let response = await StrengthRepo.updateOne({ _id: ObjectId(StrengthId) }, strength);
         } else {
-            strength.CreatedYear = new Date().getFullYear();
             let Strength = new StrengthRepo(strength);
             await Strength.save()
         }
@@ -72,10 +71,13 @@ exports.getCopiesTo = async (userId) => {
         .find({ "CopiesTo": Mongoose.Types.ObjectId(userId.userId) });
 }
 
-exports.GetAllStrengths = async (empId) => {
-
+exports.GetAllStrengths = async (options) => {
+    let {empId,CreatedYear} = options;
+    if(!CreatedYear){
+        CreatedYear = ""+new Date().getFullYear()
+    }
     const Strengths = await StrengthRepo.find({ 'Employee': empId,
-    'CreatedYear': ""+new Date().getFullYear() }).sort({ UpdatedOn: -1 });;
+    'CreatedYear':  CreatedYear}).sort({ UpdatedOn: -1 });;
     return Strengths;
 };
 exports.GetEvaluationsYears = async (empId) => {

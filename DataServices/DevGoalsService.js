@@ -48,7 +48,6 @@ exports.GetKpisForDevGoals = async (data) => {
 
 
 exports.GetAllDevGoals = async (data) => {
-
 try{
 
     var allEvaluation = await EvaluationRepo.find({
@@ -61,12 +60,18 @@ try{
     // if (!currEvaluation || allEvaluation.length==0) {
     //   throw Error("KPI Setting Form Not Activeted");
     // }
-
+    let {CreatedYear} = data;
+    let preGoalsCreatedYear = ""+new Date().getFullYear()-1;
+    let devGoalsCreatedYear = ""+new Date().getFullYear();
+    if(CreatedYear){
+        preGoalsCreatedYear = Number(CreatedYear)-1;
+        devGoalsCreatedYear = CreatedYear;
+    }
     var preDevGoals = [];
     // if (preEvaluation && !data.currentOnly) {
     if(!data.currentOnly) {
         //    preDevGoals = await DevGoalsRepo.find({'Owner':data.empId, 'EvaluationId':preEvaluation._id})
-        preDevGoals = await DevGoalsRepo.find({ 'Owner': data.empId ,  'MakePrivate': data.fetchAll||false, 'CreatedYear': ""+new Date().getFullYear()-1})
+        preDevGoals = await DevGoalsRepo.find({ 'Owner': data.empId ,  'MakePrivate': data.fetchAll||false, 'CreatedYear': ""+preGoalsCreatedYear})
              //  .populate('Kpi')
             .sort({ UpdatedOn: -1 });
     }
@@ -74,7 +79,7 @@ try{
 
     //   const Kpi = await KpiRepo.find({'Owner':data.empId,'IsDraftByManager':false, 'EvaluationId':currEvaluation._id})
     const devGoals = await DevGoalsRepo.find({ 'Owner': data.empId, 
-            'MakePrivate': {$in: [false,data.fetchAll ] },   'IsDraftByManager': false ,'CreatedYear': ""+new Date().getFullYear() })
+            'MakePrivate': {$in: [false,data.fetchAll ] },   'IsDraftByManager': false ,'CreatedYear': ""+devGoalsCreatedYear })
            .populate('Kpi')
         .sort({ UpdatedOn: -1 });
 
@@ -297,7 +302,7 @@ exports.UpdateStrengthById = async (strenthData) => {
 exports.AddDevGoal = async (devGoalModel) => {
     try {
         var devGoal = new DevGoalsRepo(devGoalModel);
-        devGoal.CreatedYear= new Date().getFullYear();
+        //devGoal.CreatedYear= new Date().getFullYear();
         devGoal = await devGoal.save();
 
         devGoalModel.Action = 'Create';

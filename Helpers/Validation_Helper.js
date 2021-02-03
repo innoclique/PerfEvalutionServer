@@ -597,6 +597,7 @@ exports.ValidateStrength = ( data)=>{
          IsManaFTSubmited: Joi.any().optional(),
          UpdatedBy: Joi.string().required(),
          empId: Joi.string().required(),
+         CreatedYear:Joi.optional(),
          
 
       });
@@ -618,6 +619,7 @@ exports.ValidateStrength = ( data)=>{
       ManagerId: Joi.optional(),
       IsDraft:Joi.optional(),
       IsStrengthSubmited:Joi.optional(),
+      CreatedYear:Joi.optional(),
       
   });
   return schema;

@@ -127,7 +127,7 @@ exports.AddStrength = async (req, res, next) => {
     });
 }
 exports.GetAllStrengths = async (req, res, next) => {
-    await EmployeeService.GetAllStrengths(req.body.empId)
+    await EmployeeService.GetAllStrengths(req.body)
         .then(Response => Response ? res.status(200).json(Response) : res.status(404).json("Strengths Not Found"))
         .catch(err => next(err => { next(err) }));
 

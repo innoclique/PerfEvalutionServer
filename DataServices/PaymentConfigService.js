@@ -117,7 +117,7 @@ const findPaymentReleaseByOrgId = async (paymentRelease) => {
     console.log(paymentRelease)
     const _paymentreleaseOrg = await PaymentReleaseSchema.findOne(paymentRelease).populate('Organization');
     
-   // sendPaymentEmail(paymentRelease)
+    sendPaymentEmail(paymentRelease)
     const _paymentrelease = await PaymentReleaseSchema.findOne(paymentRelease);
     return _paymentrelease;
 }

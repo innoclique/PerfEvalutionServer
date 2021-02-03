@@ -546,7 +546,9 @@ exports.SubmitKpisByEmployee = async (options) => {
                     console.log(res);
                 });
             }
-
+            var generatedlink = config.APP_BASE_URL;
+            generatedlink = generatedlink+'#/login?redirectTo=/employee/review-perf-goals-list';
+            console.log(' generatedlink ::: ',generatedlink);
             // send email to User 
             var mailObject = SendMail.GetMailObject(
                 User[0].Email,
@@ -555,7 +557,7 @@ exports.SubmitKpisByEmployee = async (options) => {
 
                                   Your KPIs have been successfully submitted to your manager.
                                   
-                                  To view details, click here.
+                                  To view details, <a href="${generatedlink}">click here</a>.
                                   
                                   <br>   Thank you,
                                  Administrator
@@ -706,7 +708,9 @@ exports.SubmitAllSignOffKpis = async (options) => {
                     console.log(res);
                 });
             }
-
+            var generatedlink = config.APP_BASE_URL;
+            generatedlink = generatedlink+'#/login?redirectTo=/employee/review-perf-goals-list';
+            console.log(' generatedlink ::: ',generatedlink);
             // send email to User 
             var mailObject = SendMail.GetMailObject(
                 User[0].Email,
@@ -715,7 +719,7 @@ exports.SubmitAllSignOffKpis = async (options) => {
 
                                   Your KPIs have been successfully submitted to your manager.
                                   
-                                  To view details, click here.
+                                  To view details, <a href="${generatedlink}">click here</a>.
                                   
                                   <br>   Thank you,
                                  Administrator
@@ -810,6 +814,10 @@ exports.SubmitAllKpis = async (options) => {
                     console.log(res);
                 });
             }
+            
+            var generatedlink = config.APP_BASE_URL;
+        generatedlink = generatedlink+'#/login?redirectTo=/employee/review-perf-goals-list';
+        console.log(' generatedlink ::: ',generatedlink);
 
             // send email to User 
             var mailObject = SendMail.GetMailObject(
@@ -819,7 +827,7 @@ exports.SubmitAllKpis = async (options) => {
 
                                   Your KPIs have been successfully submitted to your manager.
                                   
-                                  To view details, click here.
+                                  To view details, <a href="${generatedlink}">click here</a>.
                                   
                                   <br>   Thank you,
                                  Administrator
@@ -1176,7 +1184,7 @@ exports.sendEmailOnManagerSignoff = async (manager, kpiOwnerInfo) => {
             null,
             null
         );
-
+        
         await SendMail.SendEmail(mailObject, function (res) {
             console.log(res);
         });
@@ -1190,7 +1198,7 @@ exports.sendEmailOnManagerSignoff = async (manager, kpiOwnerInfo) => {
 
                           Your manager, ${manager.FirstName} has <edited> and signed-off your Performance Goals.
 
-                          Please click here to login and review. You may want to discuss the updates, if any, with your manager.
+                          Please <a href="${generatedlink}">click here</a> to login and review. You may want to discuss the updates, if any, with your manager.
                           
                           
                           <br> Thank you,

@@ -115,9 +115,7 @@ exports.CreateOrganization = async (organization) => {
         fs.readFile("./EmailTemplates/EmailTemplate.html", async function read(err, bufcontent) {
             var content = bufcontent.toString();
 
-            var des = `Congratulations, you have successfully set up an account for ${organization.Name}
-    To view details, click here
-    `
+            var des ="Congratulations, you have successfully set up an account for " + organization.Name + "  To view details, <a href="+ config.APP_URL +">click here</a><br><br>"
             content = content.replace("##FirstName##", "PSA");
             content = content.replace("##ProductName##", config.ProductName);
             content = content.replace("##Description##", des);
@@ -125,7 +123,7 @@ exports.CreateOrganization = async (organization) => {
 
             var mailObject = SendMail.GetMailObject(
                 config.PSAEmail,
-                "New Organization added",
+                "Client successfully added",
                 content,
                 null,
                 null
@@ -150,29 +148,19 @@ exports.CreateOrganization = async (organization) => {
 
             var mailObject = SendMail.GetMailObject(
                 userRecord.Email,
-                "Oraganization Added",
+                "Client successfully updated",
                 content,
                 null,
                 null
             );
 
-            await SendMail.SendEmail(mailObject, function (res) {
+            await SendMail.SendEmail(mailObject, function (res) { 
                 console.log(res);
             });
             var content = bufcontent.toString();
-            des = `Dear ${userRecord.FirstName}, <br>
-
-    Please use below temporary password to login into portal. 
-    Password: ${_temppwd}
-    <br/>
-    You will be redirected to change password upon your First Login.
-
-    
-    Please click here to login.
-    
-    <br> Thank you,
-    Administrator
-    `
+            des = "Dear " + userRecord.FirstName +", <br>"+"Please use below temporary password to login into portal. <br><br>" +"Password: "+ _temppwd +"<br><br>"
+  des= des + "    You will be redirected to change password upon your First Login.<br><br>"  
+    des = des + "Please " +" <a href="+ config.APP_URL + ">+Click here to login.<br>   Thank you,<br>Administrator" + config.ProductName + "<br>"
 
             content = content.replace("##FirstName##", userRecord.FirstName);
             content = content.replace("##ProductName##", config.ProductName);
@@ -482,9 +470,8 @@ exports.AddReseller = async (organization) => {
         fs.readFile("./EmailTemplates/EmailTemplate.html", async function read(err, bufcontent) {
             var content = bufcontent.toString();
 
-            var des = `Congratulations, you have successfully set up an account for ${organization.Name}
-    To view details, click here
-    `
+            var des = "Congratulations, you have successfully set up an account for " + organization.Name + "<br><br> "
+            des = des + " <a href="+ config.APP_URL + ">+Click here to login.<br>   Thank you,<br>Administrator" + config.ProductName + "<br>"
             content = content.replace("##FirstName##", "PSA");
             content = content.replace("##ProductName##", config.ProductName);
             content = content.replace("##Description##", des);
@@ -528,15 +515,10 @@ exports.AddReseller = async (organization) => {
             });
             var content = bufcontent.toString();
 
-            des = `Dear ${userRecord.FirstName}, <br>
-    Please use below temporary password to login into portal. 
-    Password: ${_temppwd}
-    <br/>
-    You will be redirected to change password upon your First Login.
-    Please click here to login.    
-    <br> Thank you,
-    Administrator
-    `
+            des = "Dear " + userRecord.FirstName +", <br> Please use below temporary password to login into portal. <br><br>Password: "+ _temppwd+"<br><br>"
+des = des + "You will be redirected to change password upon your First Login.  "
+ des = des + "Please " +" <a href="+ config.APP_URL + ">+Click here to login.<br>   Thank you,<br>Administrator" + config.ProductName + "<br>"
+
             content = content.replace("##FirstName##", userRecord.FirstName);
             content = content.replace("##ProductName##", config.ProductName);
             content = content.replace("##Description##", des);

@@ -395,21 +395,13 @@ exports.sendEmailOnManagerSignoff = async (manager, kpiOwnerInfo) => {
 
     if (manager) {
         // send email to manager 
-
+        let mailBody= "Dear "+ manager.FirstName +", <br><br>"
+        mailBody = mailBody + "You have successfully added comments to the action plan for  " + kpiOwnerInfo.FirstName +  ".<br><br>"
+        mailBody=mailBody + "<br>To view details  "+ " <a href="+ config.APP_URL + ">click here</a><br><br>Thanks,<br>Administrator " + config.ProductName + "<br>"
         var mailObject = SendMail.GetMailObject(
             manager.Email,
             "Developmental Goal signed-off",
-            `Dear ${manager.FirstName}, <br>
-
-            You have successfully added comments to the action plan for  ${kpiOwnerInfo.FirstName}.
-
-                        To view details, click here. <br>
-
-
-                          
-                          Thank you,
-                          Administrator
-                          `,
+            mailBody,
             null,
             null
         );
@@ -420,17 +412,13 @@ exports.sendEmailOnManagerSignoff = async (manager, kpiOwnerInfo) => {
 
 
         // send email to User 
+        mailBody = "Dear "+ kpiOwnerInfo.FirstName +", <br><br>"
+        mailBody = mailBody + "Your manager "+ manager.FirstName + " successfully added comments. <br><br>"
+        mailBody = mailBody +"Thank you, <br>Administrator" +config.ProductName+  "<br>"
         var mailObject = SendMail.GetMailObject(
             kpiOwnerInfo.Email,
             "Developmental Goal sign-off",
-            `Dear ${kpiOwnerInfo.FirstName}, <br>
-
-            Your manager ${manager.FirstName} successfully added comments. <br>
-                          
-                          
-                          Thank you,
-                         Administrator
-                          `,
+          mailBody,
             null,
             null
         );
@@ -448,19 +436,13 @@ exports.sendEmailEmpOnManagerViewed = async (manager, kpiOwnerInfo) => {
 
     if (kpiOwnerInfo) {
        
-        // send email to User 
+        // send email to User
+                mailBody= "Dear "+kpiOwnerInfo.FirstName + ", <br><br>Your manager  has opened your action plan. You may want to initiate a offline discussion for this.<br><br>" 
+                mailBody = mailBody + "Thank you,<br>Administrator "+config.ProductName+"<br>"
         var mailObject = SendMail.GetMailObject(
             kpiOwnerInfo.Email,
             "Action plan viewed",
-            `Dear ${kpiOwnerInfo.FirstName}, <br>
-
-            
-            Your manager  has opened your action plan. You may want to initiate a offline discussion for this. 
-                          
-                          
-                   <br>       Thank you,
-                         Administrator
-                          `,
+            mailBody,
             null,
             null
         );

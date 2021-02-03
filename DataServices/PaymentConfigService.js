@@ -12,6 +12,8 @@ var env = process.env.NODE_ENV || "dev";
 var config = require(`../Config/${env}.config`);
 const moment = require('moment');
 const { createIndexes } = require("../SchemaModels/OverridePriceScale");
+const SendMail = require("../Helpers/mail.js");
+const OrganizationRepo = require('../SchemaModels/OrganizationSchema');
 
 const addPaymentConfiguration = async (paymentConfig) => {
     const _paymentConfig = await PaymentConfigSchema(paymentConfig);
@@ -109,15 +111,39 @@ const savePaymentRelease = async (paymentRelease) => {
 
 const deletePaymentRelease = async (request) => {
     console.log("remove payment release.");
-    console.log(request.paymentReleaseId)
+
     const _paymentrelease = await PaymentReleaseSchema.remove({_id:request.paymentReleaseId});
     return _paymentrelease;
 }
 const findPaymentReleaseByOrgId = async (paymentRelease) => {
-    console.log("Inside:findPaymentReleaseByOrgId");
+   // console.log("Inside:findPaymentReleaseByOrgId");
     console.log(paymentRelease)
+    const _paymentreleaseOrg = await PaymentReleaseSchema.findOne(paymentRelease).populate('Organization');
+    
+    sendPaymentEmail(paymentRelease)
     const _paymentrelease = await PaymentReleaseSchema.findOne(paymentRelease);
     return _paymentrelease;
+}
+
+const sendPaymentEmail=async(newpaymentRelease)=>{
+
+let ParentOrganization=await OrganizationRepo.findOne({_id:newpaymentRelease.Organization}).populate("ParentOrganization");
+let payDuration = ParentOrganization.EvaluationPeriod=="CalendarYear"?"Calendar Year":"Fiscal Year" 
+
+    mailBody= "Dear Test,<br><br>"
+    mailBody = mailBody + "Your payment for <b>" +payDuration+ "</b> is successful. You may start using the application.<br><br>"
+    mailBody=mailBody + "<br>To view details  "+ " <a href=" +config.APP_URL +">click here</a> to login<br><br>Thanks,<br>Administrator " + config.ProductName + "<br>"
+    var mailObject = SendMail.GetMailObject(
+        ParentOrganization.Email,
+        "Payment for " + payDuration +" successful",
+    mailBody
+              ,
+              null,
+              null
+            );
+    await SendMail.SendEmail(mailObject, function (res) {
+ 
+    });
 }
 const findAdhocRequestList = async () => {
     let responseObj=[];

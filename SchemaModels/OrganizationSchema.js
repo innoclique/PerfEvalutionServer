@@ -18,6 +18,8 @@ const OrganizationSchema = new mongoose.Schema({
     IsActive:{ type: Boolean, required: false },    
     ClientType:{ type: String, required: false },
     UsageCount:{ type: String},
+    LicenceTypeCount:{ type: String,default:"0"}, // Transiant purpost
+    EmpTypeCount:{ type: String,default:"0"}, // Transiant purpost
     ContactPersonEmail:{ type: String, required: false },
     ContactPersonFirstName:{ type: String, required: false },
     ContactPersonLastName:{ type: String, required: false },

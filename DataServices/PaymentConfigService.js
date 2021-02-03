@@ -92,6 +92,9 @@ const findEmployeeScale = async (options) => {
 const savePaymentRelease = async (paymentRelease) => {
     let savedObjet;
     if(!paymentRelease.paymentreleaseId){
+        if(!paymentRelease.ClientId){
+            delete paymentRelease.ClientId;
+        }
         const _paymentrelease = await PaymentReleaseSchema(paymentRelease);
         savedObjet = await _paymentrelease.save();
         

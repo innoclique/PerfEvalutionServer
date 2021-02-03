@@ -4,6 +4,10 @@ const Mongoose = require("mongoose");
 const Bcrypt = require('bcrypt');
 const OrganizationRepo = require('../SchemaModels/OrganizationSchema');
 const UserRepo = require('../SchemaModels/UserSchema');
+const ModelRepo = require('../SchemaModels/Model');
+const CompetencyRepo = require('../SchemaModels/Competency');
+const ModelMappingRepo = require('../SchemaModels/ModelMappings');
+const CompetencyMappingRepo = require('../SchemaModels/CompetencyMappings');
 const RoleRepo = require('../SchemaModels/Roles');
 const NoteRepo = require('../SchemaModels/Notes');
 const AuthHelper = require('../Helpers/Auth_Helper');
@@ -18,6 +22,7 @@ const EvaluationUtils = require("../utils/EvaluationUtils")
 exports.CreateOrganization = async (organization) => {
     try {
         //save user account for this organization
+        var allowPhone=false;
         const _temppwd = AuthHelper.GenerateRandomPassword();
         const pwd = Bcrypt.hashSync(_temppwd, 10);
         var AppRoles = await RoleRepo.find({ RoleLevel: { $in: ['4', '5'] } })
@@ -40,20 +45,34 @@ exports.CreateOrganization = async (organization) => {
             IsActive: true
         }
         // const UserNameUser = await UserRepo.findOne({ Email: UserModel.Username });
+
+        const organizationPhone = await OrganizationRepo.findOne({ Phone: organization.Phone }).sort({ CreatedOn: -1 });
+        if (organization.Phone && organizationPhone !== null) { 
+            let _PhoneNumberUser = await UserRepo.findOne({Organization:organizationPhone._id, PhoneNumber: userRecord.PhoneNumber });
+            if(organizationPhone.ClientType == 'Reseller' && _PhoneNumberUser!==null)
+            allowPhone=true;
+           
+        }
         const EmailUser = await UserRepo.findOne({ Email: userRecord.Email });
         const PhoneNumberUser = await UserRepo.findOne({ PhoneNumber: userRecord.PhoneNumber });
 
         if (userRecord.Email!="" && EmailUser !== null) { throw Error("Admin Email Already Exist"); }
-        if ( userRecord.PhoneNumber && PhoneNumberUser !== null) { throw Error("Admin Phone Number Already Exist"); }
+        if ( userRecord.PhoneNumber && PhoneNumberUser !== null) { 
+            if(allowPhone==false)
+            throw Error("Admin Phone Number Already Exist"); 
+        }
 
 
         const organizationName = await OrganizationRepo.findOne({ Name: organization.Name });
         const organizationEmail = await OrganizationRepo.findOne({ Email: organization.Email });
-        const organizationPhone = await OrganizationRepo.findOne({ Phone: organization.Phone });
+        // const organizationPhone = await OrganizationRepo.findOne({ Phone: organization.Phone }).sort({ CreatedOn: -1 });
 
         if (organizationName !== null) { throw Error("Organization Name Already Exist"); }
         if (organizationEmail !== null) { throw Error("Organization Email Already Exist "); }
-        if (organization.Phone && organizationPhone !== null) { throw Error("Organization Phone Number Already Exist"); }
+        if (organization.Phone && organizationPhone !== null) { 
+            if(organizationPhone.ClientType == 'Client')
+            throw Error("Organization Phone Number Already Exist"); 
+        }
         const session = await Mongoose.startSession();
         session.startTransaction();
         try {
@@ -64,7 +83,11 @@ exports.CreateOrganization = async (organization) => {
             const Organization = new OrganizationRepo(organization);
             await Organization.save();
             const userObj = await UserRepo.findByIdAndUpdate(createdUser.id, { 'Organization': Organization._id });
-
+           
+             if(Organization._id && !organization.IsDraft){
+            //if(!organization.IsDraft){
+                loadOrganizationModels(Organization._id,organization.EvaluationModels)
+            }
             // If all queries are successfully executed then session commit the transactions and changes get refelected
             await session.commitTransaction();
 
@@ -162,6 +185,40 @@ exports.CreateOrganization = async (organization) => {
         throw (err);
     }
 }
+const loadOrganizationModels = async (OrganizationId,ModelsList)=>{
+    let modelMappingList = [];
+    let competencyMappingList = [];
+    for(var i=0;i<ModelsList.length;i++){
+        let modelId = ModelsList[i];
+        let _modelDomain = await ModelRepo.findOne({_id:Mongoose.Types.ObjectId(modelId)});
+        let {Competencies} = _modelDomain;
+        let competencyIdList = [];
+        for(var j=0;j<Competencies.length;j++){
+            let competency = Competencies[j];
+            let competencyDomain = await CompetencyRepo.findOne({"_id":""+competency.toString()},{_id:0});
+            if(competencyDomain){
+                competencyDomain = competencyDomain.toObject();
+                competencyDomain['Organization'] = OrganizationId;
+                let id = Mongoose.Types.ObjectId().toString();
+                competencyDomain['_id']=id;
+                competencyIdList.push(id);
+                competencyMappingList.push(competencyDomain);
+            }
+            
+        }
+        _modelDomain = _modelDomain.toObject();
+        delete _modelDomain._id;
+        _modelDomain.Competencies = competencyIdList;
+        _modelDomain.Organization = OrganizationId;
+        modelMappingList.push(_modelDomain);
+    }
+    //console.log(modelMappingList);
+    //console.log(competencyMappingList);
+    //ModelMappingRepo,CompetencyMappingRepo
+    await ModelMappingRepo.insertMany(modelMappingList);
+    await CompetencyMappingRepo.insertMany(competencyMappingList);
+    
+}
 exports.UpdateOrganization = async (organization) => {
     try {
         const toupdateOrg = await OrganizationRepo.findOne({ _id: Mongoose.Types.ObjectId(organization.id) });
@@ -209,8 +266,28 @@ exports.GetOrganizationDataById = async (Id) => {
     return Organization;
 };
 exports.GetAllOrganizations = async (parent) => {
-    const Organizations = await OrganizationRepo.find({ ParentOrganization: ObjectId(parent.companyId) }).sort({ CreatedOn: -1 });
-    return Organizations;
+
+    try {
+
+
+        var allReseller = await OrganizationRepo.find({ ClientType: "Client" });
+        var Organizations = await OrganizationRepo.find({ ParentOrganization: ObjectId(parent.companyId) }).sort({ CreatedOn: -1 });
+    
+        return Organizations.map(e => {
+            let licenceType = allReseller.filter(k => k.ParentOrganization && k.ParentOrganization.toString() == e._id.toString() && k.UsageType == 'License').length;
+            let empType = allReseller.filter(k => k.ParentOrganization && k.ParentOrganization.toString() == e._id.toString() && k.UsageType == 'Employees').length;
+            e.LicenceTypeCount = licenceType;
+            e.EmpTypeCount = empType;
+            return e;
+        });
+
+    } catch (err) {
+        logger.error(err)
+
+        console.log(err);
+        throw (err);
+
+    }
 };
 exports.GetAllOrganizationsForReseller = async (parent) => {
     const Organizations = await OrganizationRepo.find({ ParentOrganization: ObjectId(parent.companyId) }).sort({ CreatedOn: -1 });

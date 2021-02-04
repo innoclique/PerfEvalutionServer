@@ -215,7 +215,7 @@ exports.SubmitAllActionPlan = async (data) => {
         let submited = await DevGoalsRepo.updateMany({
             'Owner': Mongoose.Types.ObjectId(data.empId),
             'IsDraft': false,
-            'CreatedYear': new Date().getFullYear(),
+            'CreatedYear': data.currentEvaluationYear,
             'IsGoalSubmited': false
         },
             {
@@ -230,7 +230,7 @@ exports.SubmitAllActionPlan = async (data) => {
             let submitedStrengths = await strengthRepo.updateMany({
                 'Owner': Mongoose.Types.ObjectId(data.empId),
                 'IsDraft': false,
-                'CreatedYear': new Date().getFullYear(),
+                'CreatedYear': data.currentEvaluationYear,
                 'IsStrengthSubmited': false
             },
                 {

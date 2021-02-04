@@ -108,7 +108,7 @@ const savePaymentRelease = async (paymentRelease) => {
         savedObjet = await PaymentReleaseSchema.updateOne({_id:paymentreleaseId},paymentRelease);
     }
     if(payReleaseId){
-        await processPaymentEmails(payReleaseId);
+        await processPaymentEmails({_id:payReleaseId});
     }
     if(savedObjet){
         return savedObjet;

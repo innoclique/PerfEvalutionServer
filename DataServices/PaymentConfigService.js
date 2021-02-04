@@ -6,6 +6,7 @@ const  ProductPriceScaleRepo= require('../SchemaModels/ProductPriceScale');
 const  OverridePriceScaleRepo= require('../SchemaModels/OverridePriceScale');
 const  PaymentReleaseSchema= require('../SchemaModels/PaymentReleaseSchema');
 const  PriceSchema= require('../SchemaModels/PriceSchema');
+const  UserSchema= require('../SchemaModels/UserSchema');
 const  StateTaxesSchema= require('../SchemaModels/StateTaxesSchema');
 var logger = require('../logger');
 var env = process.env.NODE_ENV || "dev";
@@ -14,6 +15,7 @@ const moment = require('moment');
 const { createIndexes } = require("../SchemaModels/OverridePriceScale");
 const SendMail = require("../Helpers/mail.js");
 const OrganizationRepo = require('../SchemaModels/OrganizationSchema');
+const EvaluationUtils = require("../utils/EvaluationUtils");
 
 const addPaymentConfiguration = async (paymentConfig) => {
     const _paymentConfig = await PaymentConfigSchema(paymentConfig);
@@ -91,17 +93,22 @@ const findEmployeeScale = async (options) => {
 
 const savePaymentRelease = async (paymentRelease) => {
     let savedObjet;
+    let payReleaseId;
     if(!paymentRelease.paymentreleaseId){
         if(!paymentRelease.ClientId){
             delete paymentRelease.ClientId;
         }
         const _paymentrelease = await PaymentReleaseSchema(paymentRelease);
         savedObjet = await _paymentrelease.save();
-        
+        payReleaseId = savedObjet._id;
     }else{
         let {paymentreleaseId} = paymentRelease;
+        payReleaseId = paymentreleaseId;
         delete paymentRelease.paymentreleaseId;
         savedObjet = await PaymentReleaseSchema.updateOne({_id:paymentreleaseId},paymentRelease);
+    }
+    if(payReleaseId){
+        await sendPaymentEmailToCSA(payReleaseId);
     }
     if(savedObjet){
         return savedObjet;
@@ -118,33 +125,95 @@ const deletePaymentRelease = async (request) => {
 const findPaymentReleaseByOrgId = async (paymentRelease) => {
    // console.log("Inside:findPaymentReleaseByOrgId");
     console.log(paymentRelease)
-    const _paymentreleaseOrg = await PaymentReleaseSchema.findOne(paymentRelease).populate('Organization');
-    
-    sendPaymentEmail(paymentRelease)
     const _paymentrelease = await PaymentReleaseSchema.findOne(paymentRelease);
     return _paymentrelease;
 }
-
-const sendPaymentEmail=async(newpaymentRelease)=>{
-
-let ParentOrganization=await OrganizationRepo.findOne({_id:newpaymentRelease.Organization}).populate("ParentOrganization");
-let payDuration = ParentOrganization.EvaluationPeriod=="CalendarYear"?"Calendar Year":"Fiscal Year" 
-
-    mailBody= "Dear Test,<br><br>"
-    mailBody = mailBody + "Your payment for <b>" +payDuration+ "</b> is successful. You may start using the application.<br><br>"
-    mailBody=mailBody + "<br>To view details  "+ " <a href=" +config.APP_URL +">click here</a> to login<br><br>Thanks,<br>Administrator " + config.ProductName + "<br>"
-    var mailObject = SendMail.GetMailObject(
-        ParentOrganization.Email,
-        "Payment for " + payDuration +" successful",
-    mailBody
-              ,
-              null,
-              null
-            );
-    await SendMail.SendEmail(mailObject, function (res) {
- 
-    });
+const processPaymentEmails = async(paymentRelease) => {
+    const _paymentrelease = await PaymentReleaseSchema.findOne(paymentRelease).populate("Organization");
+    if(_paymentrelease && _paymentrelease.Status == "Complete"){
+        let {Admin,_id,Name} = _paymentrelease.Organization;
+        let _orgDomain=await OrganizationRepo.findOne({_id:_id}).populate("ParentOrganization");
+        let evaluationYear = await EvaluationUtils.getOrganizationStartAndEndDates(_id);
+        let evaluationPeriod = evaluationYear.start.format("MMM-YYYY");
+        evaluationPeriod+=" - "+ evaluationYear.end.format("MMM-YYYY");
+        let userDomain = await UserSchema.findOne({_id:Admin});
+        await sendPaymentEmailToCSA({_paymentrelease,userDomain,evaluationPeriod});
+        await sendPaymentEmailToPSA({Name,parentOrg:_orgDomain.ParentOrganization,_paymentrelease,evaluationPeriod});
+        
+    }
 }
+
+const sendPaymentEmailToPSA  = async (options)=>{
+    console.log("Inside:sendPaymentEmailToPSA")
+        let {Name,parentOrg,_paymentrelease,evaluationPeriod} = options; 
+        let {Type} = _paymentrelease;
+        
+        let redirectURL = config.APP_BASE_REDIRECT_URL+"psa/reports/info/client";
+        let subject;
+        subject = "Payment for " + Name +" successful";
+        let mailBody= `Dear ${Name},<br><br>`;
+        mailBody = mailBody + Name+ "has made payment for "+Type+" for " +evaluationPeriod+ ".<br><br>";
+        mailBody=mailBody + "<br>To view details  "+ " <a href=" +redirectURL +">click here</a> <br><br>Thanks,<br>Administrator " + config.ProductName + "<br>";
+            console.log(mailBody);
+            console.log(`To Email = ${parentOrg.AdminEmail}`);
+            var mailObject = SendMail.GetMailObject(
+                parentOrg.AdminEmail,
+                subject,
+                mailBody,
+                null,
+                null
+                );
+            await SendMail.SendEmail(mailObject, function (res) {
+                console.log(JSON.stringify(res))
+            });
+}
+
+
+const sendPaymentEmailToCSA  = async (options)=>{
+    console.log("Inside:sendPaymentEmailToCSA")
+        let {_paymentrelease,userDomain,evaluationPeriod} = options; 
+        let {Type} = _paymentrelease;
+        let flag=true;
+        let mailBody= `Dear ${userDomain.FirstName},<br><br>`;
+        let subject;
+        switch (Type) {
+            case 'Initial':
+                subject = "Payment for " + evaluationPeriod +" successful";
+                mailBody = mailBody + "Your payment for " +evaluationPeriod+ " is successful. You may start using the application.<br><br>";
+                mailBody=mailBody + "<br>To login  "+ " <a href=" +config.APP_BASE_REDIRECT_URL +">click here</a> <br><br>Thanks,<br>Administrator " + config.ProductName + "<br>";
+                break;
+            case 'Adhoc':
+                subject = "Payment for ad hoc purchase for " + evaluationPeriod +" successful";
+                mailBody = mailBody + "Your purchase of ad hoc evaluations for " +evaluationPeriod+ " was successful.<br><br>";
+                mailBody=mailBody + "<br>To login  "+ " <a href=" +config.APP_BASE_REDIRECT_URL +">click here</a> <br><br>Thanks,<br>Administrator " + config.ProductName + "<br>";
+                break;
+            case 'Renewal':
+                subject = "Your license for " + evaluationPeriod +" has been renewed";
+                mailBody = mailBody + "Your license for " +evaluationPeriod+ " has been renewed.<br><br>";
+                mailBody=mailBody + "<br>To login  "+ " <a href=" +config.APP_BASE_REDIRECT_URL +">click here</a> <br><br>Thanks,<br>Administrator " + config.ProductName + "<br>";
+                
+                break;
+            default:
+                flag=false;
+                break;
+        }
+        if(flag){
+            console.log(mailBody);
+            console.log(`To Email = ${userDomain.Email}`);
+            var mailObject = SendMail.GetMailObject(
+                userDomain.Email,
+                subject,
+                mailBody,
+                null,
+                null
+                );
+            await SendMail.SendEmail(mailObject, function (res) {
+                console.log(JSON.stringify(res))
+            });
+        }
+    
+}
+
 const findAdhocRequestList = async () => {
     let responseObj=[];
     console.log("Inside:Adhoc Request list")
@@ -196,7 +265,11 @@ const findRangeList = async (options) => {
     let rangeList = await ProductPriceScaleRepo.find(options);
     return rangeList;
 }
-
+/*const init = async ()=>{
+    console.log("Loading.....")
+    await processPaymentEmails({_id:"601abe02ded5335a5ae34867"})
+}
+init();*/
 module.exports = {
     AddPaymentConfiguration:addPaymentConfiguration,
     findPaymentSettingByUserType:findPaymentSettingByUserType,
@@ -209,6 +282,6 @@ module.exports = {
     FindRangeList:findRangeList,
     FindPriceList:findPriceList,
     FindTaxRateByName:getTaxRateByName,
-    DeletePaymentRelease:deletePaymentRelease
+    DeletePaymentRelease:deletePaymentRelease,
 }
 

@@ -528,10 +528,10 @@ exports.SubmitKpisByEmployee = async (options) => {
             if (User[0].Manager) {
                 let mailBody = "Dear "+ User[0].Manager.FirstName +", <br><br>"
                 mailBody = mailBody + "Your Direct Report, "+ User[0].FirstName + " has submitted the Performance Goals."
-                mailBody=mailBody + "<br>Please   "+ " <a href="+ config.APP_URL + ">click here</a> to login and review<br><br>Thanks,<br>Administrator " + config.ProductName+"<br>"
+                mailBody=mailBody + "<br>Please   "+ " <a href="+ config.APP_BASE_REDIRECT_URL+"employee/review-perf-goals-list" + ">click here</a> to login and review<br><br>Thanks,<br>Administrator " + config.ProductName+"<br>"
                 var mailObject = SendMail.GetMailObject(
                     User[0].Manager.Email,
-                    "Performance Goals submited for review",
+                    "Performance Goals submitted by"+ User[0].FirstName +" "+  User[0].LastName ,
                     mailBody,
                     null,
                     null
@@ -542,15 +542,15 @@ exports.SubmitKpisByEmployee = async (options) => {
                 });
             }
             var generatedlink = config.APP_BASE_REDIRECT_URL;
-            generatedlink = generatedlink+'#/login?redirectTo=/employee/review-perf-goals-list';
+            generatedlink = generatedlink+'employee/kpi-setup';
             console.log(' generatedlink ::: ',generatedlink);
             // send email to User 
             let emailBody  = "Dear "+ User[0].FirstName +", <br><br>"
-            emailBody = emailBody + "Your KPIs have been successfully submitted to your manager.<br><br>"
+            emailBody = emailBody + "Your Performance Goals have been successfully submitted to your manager.<br><br>"
             mailBody=mailBody + "<br>To view details,  "+ " <a href="+ generatedlink + ">click here</a><br><br>Thanks,<br>Administrator " + config.ProductName+ "<br><br>"
             var mailObject = SendMail.GetMailObject(
                 User[0].Email,
-                "Performance Goals submited for review",
+                "Performance Goals submitted successfully",
                 emailBody,
                 null,
                 null
@@ -693,11 +693,11 @@ exports.SubmitAllSignOffKpis = async (options) => {
                 });
             }
             var generatedlink = config.APP_BASE_REDIRECT_URL;
-            generatedlink = generatedlink+'#/login?redirectTo=/employee/review-perf-goals-list';
+            generatedlink = generatedlink+'employee/kpi-setup';
             console.log(' generatedlink ::: ',generatedlink);
             // send email to User 
             mailBody = "Dear " + User[0].FirstName + ", <br><br>"
-            mailBody = mailBody + "Your KPIs have been successfully submitted to your manager."
+            mailBody = mailBody + "Your Performance Goals have been successfully submitted to your manager."
             mailBody=mailBody + "<br>To view details  "+ " <a href=" + generatedlink + ">click here</a> to login<br><br>Thanks,<br>Administrator " + config.ProductName+ "<br>"
             var mailObject = SendMail.GetMailObject(
                 User[0].Email,
@@ -774,10 +774,10 @@ exports.SubmitAllKpis = async (options) => {
             if (User[0].Manager) {
                 mailBody = "Dear " + User[0].Manager.FirstName + ", <br>"
                 mailBody = mailBody + "Your Direct Report, "+ User[0].FirstName+" has submitted the Performance Goals.<br><br>"
-                mailBody=mailBody + "<br>Please  "+ " <a href=" + config.APP_URL + ">click here</a> to login and review.<br><br>Thanks,<br>Administrator " +config.ProductName+ "<br>"
+                mailBody=mailBody + "<br>Please   "+ " <a href="+ config.APP_BASE_REDIRECT_URL+"employee/review-perf-goals-list" + ">click here</a> to login and review<br><br>Thanks,<br>Administrator " + config.ProductName+"<br>"
                 var mailObject = SendMail.GetMailObject(
                     User[0].Manager.Email,
-                    "Performance Goals submited for review",
+                    "Performance Goals submitted by"+ User[0].FirstName +" "+  User[0].LastName ,
                    mailBody,
                     null,
                     null
@@ -789,16 +789,16 @@ exports.SubmitAllKpis = async (options) => {
             }
 
             var generatedlink = config.APP_BASE_REDIRECT_URL;
-        generatedlink = generatedlink+'employee/review-perf-goals-list';
+        generatedlink = generatedlink+'employee/kpi-setup';
         console.log(' generatedlink ::: ',generatedlink);
 
             // send email to User 
             mailBody = "Dear " + User[0].FirstName +", <br><br>"
-            mailBody = mailBody + "Your KPIs have been successfully submitted to your manager."
+            mailBody = mailBody + "Your Performance Goals have been successfully submitted to your manager."
             mailBody=mailBody + "<br>To view details  "+ " <a href="+ generatedlink +">click here</a> to login<br><br>Thanks,<br>Administrator "+config.ProductName+"<br>"
             var mailObject = SendMail.GetMailObject(
                 User[0].Email,
-                "Performance Goals submited for review",
+                "Performance Goals submitted successfully",
   mailBody,
                 null,
                 null

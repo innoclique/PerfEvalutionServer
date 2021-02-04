@@ -1,6 +1,7 @@
 ﻿var nodemailer = require('nodemailer');
 var env = process.env.NODE_ENV || "dev";
 var config = require(`../Config/${env}.config`);
+const DeliverEmailRepo = require('../SchemaModels/DeliverEmail');
 
 var smtpConfig = {
     host: 'smtp.zoho.com', //config.smtp2.host,
@@ -32,7 +33,7 @@ exports.GetMailObject = function (to, subject, html, cc, bcc) {
     if (to && to !="")
     {
         if(env==='dev'){
-mailObject.to =   ['kpamulapati@innoclique.com', 'brajesh@innoclique.com','kramachandra@innoclique.com','avinash@innoclique.com']
+mailObject.to =   ['pbhargav@innoclique.com','yviswanadh@innoclique.com','kpamulapati@innoclique.com', 'brajesh@innoclique.com','kramachandra@innoclique.com','avinash@innoclique.com']
       //   mailObject.to =   "brajesh@innoclique.com"
         }else{
             mailObject.to = to;
@@ -60,8 +61,19 @@ mailObject.to =   ['kpamulapati@innoclique.com', 'brajesh@innoclique.com','krama
     return mailObject;
 }
 
-exports.SendEmail = function (contents, cb) {
+exports.SendEmail = async function (contents, cb) {
    // console.log('sendemail',smtpConfig)
+   
+var _deliveremails=[];
+_deliveremails.push({
+     Type: contents.subject,
+    IsDelivered: true,
+    Email: env==='dev'? contents.to[0]: contents.to ,
+    Template: contents.html,
+    Subject: contents.subject
+})
+ var de = await DeliverEmailRepo.insertMany(_deliveremails);
+
     contents.from = config.smtp2.smtp_user; 
     return transporter.sendMail(contents, function (error, info) {
         if (error) {

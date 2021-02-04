@@ -86,8 +86,8 @@ exports.getOrganizationStartAndEndDates = async (organizationId) => {
         console.log(`${evaluationStartMoment.format("MM DD,YYYY")} = ${evaluationEndMoment.format("MM DD,YYYY")}`);
       }
     }else if(EvaluationPeriod === "CalendarYear"){
-      evaluationStartMoment = moment().startOf('month');
-      evaluationEndMoment = moment().month(0).endOf('month').add(1, 'years');
+      evaluationStartMoment = moment().month(0).startOf('month');
+      evaluationEndMoment = moment().month(11).endOf('month');
     }
     return {
       start:evaluationStartMoment,

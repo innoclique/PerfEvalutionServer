@@ -83,6 +83,25 @@ exports.GetSetupBasicData = async (req, res, next) => {
         .catch(err => next(err => { next(err) }));
 
 }
+exports.UpdateEmployeeProfile = async (req, res, next) => {
+    Joi.validate(req.body, Validation_Helper.ValidateCreateEmployeeProfileModel(req.body), async (err, result) => {
+        if (err) { res.status(400).json({ message: err.details.map(i => i.message).join(" / ") }) }
+        else {
+
+            await UserService.UpdateEmployeeProfile(req.body)
+                .then((Response) => {
+                    res.status(200).json({ message: "Success" });
+                })
+                .catch(err => { next(err) });
+        }
+    });
+}
+
+exports.GetEmployeeProfile = async (req, res, next) => {
+    var empProfile = await UserService.getEmpProfile(req.body);
+    console.log('getEmpProfile :: ',JSON.stringify(empProfile));
+    res.json(empProfile);
+}
 
 
 

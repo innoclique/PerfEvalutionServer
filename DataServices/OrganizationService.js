@@ -23,8 +23,8 @@ exports.CreateOrganization = async (organization) => {
     try {
         //save user account for this organization
         var allowPhone=false;
-        const _temppwd = AuthHelper.GenerateRandomPassword();
-        const pwd = Bcrypt.hashSync(_temppwd, 10);
+        //const _temppwd = AuthHelper.GenerateRandomPassword();
+        //const pwd = Bcrypt.hashSync(_temppwd, 10);
         var AppRoles = await RoleRepo.find({ RoleLevel: { $in: ['4', '5'] } })
         const userRecord = {
             Email: organization.AdminEmail,
@@ -32,7 +32,7 @@ exports.CreateOrganization = async (organization) => {
             Role: organization.ClientType === 'Client' ? 'CSA' : 'RSA',
             ApplicationRole:[AppRoles[0]._id,AppRoles[1]._id ],
             SelectedRoles:[AppRoles[0].RoleCode, AppRoles[1].RoleCode],
-            Password: pwd,
+            //Password: pwd,
             FirstName: organization.AdminFirstName,
             LastName: organization.AdminLastName,
             MiddleName: organization.AdminMiddleName,
@@ -42,7 +42,7 @@ exports.CreateOrganization = async (organization) => {
             State: organization.State,
             ZipCode: organization.ZipCode,
             City: organization.City,
-            IsActive: true
+            IsActive: false
         }
         // const UserNameUser = await UserRepo.findOne({ Email: UserModel.Username });
 
@@ -112,7 +112,7 @@ exports.CreateOrganization = async (organization) => {
         }
 
 
-        fs.readFile("./EmailTemplates/EmailTemplate.html", async function read(err, bufcontent) {
+        /*fs.readFile("./EmailTemplates/EmailTemplate.html", async function read(err, bufcontent) {
             var content = bufcontent.toString();
 
             var des ="Congratulations, you have successfully set up an account for " + organization.Name + "  To view details, <a href="+ config.APP_URL +">click here</a><br><br>"
@@ -179,7 +179,7 @@ exports.CreateOrganization = async (organization) => {
                 console.log(res);
             });
 
-        });
+        });*/
 
         return true;
     }

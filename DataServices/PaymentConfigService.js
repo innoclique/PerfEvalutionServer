@@ -16,6 +16,8 @@ const { createIndexes } = require("../SchemaModels/OverridePriceScale");
 const SendMail = require("../Helpers/mail.js");
 const OrganizationRepo = require('../SchemaModels/OrganizationSchema');
 const EvaluationUtils = require("../utils/EvaluationUtils");
+const AuthHelper = require('../Helpers/Auth_Helper');
+const Bcrypt = require('bcrypt');
 
 const addPaymentConfiguration = async (paymentConfig) => {
     const _paymentConfig = await PaymentConfigSchema(paymentConfig);
@@ -130,17 +132,246 @@ const findPaymentReleaseByOrgId = async (paymentRelease) => {
 }
 const processPaymentEmails = async(paymentRelease) => {
     const _paymentrelease = await PaymentReleaseSchema.findOne(paymentRelease).populate("Organization");
-    if(_paymentrelease && _paymentrelease.Status == "Complete"){
-        let {Admin,_id,Name} = _paymentrelease.Organization;
+    let {Admin,_id,Name} = _paymentrelease.Organization;
         let _orgDomain=await OrganizationRepo.findOne({_id:_id}).populate("ParentOrganization");
         let evaluationYear = await EvaluationUtils.getOrganizationStartAndEndDates(_id);
         let evaluationPeriod = evaluationYear.start.format("MMM-YYYY");
         evaluationPeriod+=" - "+ evaluationYear.end.format("MMM-YYYY");
         let userDomain = await UserSchema.findOne({_id:Admin});
+    if(_paymentrelease && _paymentrelease.Status == "Complete"){
         await sendPaymentEmailToCSA({_paymentrelease,userDomain,evaluationPeriod});
         await sendPaymentEmailToPSA({Name,parentOrg:_orgDomain.ParentOrganization,_paymentrelease,evaluationPeriod});
         
     }
+    if(_paymentrelease && _paymentrelease.Type=="Initial" && _paymentrelease.Status == "Pending"){
+        await activateCSA(Admin);
+        await sendInitialPaymentReleaseEmailToPSA({Name,parentOrg:_orgDomain.ParentOrganization,_paymentrelease,evaluationPeriod});
+    }
+    if(_paymentrelease && _paymentrelease.Type=="Adhoc" && _paymentrelease.Status == "Approved"){
+        await sendAdhocApprovedEmailToPSA({Name,parentOrg:_orgDomain.ParentOrganization,_paymentrelease,evaluationPeriod});
+        await sendAdhocApprovedEmailToCSA({userDomain,evaluationPeriod});
+    }
+    if(_paymentrelease && _paymentrelease.Type=="Adhoc" && _paymentrelease.Status == "Disapproved"){
+        await sendAdhocDisapprovedEmailToPSA({Name,parentOrg:_orgDomain.ParentOrganization,_paymentrelease,evaluationPeriod});
+        await sendAdhocDisApprovedEmailToCSA({userDomain,evaluationPeriod});
+    }
+    if(_paymentrelease && _paymentrelease.Type=="Adhoc" && _paymentrelease.Status == "Pending"){
+        await sendAdhocRequestEmailToPSA({Name,parentOrg:_orgDomain.ParentOrganization,_paymentrelease,evaluationPeriod});
+        await sendAdhocRequestEmailToCSA({userDomain,evaluationPeriod});
+    }
+    
+}
+const sendAdhocRequestEmailToPSA  = async (options)=>{
+    console.log("Inside:sendAdhocRequestEmailToPSA")
+        let {Name,parentOrg,evaluationPeriod} = options; 
+        
+        let redirectURL = config.APP_BASE_REDIRECT_URL+"psa/payment-adhoc-list";
+        let subject;
+        subject = "Ad hoc purchase requested by " + Name ;
+        let mailBody= `Dear ${parentOrg.Name},<br><br>`;
+        mailBody = mailBody +Name+" has requested ad hoc evaluations for "+evaluationPeriod+".";
+        mailBody=mailBody + "<br>To take action,"+ " <a href=" +redirectURL +">click here</a> <br><br>Thank you,<br>" + config.ProductName + " Administrator<br>";
+            console.log(mailBody);
+            console.log(`To Email = ${parentOrg.AdminEmail}`);
+            var mailObject = SendMail.GetMailObject(
+                parentOrg.AdminEmail,
+                subject,
+                mailBody,
+                null,
+                null
+                );
+            await SendMail.SendEmail(mailObject, function (res) {
+                console.log(JSON.stringify(res))
+            });
+}
+
+const sendAdhocRequestEmailToCSA  = async (options)=>{
+    console.log("Inside:sendAdhocRequestEmailToCSA");
+    let redirectURL = config.APP_BASE_REDIRECT_URL;
+    let {userDomain,evaluationPeriod} = options; 
+    let mailBody= `Dear ${userDomain.FirstName},<br><br>`;
+    let subject = "Ad hoc purchase request sent";
+    
+    mailBody = mailBody + "Your request for ad hoc purchase with the following details has been sent for approval.<br><br>";
+    mailBody=mailBody + "<br>To login,"+ " <a href=" +redirectURL +">click here</a> <br><br>Thank you,<br>" + config.ProductName + " Administrator<br>";
+    var mailObject = SendMail.GetMailObject(
+            userDomain.Email,
+            subject,
+            mailBody,
+            null,
+            null
+            );
+        await SendMail.SendEmail(mailObject, function (res) {
+            console.log(JSON.stringify(res))
+        });
+    
+}
+
+const sendAdhocDisApprovedEmailToCSA  = async (options)=>{
+    console.log("Inside:sendAdhocDisApprovedEmailToCSA");
+    let redirectURL = config.APP_BASE_REDIRECT_URL;
+    let {userDomain,evaluationPeriod} = options; 
+    let mailBody= `Dear ${userDomain.FirstName},<br><br>`;
+    let subject = "Ad hoc purchase for " + evaluationPeriod +" disapproved";
+    
+    mailBody = mailBody + "Your ad hoc purchase for " +evaluationPeriod+ " has been disapproved. You may contact the product super admin for more details.<br><br>";
+    mailBody=mailBody + "<br>To login,"+ " <a href=" +redirectURL +">click here</a> <br><br>Thank you,<br>" + config.ProductName + " Administrator<br>";
+    var mailObject = SendMail.GetMailObject(
+            userDomain.Email,
+            subject,
+            mailBody,
+            null,
+            null
+            );
+        await SendMail.SendEmail(mailObject, function (res) {
+            console.log(JSON.stringify(res))
+        });
+    
+}
+const sendAdhocApprovedEmailToCSA  = async (options)=>{
+    console.log("Inside:sendAdhocApprovedEmailToCSA");
+    let redirectURL = config.APP_BASE_REDIRECT_URL+"csa/payments";
+    let {userDomain,evaluationPeriod} = options; 
+    let mailBody= `Dear ${userDomain.FirstName},<br><br>`;
+    let subject = "Ad hoc purchase for " + evaluationPeriod +" approved";
+    mailBody = mailBody + "Congratulations, your ad hoc purchase for " +evaluationPeriod+ " has been approved.<br><br>";
+    mailBody=mailBody + "<br>To make payment,"+ " <a href=" +redirectURL +">click here</a> <br><br>Thank you,<br>" + config.ProductName + " Administrator<br>";
+    console.log(mailBody);
+    console.log(`To Email = ${userDomain.Email}`);
+    var mailObject = SendMail.GetMailObject(
+            userDomain.Email,
+            subject,
+            mailBody,
+            null,
+            null
+            );
+        await SendMail.SendEmail(mailObject, function (res) {
+            console.log(JSON.stringify(res))
+        });
+    
+}
+
+
+const activateCSA = async (adminId) =>{
+    const _temppwd = AuthHelper.GenerateRandomPassword();
+    const pwd = Bcrypt.hashSync(_temppwd, 10);
+    let updateData={
+        Password: pwd,
+        IsActive: true
+    }
+    const userData = await UserSchema.findOneAndUpdate({_id:adminId},updateData);
+    await sendWelcomeEmailCSA(userData);
+    await sendTemporaryPwdToCSA(userData,_temppwd)
+}
+const sendTemporaryPwdToCSA  = async (options,tmpPwd)=>{
+    console.log("Inside:sendTemporaryPwdToCSA")
+        let {Email,FirstName,} = options; 
+        let mailBody= `Dear ${FirstName},<br><br>`;
+        let subject = "Your " + config.ProductName +" password";
+        mailBody = mailBody + "This is your temporary password for " +config.ProductName+": "+tmpPwd+"<br><br>";
+        mailBody=mailBody + "<br>To login  "+ " <a href=" +config.APP_BASE_REDIRECT_URL +">click here</a> <br><br>Thank you,<br>" + config.ProductName + " Administrator<br>";
+        var mailObject = SendMail.GetMailObject(
+            Email,
+            subject,
+            mailBody,
+            null,
+            null
+            );
+        await SendMail.SendEmail(mailObject, function (res) {
+            console.log(JSON.stringify(res))
+        });
+}
+const sendWelcomeEmailCSA  = async (options)=>{
+    console.log("Inside:sendPaymentEmailToCSA")
+        let {Email,FirstName,} = options; 
+        let mailBody= `Dear ${FirstName},<br><br>`;
+        let subject = "Your account for " + config.ProductName +" has been created";
+        mailBody = mailBody + "Congratulations, your account for " +config.ProductName+ " has been created. Your username is "+Email+"<br><br>";
+        mailBody=mailBody + "<br>To login  "+ " <a href=" +config.APP_BASE_REDIRECT_URL +">click here</a> <br><br>Thank you,<br>" + config.ProductName + " Administrator<br>";
+        var mailObject = SendMail.GetMailObject(
+            Email,
+            subject,
+            mailBody,
+            null,
+            null
+            );
+        await SendMail.SendEmail(mailObject, function (res) {
+            console.log(JSON.stringify(res))
+        });
+}
+
+const sendAdhocApprovedEmailToPSA  = async (options)=>{
+    console.log("Inside:sendAdhocApprovedEmailToPSA")
+        let {Name,parentOrg,evaluationPeriod} = options; 
+        
+        let redirectURL = config.APP_BASE_REDIRECT_URL;
+        let subject;
+        subject = "Ad hoc purchase for " + Name +" approved";
+        let mailBody= `Dear ${parentOrg.Name},<br><br>`;
+        mailBody = mailBody +"Ad hoc purchase for "+Name+" for "+evaluationPeriod+" has been approved and payment info sent.";
+        mailBody=mailBody + "<br>To login,"+ " <a href=" +redirectURL +">click here</a> <br><br>Thank you,<br>" + config.ProductName + " Administrator<br>";
+            console.log(mailBody);
+            console.log(`To Email = ${parentOrg.AdminEmail}`);
+            var mailObject = SendMail.GetMailObject(
+                parentOrg.AdminEmail,
+                subject,
+                mailBody,
+                null,
+                null
+                );
+            await SendMail.SendEmail(mailObject, function (res) {
+                console.log(JSON.stringify(res))
+            });
+}
+const sendAdhocDisapprovedEmailToPSA  = async (options)=>{
+    console.log("Inside:sendAdhocDisapprovedEmailToPSA")
+        let {Name,parentOrg,_paymentrelease,evaluationPeriod} = options; 
+        let {Type} = _paymentrelease;
+        
+        let redirectURL = config.APP_BASE_REDIRECT_URL;
+        let subject;
+        subject = "Ad hoc purchase for " + Name +" disapproved";
+        let mailBody= `Dear ${parentOrg.Name},<br><br>`;
+        mailBody = mailBody +"Ad hoc purchase for "+Name+" for "+evaluationPeriod+" has been disapproved and info sent.";
+        mailBody=mailBody + "<br>To login,"+ " <a href=" +redirectURL +">click here</a> <br><br>Thank you,<br>" + config.ProductName + " Administrator<br>";
+            console.log(mailBody);
+            console.log(`To Email = ${parentOrg.AdminEmail}`);
+            var mailObject = SendMail.GetMailObject(
+                parentOrg.AdminEmail,
+                subject,
+                mailBody,
+                null,
+                null
+                );
+            await SendMail.SendEmail(mailObject, function (res) {
+                console.log(JSON.stringify(res))
+            });
+}
+
+
+const sendInitialPaymentReleaseEmailToPSA  = async (options)=>{
+    console.log("Inside:sendPaymentEmailToPSA")
+        let {Name,parentOrg,_paymentrelease,evaluationPeriod} = options; 
+        let {Type} = _paymentrelease;
+        
+        let redirectURL = config.APP_BASE_REDIRECT_URL;
+        let subject;
+        subject = "Payment info for " + Name +" for "+evaluationPeriod+" sent";
+        let mailBody= `Dear ${parentOrg.Name},<br><br>`;
+        mailBody = mailBody +" Payment information for "+evaluationPeriod+" has been sent to "+ Name+ ".";
+        mailBody=mailBody + "<br>To login,"+ " <a href=" +redirectURL +">click here</a> <br><br>Thank you,<br>" + config.ProductName + " Administrator<br>";
+            console.log(mailBody);
+            console.log(`To Email = ${parentOrg.AdminEmail}`);
+            var mailObject = SendMail.GetMailObject(
+                parentOrg.AdminEmail,
+                subject,
+                mailBody,
+                null,
+                null
+                );
+            await SendMail.SendEmail(mailObject, function (res) {
+                console.log(JSON.stringify(res))
+            });
 }
 
 const sendPaymentEmailToPSA  = async (options)=>{
@@ -151,9 +382,9 @@ const sendPaymentEmailToPSA  = async (options)=>{
         let redirectURL = config.APP_BASE_REDIRECT_URL+"psa/reports/info/client";
         let subject;
         subject = "Payment for " + Name +" successful";
-        let mailBody= `Dear ${Name},<br><br>`;
+        let mailBody= `Dear ${parentOrg.Name},<br><br>`;
         mailBody = mailBody + Name+ "has made payment for "+Type+" for " +evaluationPeriod+ ".<br><br>";
-        mailBody=mailBody + "<br>To view details  "+ " <a href=" +redirectURL +">click here</a> <br><br>Thanks,<br>Administrator " + config.ProductName + "<br>";
+        mailBody=mailBody + "<br>To view details  "+ " <a href=" +redirectURL +">click here</a> <br><br>Thank you,<br>" + config.ProductName + " Administrator<br>";
             console.log(mailBody);
             console.log(`To Email = ${parentOrg.AdminEmail}`);
             var mailObject = SendMail.GetMailObject(
@@ -180,17 +411,17 @@ const sendPaymentEmailToCSA  = async (options)=>{
             case 'Initial':
                 subject = "Payment for " + evaluationPeriod +" successful";
                 mailBody = mailBody + "Your payment for " +evaluationPeriod+ " is successful. You may start using the application.<br><br>";
-                mailBody=mailBody + "<br>To login  "+ " <a href=" +config.APP_BASE_REDIRECT_URL +">click here</a> <br><br>Thanks,<br>Administrator " + config.ProductName + "<br>";
+                mailBody=mailBody + "<br>To login  "+ " <a href=" +config.APP_BASE_REDIRECT_URL +">click here</a> <br><br>Thank you,<br>" + config.ProductName + " Administrator<br>";
                 break;
             case 'Adhoc':
                 subject = "Payment for ad hoc purchase for " + evaluationPeriod +" successful";
                 mailBody = mailBody + "Your purchase of ad hoc evaluations for " +evaluationPeriod+ " was successful.<br><br>";
-                mailBody=mailBody + "<br>To login  "+ " <a href=" +config.APP_BASE_REDIRECT_URL +">click here</a> <br><br>Thanks,<br>Administrator " + config.ProductName + "<br>";
+                mailBody=mailBody + "<br>To login  "+ " <a href=" +config.APP_BASE_REDIRECT_URL +">click here</a> <br><br>Thank you,<br>" + config.ProductName + " Administrator <br>";
                 break;
             case 'Renewal':
                 subject = "Your license for " + evaluationPeriod +" has been renewed";
                 mailBody = mailBody + "Your license for " +evaluationPeriod+ " has been renewed.<br><br>";
-                mailBody=mailBody + "<br>To login  "+ " <a href=" +config.APP_BASE_REDIRECT_URL +">click here</a> <br><br>Thanks,<br>Administrator " + config.ProductName + "<br>";
+                mailBody=mailBody + "<br>To login  "+ " <a href=" +config.APP_BASE_REDIRECT_URL +">click here</a> <br><br>Thank you,<br>" + config.ProductName + "Administrator<br>";
                 
                 break;
             default:

@@ -1,7 +1,7 @@
 const Express = require("express");
 require('dotenv').config();
 const mongoose = require("mongoose");
-const { boolean, string } = require("joi");
+const { boolean, string, number } = require("joi");
 
 const UserSchema = new mongoose.Schema({
     Email: { type: String, unique: true },
@@ -22,9 +22,9 @@ const UserSchema = new mongoose.Schema({
     FirstName: { type: String },
     LastName: { type: String },
     ExtNumber: { type: String },
-      AltPhoneNumber: { type: String },
-      MiddleName: { type: String },
-      MobileNumber: { type: String },
+    AltPhoneNumber: { type: String },
+    MiddleName: { type: String },
+    MobileNumber: { type: String },
     DateCreated: { type: String, default: Date() },
     JoiningDate: { type: String, default: Date() },
     RoleEffFrom: { type: String },
@@ -58,7 +58,10 @@ const UserSchema = new mongoose.Schema({
     UpdatedOn:{type:Date },
     UpdatedBy:{ type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     Permissions:[],
-    HasActiveEvaluation:{type:String,default:"No"}
+    HasActiveEvaluation:{type:String,default:"No"},
+    IsProfileUpToDate: { type: Boolean, default: true },
+    profile:{type:Object,default:null},
+    coachingRemainder:{type:Number}
 },
 {
     usePushEach: true

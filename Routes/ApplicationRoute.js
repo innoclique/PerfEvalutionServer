@@ -16,6 +16,9 @@ route.post('/CreateEmployee', EmployeeController.CreateEmployee);
 route.post('/UpdateEmployee', EmployeeController.UpdateEmployee);
 route.post('/GetEmployeeDataById',EmployeeController.GetEmployeeDataById);
 route.post('/GetAllEmployees',EmployeeController.GetAllEmployees);
+route.post('/GetEmployeeProfile',EmployeeController.GetEmployeeProfile);
+route.post('/UpdateEmployeeProfile',EmployeeController.UpdateEmployeeProfile);
+
 
 route.post('/AddStrength',EmployeeController.AddStrength);
 route.post('/GetAllStrengths',EmployeeController.GetAllStrengths);

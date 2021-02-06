@@ -26,7 +26,7 @@ exports.GetMailObject = function (to, subject, html, cc, bcc) {
         if (to && to !="")
         {
             if(env==='dev'){
-    mailObject.to =   ['venu.rai@innoclique.com','avinash@innoclique.com']
+    mailObject.to =   ['kpamulapati@innoclique.com','avinash@innoclique.com','kramachandra@innoclique.com','yviswanadh@innoclique.com','pbhargav@innoclique.com']
           //   mailObject.to =   "brajesh@innoclique.com"
             }else{
                 mailObject.to = to;

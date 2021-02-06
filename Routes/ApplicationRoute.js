@@ -18,6 +18,8 @@ route.post('/GetEmployeeDataById',EmployeeController.GetEmployeeDataById);
 route.post('/GetAllEmployees',EmployeeController.GetAllEmployees);
 route.post('/GetEmployeeProfile',EmployeeController.GetEmployeeProfile);
 route.post('/UpdateEmployeeProfile',EmployeeController.UpdateEmployeeProfile);
+route.post('/GetOrgProfile',ApplicationController.GetOrgProfile);
+route.post('/UpdateOrgProfile',ApplicationController.UpdateOrgProfile);
 
 
 route.post('/AddStrength',EmployeeController.AddStrength);

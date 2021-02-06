@@ -147,6 +147,28 @@ exports.GetEmpSetupBasicData = async (industry) => {
     return { Industries, AppRoles, JobLevels };
 };
 
+//Added by Brij - Start 
+exports.GetEmpFinalRatingByYear = async (req) => {
+    try {
+        console.log(req);
+        const finalRatings = await EvaluationRepo.findOne({
+        Employees: { $elemMatch:{_id: ObjectId(req.EmployeeId)}},
+        EvaluationYear: req.EvaluationYear.toString()
+       }).select("Employees.FinalRating");
+       if (!finalRatings) {
+        throw "Final Rating Not Found";
+      }
+    return finalRatings;
+}
+    catch(err){
+    logger.error(err)
+    console.log(err);
+    throw (err);    
+    }
+}
+
+
+//Added by Brij - Ends
 
 exports.GetKpiSetupBasicData = async (options) => {
     console.log("inside:GetKpiSetupBasicData")

@@ -150,7 +150,7 @@ const processPaymentEmails = async(paymentRelease) => {
     if(_paymentrelease && _paymentrelease.Status == "Complete"){
         if(Role === "CSA")
             await sendPaymentEmailToCSA({_paymentrelease,userDomain,evaluationPeriod});
-            await sendPaymentEmailToPSA({Name,parentOrg:_orgDomain.ParentOrganization,_paymentrelease,evaluationPeriod});
+            await sendPaymentEmailToPSA({Name,parentOrg:_orgDomain.ParentOrganization,_paymentrelease,evaluationPeriod,Role});
         
     }
     if(_paymentrelease && _paymentrelease.Type=="Initial" && _paymentrelease.Status == "Pending"){
@@ -363,13 +363,17 @@ const sendAdhocDisapprovedEmailToPSA  = async (options)=>{
 
 
 const sendInitialPaymentReleaseEmailToPSA  = async (options)=>{
-    console.log("Inside:sendPaymentEmailToPSA")
+    console.log("Inside:sendInitialPaymentReleaseEmailToPSA")
         let {Name,parentOrg,_paymentrelease,evaluationPeriod} = options; 
         let {Type} = _paymentrelease;
         
         let redirectURL = config.APP_BASE_REDIRECT_URL;
         let subject;
-        subject = "Payment info for " + Name +" for "+evaluationPeriod+" sent";
+        if(evaluationPeriod && evaluationPeriod!="")
+            subject = "Payment info for " + Name +" for "+evaluationPeriod+" sent";
+        else
+            subject = "Payment info for " + Name +" sent";
+
         let mailBody= `Dear ${parentOrg.Name},<br><br>`;
         mailBody = mailBody +" Payment information for "+evaluationPeriod+" has been sent to "+ Name+ ".";
         mailBody=mailBody + "<br>To login,"+ " <a href=" +redirectURL +">click here</a> <br><br>Thank you,<br>" + config.ProductName + " Administrator<br>";
@@ -389,10 +393,14 @@ const sendInitialPaymentReleaseEmailToPSA  = async (options)=>{
 
 const sendPaymentEmailToPSA  = async (options)=>{
     console.log("Inside:sendPaymentEmailToPSA")
-        let {Name,parentOrg,_paymentrelease,evaluationPeriod} = options; 
+        let {Name,parentOrg,_paymentrelease,evaluationPeriod,Role} = options; 
         let {Type} = _paymentrelease;
-        
         let redirectURL = config.APP_BASE_REDIRECT_URL+"psa/reports/info/client";
+        if(evaluationPeriod && evaluationPeriod!="")
+            redirectURL = config.APP_BASE_REDIRECT_URL+"psa/reports/info/client";
+        else
+            redirectURL = config.APP_BASE_REDIRECT_URL+"psa/reports/info/reseller";
+
         let subject;
         subject = "Payment for " + Name +" successful";
         let mailBody= `Dear ${parentOrg.Name},<br><br>`;

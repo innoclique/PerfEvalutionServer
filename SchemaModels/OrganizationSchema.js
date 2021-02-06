@@ -1,4 +1,5 @@
 const Express = require("express");
+const { string } = require("joi");
 require('dotenv').config();
 const mongoose = require("mongoose");
 
@@ -49,6 +50,9 @@ const OrganizationSchema = new mongoose.Schema({
     Competencies:[],
     ParentOrganization:{ type: mongoose.Schema.Types.ObjectId, ref: 'Organization',default:null },
     Range:{ type: mongoose.Schema.Types.ObjectId, ref: 'ProductPriceScale',default:null },
+    IsProfileUpToDate: { type: Boolean, default: true },
+    profile:{type:Object,default:null}
+//     countryCode:{type:String}
 });
 
 OrganizationSchema.set('toJSON', { versionKey: false });

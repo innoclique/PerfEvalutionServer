@@ -178,7 +178,7 @@ const sendAdhocRequestEmailToPSA  = async (options)=>{
     console.log("Inside:sendAdhocRequestEmailToPSA")
         let {Name,parentOrg,evaluationPeriod} = options; 
         
-        let redirectURL = config.APP_BASE_REDIRECT_URL+"psa/payment-adhoc-list";
+        let redirectURL = config.APP_BASE_REDIRECT_URL+"=/psa/payment-adhoc-list";
         let subject;
         subject = "Ad hoc purchase requested by " + Name ;
         let mailBody= `Dear ${parentOrg.Name},<br><br>`;
@@ -243,7 +243,7 @@ const sendAdhocDisApprovedEmailToCSA  = async (options)=>{
 }
 const sendAdhocApprovedEmailToCSA  = async (options)=>{
     console.log("Inside:sendAdhocApprovedEmailToCSA");
-    let redirectURL = config.APP_BASE_REDIRECT_URL+"csa/payments";
+    let redirectURL = config.APP_BASE_REDIRECT_URL+"=/csa/payments";
     let {userDomain,evaluationPeriod} = options; 
     let mailBody= `Dear ${userDomain.FirstName},<br><br>`;
     let subject = "Ad hoc purchase for " + evaluationPeriod +" approved";
@@ -395,11 +395,11 @@ const sendPaymentEmailToPSA  = async (options)=>{
     console.log("Inside:sendPaymentEmailToPSA")
         let {Name,parentOrg,_paymentrelease,evaluationPeriod,Role} = options; 
         let {Type} = _paymentrelease;
-        let redirectURL = config.APP_BASE_REDIRECT_URL+"psa/reports/info/client";
+        let redirectURL = config.APP_BASE_REDIRECT_URL+"=/psa/reports/info/client";
         if(evaluationPeriod && evaluationPeriod!="")
-            redirectURL = config.APP_BASE_REDIRECT_URL+"psa/reports/info/client";
+            redirectURL = config.APP_BASE_REDIRECT_URL+"=/psa/reports/info/client";
         else
-            redirectURL = config.APP_BASE_REDIRECT_URL+"psa/reports/info/reseller";
+            redirectURL = config.APP_BASE_REDIRECT_URL+"=/psa/reports/info/reseller";
 
         let subject;
         subject = "Payment for " + Name +" successful";

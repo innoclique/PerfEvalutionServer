@@ -94,6 +94,7 @@ const findEmployeeScale = async (options) => {
 }
 
 const savePaymentRelease = async (paymentRelease) => {
+    console.log("inside:savePaymentRelease");
     let savedObjet;
     let payReleaseId;
     if(!paymentRelease.paymentreleaseId){
@@ -110,7 +111,9 @@ const savePaymentRelease = async (paymentRelease) => {
         savedObjet = await PaymentReleaseSchema.updateOne({_id:paymentreleaseId},paymentRelease);
     }
     if(payReleaseId){
+        console.log("Processing Emails")
         await processPaymentEmails({_id:payReleaseId});
+        console.log("==End Process Emails==")
     }
     if(savedObjet){
         return savedObjet;
@@ -131,35 +134,45 @@ const findPaymentReleaseByOrgId = async (paymentRelease) => {
     return _paymentrelease;
 }
 const processPaymentEmails = async(paymentRelease) => {
+    console.log("Inside:processPaymentEmails: paymentRelease = "+JSON.stringify(paymentRelease));
     const _paymentrelease = await PaymentReleaseSchema.findOne(paymentRelease).populate("Organization");
     let {Admin,_id,Name} = _paymentrelease.Organization;
-        let _orgDomain=await OrganizationRepo.findOne({_id:_id}).populate("ParentOrganization");
-        let evaluationYear = await EvaluationUtils.getOrganizationStartAndEndDates(_id);
-        let evaluationPeriod = evaluationYear.start.format("MMM-YYYY");
-        evaluationPeriod+=" - "+ evaluationYear.end.format("MMM-YYYY");
+    let _orgDomain=await OrganizationRepo.findOne({_id:_id}).populate("ParentOrganization");
+    let evaluationYear = await EvaluationUtils.getOrganizationStartAndEndDates(_id);
+    let evaluationPeriod="";
+    if(evaluationYear){
+            evaluationPeriod = evaluationYear.start.format("MMM-YYYY");
+            evaluationPeriod+=" - "+ evaluationYear.end.format("MMM-YYYY");
+        }
+        
         let userDomain = await UserSchema.findOne({_id:Admin});
+        let {Role} = userDomain;
     if(_paymentrelease && _paymentrelease.Status == "Complete"){
-        await sendPaymentEmailToCSA({_paymentrelease,userDomain,evaluationPeriod});
-        await sendPaymentEmailToPSA({Name,parentOrg:_orgDomain.ParentOrganization,_paymentrelease,evaluationPeriod});
+        if(Role === "CSA")
+            await sendPaymentEmailToCSA({_paymentrelease,userDomain,evaluationPeriod});
+            await sendPaymentEmailToPSA({Name,parentOrg:_orgDomain.ParentOrganization,_paymentrelease,evaluationPeriod});
         
     }
     if(_paymentrelease && _paymentrelease.Type=="Initial" && _paymentrelease.Status == "Pending"){
-        await activateCSA(Admin);
+        await activateAdminUsers(Admin);
         await sendInitialPaymentReleaseEmailToPSA({Name,parentOrg:_orgDomain.ParentOrganization,_paymentrelease,evaluationPeriod});
     }
     if(_paymentrelease && _paymentrelease.Type=="Adhoc" && _paymentrelease.Status == "Approved"){
         await sendAdhocApprovedEmailToPSA({Name,parentOrg:_orgDomain.ParentOrganization,_paymentrelease,evaluationPeriod});
-        await sendAdhocApprovedEmailToCSA({userDomain,evaluationPeriod});
+        if(Role === "CSA")
+            await sendAdhocApprovedEmailToCSA({userDomain,evaluationPeriod});
     }
     if(_paymentrelease && _paymentrelease.Type=="Adhoc" && _paymentrelease.Status == "Disapproved"){
         await sendAdhocDisapprovedEmailToPSA({Name,parentOrg:_orgDomain.ParentOrganization,_paymentrelease,evaluationPeriod});
-        await sendAdhocDisApprovedEmailToCSA({userDomain,evaluationPeriod});
+        if(Role === "CSA")
+            await sendAdhocDisApprovedEmailToCSA({userDomain,evaluationPeriod});
     }
     if(_paymentrelease && _paymentrelease.Type=="Adhoc" && _paymentrelease.Status == "Pending"){
         await sendAdhocRequestEmailToPSA({Name,parentOrg:_orgDomain.ParentOrganization,_paymentrelease,evaluationPeriod});
-        await sendAdhocRequestEmailToCSA({userDomain,evaluationPeriod});
+        if(Role === "CSA")
+            await sendAdhocRequestEmailToCSA({userDomain,evaluationPeriod});
     }
-    
+    console.log("End:processPaymentEmails: paymentRelease = "+paymentRelease);
 }
 const sendAdhocRequestEmailToPSA  = async (options)=>{
     console.log("Inside:sendAdhocRequestEmailToPSA")
@@ -252,7 +265,7 @@ const sendAdhocApprovedEmailToCSA  = async (options)=>{
 }
 
 
-const activateCSA = async (adminId) =>{
+const activateAdminUsers = async (adminId) =>{
     const _temppwd = AuthHelper.GenerateRandomPassword();
     const pwd = Bcrypt.hashSync(_temppwd, 10);
     let updateData={
@@ -260,8 +273,8 @@ const activateCSA = async (adminId) =>{
         IsActive: true
     }
     const userData = await UserSchema.findOneAndUpdate({_id:adminId},updateData);
+    await sendTemporaryPwdToCSA(userData,_temppwd);
     await sendWelcomeEmailCSA(userData);
-    await sendTemporaryPwdToCSA(userData,_temppwd)
 }
 const sendTemporaryPwdToCSA  = async (options,tmpPwd)=>{
     console.log("Inside:sendTemporaryPwdToCSA")
@@ -383,7 +396,11 @@ const sendPaymentEmailToPSA  = async (options)=>{
         let subject;
         subject = "Payment for " + Name +" successful";
         let mailBody= `Dear ${parentOrg.Name},<br><br>`;
-        mailBody = mailBody + Name+ "has made payment for "+Type+" for " +evaluationPeriod+ ".<br><br>";
+        mailBody = mailBody + Name+ " has made payment for "+Type;
+        if(evaluationPeriod && evaluationPeriod!="")
+            mailBody = mailBody + " for " +evaluationPeriod+ ".<br><br>";
+        mailBody = mailBody +".<br><br>";
+
         mailBody=mailBody + "<br>To view details  "+ " <a href=" +redirectURL +">click here</a> <br><br>Thank you,<br>" + config.ProductName + " Administrator<br>";
             console.log(mailBody);
             console.log(`To Email = ${parentOrg.AdminEmail}`);
@@ -410,7 +427,7 @@ const sendPaymentEmailToCSA  = async (options)=>{
         switch (Type) {
             case 'Initial':
                 subject = "Payment for " + evaluationPeriod +" successful";
-                mailBody = mailBody + "Your payment for " +evaluationPeriod+ " is successful. You may start using the application.<br><br>";
+                mailBody = mailBody + " Your payment for " +evaluationPeriod+ " is successful. You may start using the application.<br><br>";
                 mailBody=mailBody + "<br>To login  "+ " <a href=" +config.APP_BASE_REDIRECT_URL +">click here</a> <br><br>Thank you,<br>" + config.ProductName + " Administrator<br>";
                 break;
             case 'Adhoc':
@@ -421,7 +438,7 @@ const sendPaymentEmailToCSA  = async (options)=>{
             case 'Renewal':
                 subject = "Your license for " + evaluationPeriod +" has been renewed";
                 mailBody = mailBody + "Your license for " +evaluationPeriod+ " has been renewed.<br><br>";
-                mailBody=mailBody + "<br>To login  "+ " <a href=" +config.APP_BASE_REDIRECT_URL +">click here</a> <br><br>Thank you,<br>" + config.ProductName + "Administrator<br>";
+                mailBody=mailBody + "<br>To login  "+ " <a href=" +config.APP_BASE_REDIRECT_URL +">click here</a> <br><br>Thank you,<br>" + config.ProductName + " Administrator<br>";
                 
                 break;
             default:

@@ -69,6 +69,7 @@ exports.GetOrgEvaluationYear = async (organizationId) => {
 exports.getOrganizationStartAndEndDates = async (organizationId) => {
   const Organization = await OrganizationSchema.findOne({"_id":Mongoose.Types.ObjectId(organizationId)});
   let {StartMonth,EndMonth,EvaluationPeriod} = Organization;
+  if(EvaluationPeriod){
     StartMonth = parseInt(StartMonth);
     let currentMoment = moment();
     let evaluationStartMoment;
@@ -93,6 +94,9 @@ exports.getOrganizationStartAndEndDates = async (organizationId) => {
       start:evaluationStartMoment,
       end:evaluationEndMoment
     }
+  }
+  return null;
+    
 
 };
 

@@ -12,14 +12,15 @@ const moment = require('moment');
 
 
 const addTransactions = async (transactionReq) => {
+    console.log("Inside:addTransactions")
     const transaction = await TransactionSchema(transactionReq);
     var transactionResponse = await transaction.save();
     let paymentRelease={
         paymentreleaseId:transactionReq.PaymentReleaseId,
         Status:'Complete',
     }
-    await SavePaymentRelease(paymentRelease);
     await addSubscription(transactionReq.PaymentReleaseId);
+    await SavePaymentRelease(paymentRelease);
     return transactionResponse;
 };
 

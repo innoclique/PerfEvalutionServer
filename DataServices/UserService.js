@@ -473,22 +473,19 @@ exports.getEmpProfile = async (req) => {
     try {
         console.log('inside getEmpProfile :: ',req);
         var emp = await UserRepo.findOne({ _id: Mongoose.Types.ObjectId(req.empId) })
-        .select('JobRole DirectReports coachingRemainder SelectedRoles ThirdSignatory JoiningDate Email EmployeeId Role ApplicationRole PhoneNumber IsProfileUpToDate profile Address State City Country ZipCode Title MiddleName FirstName LastName ExtNumber AltPhoneNumber' )
+        // .select('JobRole DirectReports coachingRemainder SelectedRoles ThirdSignatory JoiningDate Email EmployeeId Role ApplicationRole PhoneNumber IsProfileUpToDate profile Address State City Country ZipCode Title MiddleName FirstName LastName ExtNumber AltPhoneNumber' )
         .populate('ThirdSignatory DirectReports ApplicationRole');
         console.log('emp.IsProfileUpToDate:::::', emp.IsProfileUpToDate);
-        if (emp.IsProfileUpToDate) {
-            console.log('inside if');
-            return emp;
-        } else {
-            return emp.profile;
+        if (!emp.IsProfileUpToDate) {
+            emp.IsDraft = true;
         }
+        return emp;
     } catch (error) {
         logger.error(err)
         console.log(err);
         throw (err);
     }
 }
-
 exports.UpdateEmployeeProfile = async (employee) => {
     try {
         employee.UpdatedOn = new Date();

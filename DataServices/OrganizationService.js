@@ -542,7 +542,7 @@ exports.AddReseller = async (organization) => {
         }
 
 
-        fs.readFile("./EmailTemplates/EmailTemplate.html", async function read(err, bufcontent) {
+        /*fs.readFile("./EmailTemplates/EmailTemplate.html", async function read(err, bufcontent) {
             var content = bufcontent.toString();
 
             var des = "Congratulations, you have successfully set up an account for " + organization.Name + "<br><br> "
@@ -610,7 +610,7 @@ des = des + "You will be redirected to change password upon your First Login.  "
                 console.log(res);
             });
 
-        });
+        });*/
 
         return true;
     }

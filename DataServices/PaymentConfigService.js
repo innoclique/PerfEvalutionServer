@@ -509,7 +509,7 @@ const findAdhocRequestList = async () => {
 }
 
 const findAdhocLatestByOrganization = async (adhoc) => {
-    console.log("Inside:Adhoc Request list")
+    console.log("Inside:Adhoc Request list");
     const adhocList = await PaymentReleaseSchema.find(adhoc).sort({_id:-1});
     if(adhocList && adhocList.length>0){
         return adhocList[0];

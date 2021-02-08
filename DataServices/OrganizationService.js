@@ -304,47 +304,95 @@ exports.UpdateOrganization = async (organization) => {
 }
 
 
-exports.UpdateOrgProfile = async (req, res, next) => {
-    console.log('inside UpdateOrgProfile : ', req.body);
-    if (!req.body.IsDraft) {
-        if (req.body.ClientType === 'Client') {
-            console.log('client update : ');
-            Joi.validate(req.body, Validation_Helper.UpdateOrganizationSchema(req.body), async (err, result) => {
-                if (err) { res.status(400).json({ message: err.details.map(i => i.message).join(" / ") }) }
-                else {
-                    await OrganizaionService.UpdateOrgProfile(req.body)
-                    .then((Response) => {
-                        res.status(200).json({ message: "Profile has been successfully updated." });
-                    })
-                    .catch(err => { next(err) });
-                }
-            });
-        } else {
-            console.log('reseller update : ');
-            Joi.validate(req.body, Validation_Helper.ValidateUpdateReseller(req.body), async (err, result) => {
-                if (err) { res.status(400).json({ message: err.details.map(i => i.message).join(" / ") }) }
-                else {
-                    await OrganizaionService.UpdateOrgProfile(req.body)
-                    .then((Response) => {
-                        res.status(200).json({ message: "Profile has been successfully updated." });
-                    })
-                    .catch(err => { next(err) });
-                }
-            });
+exports.getOrgProfile = async (req) => {
+    try {
+        console.log('inside getOrgProfile :: ', req);
+        var org = await OrganizationRepo.findOne({ _id: Mongoose.Types.ObjectId(req.orgId) });
+        if (!org.IsProfileUpToDate) {
+            org.IsDraft = true;
         }
-    } else {
-        await OrganizaionService.UpdateOrgProfile(req.body)
-            .then((Response) => {
-                res.status(200).json({ message: "Profile has been successfully saved." });
-            })
-            .catch(err => { next(err) });
+        return org;
+    } catch (error) {
+        logger.error(err)
+        console.log(err);
+        throw (err);
     }
 }
 
-exports.GetOrgProfile = async (req, res, next) => {
-    var orgProfile = await OrganizaionService.getOrgProfile(req.body);
-    console.log('getOrgProfile :: ', JSON.stringify(orgProfile));
-    res.json(orgProfile);
+exports.UpdateOrgProfile = async (organization) => {
+    try {
+        if (organization.IsDraft) {
+            var toupdateOrg = await OrganizationRepo.findOne({ _id: Mongoose.Types.ObjectId(organization.id) });
+            toupdateOrg.profile = organization;
+            toupdateOrg.IsProfileUpToDate = false;
+            await OrganizationRepo.update({ _id: Mongoose.Types.ObjectId(organization.id) }, toupdateOrg);
+            return true;
+        } else {
+            console.log( 'inside if ',organization);
+            organization.profile = null;
+            organization.IsProfileUpToDate = true;
+            if (organization.ClientType === 'Client') {
+                const toupdateOrg = await OrganizationRepo.findOne({ _id: Mongoose.Types.ObjectId(organization.id) });
+                Object.assign(toupdateOrg, organization);
+                var ff = await toupdateOrg.save();
+                const userRecord = {
+                    // Email: organization.AdminEmail,
+                    ContactPhone: organization.AdminPhone,
+                    Role: organization.ClientType === 'Client' ? 'CSA' : 'RSA',
+                    FirstName: organization.AdminFirstName,
+                    LastName: organization.AdminLastName,
+                    MiddleName: organization.AdminMiddleName,
+                    Address: organization.Address,
+                    PhoneNumber: organization.AdminPhone,
+                    Country: organization.Country,
+                    State: organization.State,
+                    ZipCode: organization.ZipCode,
+                    City: organization.City
+                }
+                await UserRepo.findOneAndUpdate({ id: ff.Admin }, { userRecord });
+            } else {
+                const toupdateOrg = await OrganizationRepo.findOne({ _id: Mongoose.Types.ObjectId(organization.id) });
+                Object.assign(toupdateOrg, organization);
+                var ff = await toupdateOrg.save();
+                //save user account for this organization
+                const userRecord = {
+                    ContactPhone: organization.AdminPhone,
+                    Role: 'RSA',
+                    FirstName: organization.AdminFirstName,
+                    LastName: organization.AdminLastName,
+                    MiddleName: organization.AdminMiddleName,
+                    Address: organization.Address,
+                    PhoneNumber: organization.AdminPhone,
+                    Country: organization.Country,
+                    State: organization.State,
+                    ZipCode: organization.ZipCode,
+                    City: organization.City
+                }
+                await UserRepo.findOneAndUpdate({ id: ff.Admin }, { userRecord });
+            }
+            const user = await UserRepo.findOneAndUpdate({ Email: organization.AdminEmail });
+            let mailBody = "Dear " + user.FirstName + ",<br><br>"
+            mailBody = mailBody + "You have successfully updated your organization’s profile." + "<br><br>"
+            mailBody = mailBody + "<br>To view details  " + " <a href=" + config.APP_URL + ">click here</a> to login<br><br>Thanks,<br>Administrator " + config.ProductName + "<br>"
+            var mailObject = SendMail.GetMailObject(
+                user.Email,
+                "Organization’s Profile updated successfully",
+                mailBody
+                ,
+                null,
+                null
+            );
+            await SendMail.SendEmail(mailObject, function (res) {
+                console.log("org profile updated mail :: ", res);
+            });
+            return true;
+        }
+    }
+    catch (err) {
+        logger.error(err)
+        console.log(err);
+        throw (err);
+    }
 }
 
 

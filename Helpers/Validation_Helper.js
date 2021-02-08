@@ -84,90 +84,32 @@ exports.ValidateCreateAccountModel = ( data)=>{
 
 }
 
-exports.ValidateCreateEmployeeProfileModel = ( data)=>{
 
-   if(data.IsDraft!='true'){
-   
+exports.ValidateEmployeeProfile = ( data)=>{
+   if(!data.IsDraft){
       const schema = Joi.object().keys({
          FirstName: Joi.string().required(),
          LastName: Joi.string().required(),
-         Email: Joi.string().email().required(),
          PhoneNumber: Joi.optional(),
          Address: Joi.string().required(),
-   
          MiddleName: Joi.optional(),
-         coachingRemainder: Joi.optional(),
          ExtNumber:Joi.optional(),
          AltPhoneNumber:Joi.optional(),
          MobileNumber:Joi.optional(),
          IsDraft:Joi.optional(),
-         IsSubmit:Joi.optional(),
-   
-         _id:Joi.required(),
-   
-         Country:Joi.string().required(),
-         State:Joi.string().required(),
-         City:Joi.string().required(),
-         ZipCode:Joi.string().required(),
-         
-            
+         _id:Joi.optional(),
+         CoachingReminder:Joi.optional(),
      });
      return schema;
    }else{
-     
       const schema = Joi.object().keys({
          FirstName: Joi.string().required(),
          Email: Joi.string().email().required(),
-         CreatedBy:Joi.optional()
-   
-         // LastName: Joi.optional(),
-         // Email: Joi.email().optional(),
-         // PhoneNumber: Joi.optional(),
-         // Address: Joi.optional(),
-         // JoiningDate: Joi.optional(),
-         // RoleEffFrom: Joi.optional(),
-   
-         // MiddleName: Joi.optional(),
-         // ExtNumber:Joi.optional(),
-         // AltPhoneNumber:Joi.optional(),
-         // MobileNumber:Joi.optional(),
-         // IsActive:Joi.optional(),
-         // IsDraft:Joi.optional(),
-         // IsSubmit:Joi.optional(),
-         // IgnoreEvalAdminCreated:Joi.optional(),
-         // Organization:Joi.optional(),
-         // UpdatedBy:Joi.optional(),
-         
-         // ParentUser:Joi.optional(),
-   
-         // _id:Joi.optional(),
-         // JobLevel:Joi.optional(),
-         // JobRole:Joi.optional(),
-         // Department:Joi.optional(),
-         // ApplicationRole:Joi.optional(),
-   
-         // Role:Joi.optional(),
-         // SelectedRoles:Joi.optional(),
-         // Title:Joi.optional(),
-         // ThirdSignatory:Joi.optional(),
-         // CopiesTo:Joi.optional(),
-         // DirectReports:Joi.optional(),
-         // Manager:Joi.optional(),
-         // Country:Joi.optional(),
-         // State:Joi.optional(),
-         // City:Joi.optional(),
-         // ZipCode:Joi.optional(),
-   
+         CreatedBy:Joi.optional() 
       }).unknown(true);
-   
       return schema;
-   
    }
-    
-   
-   
    }
-
 
 exports.ValidateCreateEmployeeModel = ( data)=>{
 

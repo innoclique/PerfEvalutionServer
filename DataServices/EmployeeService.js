@@ -365,6 +365,31 @@ exports.GetEmployeeCurrentEvaluationYear = async (data) => {
 
 
 }
+exports.hasEvaluationPgRollout = async (data) => {
+    console.log("inside:hasEvaluationPgRollout");
+    console.log(data)
+    let {orgId,empId,evaluationYear} = data;
+    var evaluation = await EvaluationRepo.countDocuments({
+        Employees: { $elemMatch: { _id: Mongoose.Types.ObjectId(empId) } },
+        EvaluationYear: evaluationYear,
+        Company: orgId
+    });
+    console.log(`evaluation count : ${evaluation}`);
+    var kpiFormData = await KpiFormRepo.countDocuments({
+        'EmployeeId': Mongoose.Types.ObjectId(empId),
+        IsDraft: false, IsActive: true, EvaluationYear: evaluationYear
+    });
+
+    if(evaluation == 0 && kpiFormData==0){
+        throw Error("Performance Goal Setting Form Not Activated");
+    }else if(evaluation >0){
+        return true;
+    }else if(kpiFormData >0){
+        return true;
+    }else{
+        return true;
+    }
+}
 exports.GetAllKpis = async (data) => {
     
     let evaluationYear = await EvaluationUtils.GetOrgEvaluationYear(data.orgId);

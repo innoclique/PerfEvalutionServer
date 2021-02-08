@@ -44,24 +44,47 @@ exports.UpdateOrganization = async (req, res, next) => {
 }
 
 exports.UpdateOrgProfile = async (req, res, next) => {
-    Joi.validate(req.body, Validation_Helper.UpdateOrganizationSchema(req.body), async (err, result) => {
-        if (err) { res.status(400).json({ message: err.details.map(i => i.message).join(" / ") }) }
-        else {
-            await OrganizaionService.UpdateOrganization(req.body)
-                .then((Response) => {
-                    res.status(200).json({ message: " Profile has been successfully updated." });
-                })
-                .catch(err => { next(err) });
+    console.log('inside UpdateOrgProfile : ', req.body);
+    if (!req.body.IsDraft) {
+        if (req.body.ClientType === 'Client') {
+            console.log('client update : ');
+            Joi.validate(req.body, Validation_Helper.UpdateOrganizationSchema(req.body), async (err, result) => {
+                if (err) { res.status(400).json({ message: err.details.map(i => i.message).join(" / ") }) }
+                else {
+                    await OrganizaionService.UpdateOrganization(req.body)
+                        .then((Response) => {
+                            res.status(200).json({ message: " Organization added Succeesfully" });
+                        })
+                        .catch(err => { next(err) });
+                }
+            });
+        } else {
+            console.log('reseller update : ');
+            Joi.validate(req.body, Validation_Helper.ValidateUpdateReseller(req.body), async (err, result) => {
+                if (err) { res.status(400).json({ message: err.details.map(i => i.message).join(" / ") }) }
+                else {
+                    await OrganizaionService.UpdateReseller(req.body)
+                        .then((Response) => {
+                            res.status(200).json({ message: " Reseller updated Succeesfully" });
+                        })
+                        .catch(err => { next(err) });
+                }
+            });
         }
-    });
+    } else {
+        await OrganizaionService.UpdateOrgProfile(req.body)
+            .then((Response) => {
+                res.status(200).json({ message: " Reseller updated Succeesfully" });
+            })
+            .catch(err => { next(err) });
+    }
 }
 
 exports.GetOrgProfile = async (req, res, next) => {
     var orgProfile = await OrganizaionService.getOrgProfile(req.body);
-    console.log('getOrgProfile :: ',JSON.stringify(orgProfile));
+    console.log('getOrgProfile :: ', JSON.stringify(orgProfile));
     res.json(orgProfile);
 }
-
 exports.GetOrganizationDataById = async (req, res, next) => {
     Joi.validate(req.body.id, Validation_Helper.ValidateString(), async (err, Result) => {
         if (err) { res.status(442).json({ mgs: err.details.map(i => i.message).join(" / ") }) }

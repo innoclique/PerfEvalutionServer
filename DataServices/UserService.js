@@ -473,9 +473,7 @@ exports.getEmpProfile = async (req) => {
     try {
         console.log('inside getEmpProfile :: ',req);
         var emp = await UserRepo.findOne({ _id: Mongoose.Types.ObjectId(req.empId) })
-        // .select('JobRole DirectReports coachingRemainder SelectedRoles ThirdSignatory JoiningDate Email EmployeeId Role ApplicationRole PhoneNumber IsProfileUpToDate profile Address State City Country ZipCode Title MiddleName FirstName LastName ExtNumber AltPhoneNumber' )
         .populate('ThirdSignatory DirectReports ApplicationRole');
-        console.log('emp.IsProfileUpToDate:::::', emp.IsProfileUpToDate);
         if (!emp.IsProfileUpToDate) {
             emp.IsDraft = true;
         }
@@ -486,18 +484,19 @@ exports.getEmpProfile = async (req) => {
         throw (err);
     }
 }
+
 exports.UpdateEmployeeProfile = async (employee) => {
     try {
         employee.UpdatedOn = new Date();
+        
         if (employee.IsDraft) {
-            var existingEmp = await UserRepo.find({ _id: employee._id });
-            existingEmp.IsProfileUpToDate = false;
-            existingEmp.profile = employee;
-            const emp = await UserRepo.findOneAndUpdate({ _id: employee._id }, existingEmp);
+            const emp = await UserRepo.update({ _id: employee._id }, {$set:{'profile':employee,'IsProfileUpToDate':false}});
         } else {
             employee.IsProfileUpToDate = true;
             employee.profile = null;
-            const emp = await UserRepo.findOneAndUpdate({ _id: employee._id }, employee);
+            var empId = employee._id;
+            delete employee._id;
+            const emp = await UserRepo.update({ _id: empId }, employee);
         }
 
         if (!employee.IsDraft) {
@@ -511,6 +510,7 @@ exports.UpdateEmployeeProfile = async (employee) => {
         throw (err);
     }
 }
+
 
 exports.sendEmpProfileUpdated = async (emp) => {
 

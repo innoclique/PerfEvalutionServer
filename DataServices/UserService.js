@@ -500,7 +500,9 @@ exports.UpdateEmployeeProfile = async (employee) => {
         }
 
         if (!employee.IsDraft) {
-            this.sendEmpProfileUpdated(employee)
+             const emp = await UserRepo.findOne({ _id: empId });
+            await this.sendEmpProfileUpdated(emp);
+            
         }
         return true;
     }

@@ -256,12 +256,17 @@ exports.UpdateAccomplishmentDataById = async (accompModal) => {
     try {
     accompModal.Action = 'Updated';
     accompModal.UpdatedOn = new Date();
-    const accomp= await AccomplishmentRepo.findByIdAndUpdate(accompModal.AccompId, accompModal);
-    if(accompModal.isFirstTimeCreateing){
-        const Manager = await UserRepo.findById(accomp.ManagerId);
+       await AccomplishmentRepo.findByIdAndUpdate(accompModal.AccompId, accompModal);
+    const accomp= await AccomplishmentRepo.findById(accompModal.AccompId);
+    
+    const Manager = await UserRepo.findById(accomp.ManagerId);
         const emp = await UserRepo.findById(accomp.Owner);
+    if(accompModal.isFirstTimeCreateing){  
         this.sendEmailOnAccompCreate(Manager,emp,accomp);
     }
+
+    if(accompModal.IsDraft=='false')
+    this.sendEmailOnAccompUpdate(Manager,emp,accomp);
 
     this.addAccompTrack(accompModal);
 
@@ -528,10 +533,10 @@ exports.SubmitKpisByEmployee = async (options) => {
             if (User[0].Manager) {
                 let mailBody = "Dear "+ User[0].Manager.FirstName +", <br><br>"
                 mailBody = mailBody + "Your Direct Report, "+ User[0].FirstName + " has submitted the Performance Goals."
-                mailBody=mailBody + "<br>Please   "+ " <a href="+ config.APP_BASE_REDIRECT_URL+"employee/review-perf-goals-list" + ">click here</a> to login and review<br><br>Thanks,<br>Administrator " + config.ProductName+"<br>"
+                mailBody=mailBody + "<br>Please   "+ " <a href="+ config.APP_BASE_REDIRECT_URL+"=/employee/review-perf-goals-list" + ">click here</a> to login and review<br><br>Thanks,<br> " + config.ProductName+" Administrator<br>"
                 var mailObject = SendMail.GetMailObject(
                     User[0].Manager.Email,
-                    "Performance Goals submitted by"+ User[0].FirstName +" "+  User[0].LastName ,
+                    "Performance Goals submitted by "+ User[0].FirstName +" "+  User[0].LastName ,
                     mailBody,
                     null,
                     null
@@ -542,12 +547,12 @@ exports.SubmitKpisByEmployee = async (options) => {
                 });
             }
             var generatedlink = config.APP_BASE_REDIRECT_URL;
-            generatedlink = generatedlink+'employee/kpi-setup';
+            generatedlink = generatedlink+'=/employee/kpi-setup';
             console.log(' generatedlink ::: ',generatedlink);
             // send email to User 
             let emailBody  = "Dear "+ User[0].FirstName +", <br><br>"
             emailBody = emailBody + "Your Performance Goals have been successfully submitted to your manager.<br><br>"
-            mailBody=mailBody + "<br>To view details,  "+ " <a href="+ generatedlink + ">click here</a><br><br>Thanks,<br>Administrator " + config.ProductName+ "<br><br>"
+            mailBody=mailBody + "<br>To view details,  "+ " <a href="+ generatedlink + ">click here</a><br><br>Thanks,<br>" + config.ProductName+ " Administrator<br><br>"
             var mailObject = SendMail.GetMailObject(
                 User[0].Email,
                 "Performance Goals submitted successfully",
@@ -679,7 +684,7 @@ exports.SubmitAllSignOffKpis = async (options) => {
             if (User[0].Manager) {
                 let mailBody = "Dear "+User[0].Manager.FirstName+",<br>"
                 mailBody = mailBody + "Your Direct Report, " + User[0].FirstName + " has submitted the Performance Goals.<br><br>" 
-                mailBody=mailBody + "<br>Please  "+ " <a href="+ config.APP_URL + ">click here</a> to login and review <br><br>Thanks,<br>Administrator " + config.ProductName+"<br>"
+                mailBody=mailBody + "<br>Please  "+ " <a href="+ config.APP_BASE_REDIRECT_URL+"=/employee/review-perf-goals-list" + ">click here</a> to login and review <br><br>Thanks,<br> " + config.ProductName+" Administrator<br>"
                 var mailObject = SendMail.GetMailObject(
                     User[0].Manager.Email,
                     "Performance Goals submited for review",
@@ -693,12 +698,12 @@ exports.SubmitAllSignOffKpis = async (options) => {
                 });
             }
             var generatedlink = config.APP_BASE_REDIRECT_URL;
-            generatedlink = generatedlink+'employee/kpi-setup';
+            generatedlink = generatedlink+'=/employee/kpi-setup';
             console.log(' generatedlink ::: ',generatedlink);
             // send email to User 
             mailBody = "Dear " + User[0].FirstName + ", <br><br>"
             mailBody = mailBody + "Your Performance Goals have been successfully submitted to your manager."
-            mailBody=mailBody + "<br>To view details  "+ " <a href=" + generatedlink + ">click here</a> to login<br><br>Thanks,<br>Administrator " + config.ProductName+ "<br>"
+            mailBody=mailBody + "<br>To view details  "+ " <a href=" + generatedlink + ">click here</a><br><br>Thanks,<br> " + config.ProductName+ " Administrator<br>"
             var mailObject = SendMail.GetMailObject(
                 User[0].Email,
                 "Performance Goals submited for review",
@@ -774,10 +779,10 @@ exports.SubmitAllKpis = async (options) => {
             if (User[0].Manager) {
                 mailBody = "Dear " + User[0].Manager.FirstName + ", <br>"
                 mailBody = mailBody + "Your Direct Report, "+ User[0].FirstName+" has submitted the Performance Goals.<br><br>"
-                mailBody=mailBody + "<br>Please   "+ " <a href="+ config.APP_BASE_REDIRECT_URL+"employee/review-perf-goals-list" + ">click here</a> to login and review<br><br>Thanks,<br>Administrator " + config.ProductName+"<br>"
+                mailBody=mailBody + "<br>Please   "+ " <a href="+ config.APP_BASE_REDIRECT_URL+"=/employee/review-perf-goals-list" + ">click here</a> to login and review<br><br>Thanks,<br> " + config.ProductName+" Administrator<br>"
                 var mailObject = SendMail.GetMailObject(
                     User[0].Manager.Email,
-                    "Performance Goals submitted by"+ User[0].FirstName +" "+  User[0].LastName ,
+                    "Performance Goals submitted by "+ User[0].FirstName +" "+  User[0].LastName ,
                    mailBody,
                     null,
                     null
@@ -789,13 +794,13 @@ exports.SubmitAllKpis = async (options) => {
             }
 
             var generatedlink = config.APP_BASE_REDIRECT_URL;
-        generatedlink = generatedlink+'employee/kpi-setup';
+        generatedlink = generatedlink+'=/employee/kpi-setup';
         console.log(' generatedlink ::: ',generatedlink);
 
             // send email to User 
             mailBody = "Dear " + User[0].FirstName +", <br><br>"
             mailBody = mailBody + "Your Performance Goals have been successfully submitted to your manager."
-            mailBody=mailBody + "<br>To view details  "+ " <a href="+ generatedlink +">click here</a> to login<br><br>Thanks,<br>Administrator "+config.ProductName+"<br>"
+            mailBody=mailBody + "<br>To view details  "+ " <a href="+ generatedlink +">click here</a><br><br>Thanks,<br>Administrator "+config.ProductName+"<br>"
             var mailObject = SendMail.GetMailObject(
                 User[0].Email,
                 "Performance Goals submitted successfully",
@@ -1137,11 +1142,11 @@ exports.sendEmailOnManagerSignoff = async (manager, kpiOwnerInfo) => {
     if (manager) {
         // send email to manager 
 mailBody = mailBody + "Dear " + manager.FirstName + ",<br><br>"
-mailBody = mailBody + "You have successfully signed-off the Performance Goals for " +  kpiOwnerInfo.FirstName+".<br>"
-mailBody=mailBody + "<br>To view details  "+ " <a href="+ config.APP_URL + ">click here</a> to login<br><br>Thanks,<br>Administrator " + config.ProductName+ "<br>"
+mailBody = mailBody + "You have successfully signed-off the Performance Goals for " +  kpiOwnerInfo.FirstName+" "+  kpiOwnerInfo.LastName+".<br>"
+mailBody=mailBody + "<br>To view details  "+ " <a href="+ config.APP_BASE_REDIRECT_URL+"=/employee/review-perf-goals-list" + ">click here</a><br><br>Thanks,<br> " + config.ProductName+ " Administrator<br>"
         var mailObject = SendMail.GetMailObject(
             manager.Email,
-            "Performance Goals signed-off",
+            "Performance successfully signed-off for"+  kpiOwnerInfo.FirstName+" "+  kpiOwnerInfo.LastName,
            mailBody,
             null,
             null
@@ -1155,10 +1160,10 @@ mailBody=mailBody + "<br>To view details  "+ " <a href="+ config.APP_URL + ">cli
         // send email to User 
         mailBody = "Dear "+ kpiOwnerInfo.FirstName + ", <br><br>"
         mailBody = mailBody + "Your manager, "+  manager.FirstName + " has <edited> and signed-off your Performance Goals.<br><br>"
-        mailBody=mailBody + "<br>Please  "+ " <a href="+config.APP_URL + ">click here</a> to login and review. You may want to discuss the updates, if any, with your manager.<br><br>Thanks,<br>Administrator "+config.ProductName+"<br>"
+        mailBody=mailBody + "<br>Please  "+ " <a href="+config.APP_BASE_REDIRECT_URL+"=/employee/kpi-setup" + ">click here</a> to login and review. You may want to discuss the updates, if any, with your manager.<br><br>Thanks,<br>Administrator "+config.ProductName+"<br>"
         var mailObject = SendMail.GetMailObject(
             kpiOwnerInfo.Email,
-            "Performance Goals sign-off",
+            "Your Performance Goals are signed off",
             mailBody,
             null,
             null
@@ -3027,7 +3032,7 @@ console.log("INNNNNNNNNNNNNNNNN", manager)
             var content = bufcontent.toString();
     
             let des= `The accomplishment has been added successfully. <br>
-            To view details, <a href="${config.APP_BASE_REDIRECT_URL}#/employee/accomplishments-list">click here</a>.
+            To view details, <a href="${config.APP_BASE_REDIRECT_URL}=/employee/accomplishments-list">click here</a>.
                `
             content = content.replace("##FirstName##",OwnerInfo.FirstName);
             content = content.replace("##ProductName##", config.ProductName);
@@ -3056,7 +3061,7 @@ console.log("INNNNNNNNNNNNNNNNN", manager)
             var content = bufcontent.toString();
     
             let des= `Employee ${OwnerInfo.FirstName} ${OwnerInfo.LastName} has added accomplishments
-            To view details, <a href="${config.APP_BASE_REDIRECT_URL}#/employee/review-accomplishments">click here</a>.
+            To view details, <a href="${config.APP_BASE_REDIRECT_URL}=/employee/review-accomplishments">click here</a>.
                `
             content = content.replace("##FirstName##",manager.FirstName);
             content = content.replace("##ProductName##", config.ProductName);
@@ -3082,6 +3087,83 @@ console.log("INNNNNNNNNNNNNNNNN", manager)
     }
 
 }
+
+
+exports.sendEmailOnAccompUpdate = async (manager,OwnerInfo,accomplishment) => {
+    console.log("INNNNNNNNNNNNNNNNN", manager)
+        // if ( OwnerInfo) {
+        if (manager && OwnerInfo) {
+            
+            // send email to User 
+    
+            fs.readFile("./EmailTemplates/EmailTemplate.html", async function read(err, bufcontent) {
+                var content = bufcontent.toString();
+        
+                let des= `The accomplishment has been updated successfully.
+                 <br> ${accomplishment.Accomplishment} 
+                 <br>  ${new Date(accomplishment.CompletionDate).toLocaleDateString()} 
+                 <br>  ${accomplishment.Comments} 
+                 <br>  ${accomplishment.ShowToManager?'Yes':'No'} <br>
+
+                To view details, <a href="${config.APP_BASE_REDIRECT_URL}=/employee/accomplishments-list">click here</a>.
+                   `
+                content = content.replace("##FirstName##",OwnerInfo.FirstName);
+                content = content.replace("##ProductName##", config.ProductName);
+                content = content.replace("##Description##", des);
+                content = content.replace("##Title##", "Accomplishment updated successfully");
+    
+            var mailObject = SendMail.GetMailObject(
+                OwnerInfo.Email,
+                      "Accomplishment updated successfully",
+                      content,
+                      null,
+                      null
+                    );
+    
+            await SendMail.SendEmail(mailObject, function (res) {
+                console.log(res);
+            });
+    
+        });
+    
+    
+            // send email to manager 
+            if(accomplishment.ShowToManager){
+           
+            fs.readFile("./EmailTemplates/EmailTemplate.html", async function read(err, bufcontent) {
+                var content = bufcontent.toString();
+        
+                let des= `Employee ${OwnerInfo.FirstName} ${OwnerInfo.LastName} has updated accomplishments
+                <br> ${accomplishment.Accomplishment} 
+                <br>  ${new Date(accomplishment.CompletionDate).toLocaleDateString()} 
+                <br>  ${accomplishment.Comments} 
+               <br>
+                To view details, <a href="${config.APP_BASE_REDIRECT_URL}=/employee/review-accomplishments">click here</a>.
+                   `
+                content = content.replace("##FirstName##",manager.FirstName);
+                content = content.replace("##ProductName##", config.ProductName);
+                content = content.replace("##Description##", des);
+                content = content.replace("##Title##", `Employee ${OwnerInfo.FirstName} ${OwnerInfo.LastName} has updated accomplishments`);
+    
+          
+                var mailObject = SendMail.GetMailObject(
+                manager.Email,
+                `Employee ${OwnerInfo.FirstName} ${OwnerInfo.LastName} has updated accomplishments`,
+                     content,
+                      null,
+                      null
+                    );
+    
+            await SendMail.SendEmail(mailObject, function (res) {   });
+                
+        
+    
+        });
+    
+        }
+        }
+    
+    }
 
 
 function calcAverage(arr) {

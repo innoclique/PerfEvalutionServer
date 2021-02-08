@@ -99,6 +99,32 @@ exports.CreateOrganization = async (organization) => {
             session.endSession();
 
 
+
+            let updatedBy = await UserRepo.findById(organization.CreatedBy);
+            if (updatedBy.Role=="PSA") {
+                
+            
+            let mailBody= "Dear " + updatedBy.FirstName +",<br><br>"
+            mailBody = mailBody + "Congratulations, you have successfully set up an account for <b>" + organization.Name  + "</b><br><br>"
+            mailBody=mailBody + "<br>To view details  "+ " <a href=" +config.APP_BASE_REDIRECT_URL+"=/psa/list" +">click here</a> <br><br>Thanks,<br> " + config.ProductName + " Administrator<br>"
+            
+    
+    
+            var mailObject = SendMail.GetMailObject(
+                updatedBy.Email,
+                "Client successfully added",
+                mailBody,
+                null,
+                null
+            );
+    
+            await SendMail.SendEmail(mailObject, function (res) {
+                console.log(res);
+            });
+    
+        }
+
+
         } catch (error) {
             console.log('came here samba', error)
             // If an error occurred, abort the whole transaction and undo any changes that might have happened
@@ -245,11 +271,20 @@ exports.UpdateOrganization = async (organization) => {
             City: organization.City
 
         }
-        const user = await UserRepo.findOneAndUpdate({ id: ff.Admin }, { userRecord });
+        let updatedBy = await UserRepo.findById(organization.UpdatedBy);
+        if (updatedBy.Role=="PSA") {
+            
+        
+        let mailBody= "Dear " + updatedBy.FirstName +",<br><br>"
+        mailBody = mailBody + "You have successfully updated the details for <b>" + organization.Name  + "</b><br><br>"
+        mailBody=mailBody + "<br>To view details  "+ " <a href=" +config.APP_BASE_REDIRECT_URL+"=/psa/list" +">click here</a> <br><br>Thanks,<br> " + config.ProductName + " Administrator<br>"
+        
+
+
         var mailObject = SendMail.GetMailObject(
-            userRecord.Email,
-            "Oraganization Updated",
-            "Oraganization updated successfully <br> Thank you",
+            updatedBy.Email,
+            "Client successfully updated",
+            mailBody,
             null,
             null
         );
@@ -257,6 +292,8 @@ exports.UpdateOrganization = async (organization) => {
         await SendMail.SendEmail(mailObject, function (res) {
             console.log(res);
         });
+
+    }
         return true;
     }
     catch (err) {
@@ -449,12 +486,13 @@ exports.UpdateNote = async (noteModel) => {
    try  {
     noteModel.Action = 'Updated';
     noteModel.UpdatedOn = new Date();
-    const note= await NoteRepo.findByIdAndUpdate(noteModel.NoteId, noteModel);
+    const note= await NoteRepo.findByIdAndUpdate(noteModel.NoteId, noteModel).populate('DiscussedWith');
+    const emp = await UserRepo.findById(note.Owner);
     if(noteModel.isFirstTimeCreateing){
-        const emp = await UserRepo.findById(note.Owner);
         this.sendEmailOnNoteCreate(emp);
     }
-
+    if(noteModel.IsDraft=='false')
+    this.sendEmailOnNoteUpdate(emp,note);
    // this.addNoteTrack(noteModel);
 
 
@@ -657,6 +695,43 @@ exports.UpdateReseller = async (organization) => {
 
 
 
+exports.sendEmailOnNoteUpdate = async (OwnerInfo,note) => {
+
+    // if ( OwnerInfo) {
+    if (OwnerInfo && note) {
+        
+        // send email to User 
+
+        fs.readFile("./EmailTemplates/EmailTemplate.html", async function read(err, bufcontent) {
+            var content = bufcontent.toString();
+    
+            let des= `You have successfully updated a note. <br> <br> ${note.DiscussedWith.FirstName} <br>  ${note.Note} <br> <br>
+            To view details, <a href="${config.APP_BASE_REDIRECT_URL}=/employee/private-notes-list">click here</a>.
+               `
+            content = content.replace("##FirstName##",OwnerInfo.FirstName);
+            content = content.replace("##ProductName##", config.ProductName);
+            content = content.replace("##Description##", des);
+            content = content.replace("##Title##", "Note updated successfully");
+
+        var mailObject = SendMail.GetMailObject(
+            OwnerInfo.Email,
+                  "Note updated successfully",
+                  content,
+                  null,
+                  null
+                );
+
+        await SendMail.SendEmail(mailObject, function (res) {
+            console.log(res);
+        });
+
+    });
+
+
+    }
+
+}
+
 exports.sendEmailOnNoteCreate = async (OwnerInfo) => {
 
     // if ( OwnerInfo) {
@@ -668,7 +743,7 @@ exports.sendEmailOnNoteCreate = async (OwnerInfo) => {
             var content = bufcontent.toString();
     
             let des= `The note has been added successfully. <br>
-            To view details, <a href="${config.APP_BASE_URL}#/employee/private-notes-list">click here</a>.
+            To view details, <a href="${config.APP_BASE_REDIRECT_URL}=/employee/private-notes-list">click here</a>.
                `
             content = content.replace("##FirstName##",OwnerInfo.FirstName);
             content = content.replace("##ProductName##", config.ProductName);

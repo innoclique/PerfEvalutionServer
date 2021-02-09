@@ -104,7 +104,7 @@ exports.ValidateEmployeeProfile = ( data)=>{
    }else{
       const schema = Joi.object().keys({
          FirstName: Joi.string().required(),
-         Email: Joi.string().email().required(),
+//          Email: Joi.string().email().required(),
          CreatedBy:Joi.optional() 
       }).unknown(true);
       return schema;

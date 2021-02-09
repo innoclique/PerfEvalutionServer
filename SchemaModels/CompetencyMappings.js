@@ -4,7 +4,7 @@ const mongoose = require("mongoose");
 
 
 const CompetencyMapSchema = new mongoose.Schema({
-    _id: { type: String, required: true, unique: true },  
+ //   _id: { type: String, required: true, unique: true },  
     Name: { type: String, required: true },    
     IsActive:Boolean,
     Questions:[{type: mongoose.Schema.Types.ObjectId,default:null}],

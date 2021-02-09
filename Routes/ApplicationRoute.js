@@ -61,6 +61,9 @@ route.post('/UpdateNoteDataById',ApplicationController.UpdateNoteDataById);
 route.post('/GetAllDepartments',EmployeeController.GetAllDepartments);
 route.post('/GetEmpSetupBasicData',EmployeeController.GetEmpSetupBasicData);
 route.post('/GetKpiSetupBasicData',EmployeeController.GetKpiSetupBasicData);
+//Added by Brij - Start
+route.post('/GetEmpFinalRatingByYear',EmployeeController.GetEmpFinalRatingByYear);
+//Added by Brij - End
 route.post('/GetSetupBasicData',EmployeeController.GetSetupBasicData);
 route.post('/GetAllMeasurementCriterias',EmployeeController.GetAllMeasurementCriterias);
 route.post('/CreateMeasurementCriteria',EmployeeController.CreateMeasurementCriteria);

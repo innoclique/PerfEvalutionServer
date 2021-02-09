@@ -76,6 +76,13 @@ exports.GetKpiSetupBasicData = async (req, res, next) => {
 
 }
 
+//Added by Brij - Start 
+exports.GetEmpFinalRatingByYear = async (req, res, next) => {
+    await EmployeeService.GetEmpFinalRatingByYear(req.body)
+        .then(Response => Response ? res.status(200).json(Response) : res.status(404).json("Final Rating Not Found"))
+        .catch(err => next(err => { next(err) })) ;
+}
+//Added by Brij - End
 
 exports.GetSetupBasicData = async (req, res, next) => {
     await EmployeeService.GetSetupBasicData(req.body)

@@ -373,7 +373,11 @@ exports.UpdateOrgProfile = async (organization) => {
             const user = await UserRepo.findOneAndUpdate({ Email: organization.AdminEmail });
             let mailBody = "Dear " + user.FirstName + ",<br><br>"
             mailBody = mailBody + "You have successfully updated your organization’s profile." + "<br><br>"
-            mailBody = mailBody + "<br>To view details  " + " <a href=" + config.APP_URL + ">click here</a> to login<br><br>Thanks,<br>Administrator " + config.ProductName + "<br>"
+             if (organization.ClientType === 'Client') {
+            mailBody = mailBody + "<br>To view details  " + " <a href=" + config.APP_BASE_REDIRECT_URL+"=/csa/profile" + ">click here</a> to login<br><br>Thanks,<br>Administrator " + config.ProductName + "<br>"
+             }else{
+                mailBody = mailBody + "<br>To view details  " + " <a href=" + config.APP_BASE_REDIRECT_URL+"=/rsa/profile" + ">click here</a> to login<br><br>Thanks,<br>Administrator " + config.ProductName + "<br>"
+             }
             var mailObject = SendMail.GetMailObject(
                 user.Email,
                 "Organization’s Profile updated successfully",

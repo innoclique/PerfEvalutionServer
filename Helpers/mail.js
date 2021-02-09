@@ -25,12 +25,12 @@ exports.GetMailObject = function (to, subject, html, cc, bcc) {
         var mailObject = {};
         if (to && to !="")
         {
-        //     if(env==='dev'){
-        // mailObject.to =   ['kpamulapati@innoclique.com','avinash@innoclique.com','kramachandra@innoclique.com','yviswanadh@innoclique.com','pbhargav@innoclique.com']
-
-        // }else{
+            if(env==='dev'){
+    mailObject.to =   ['kpamulapati@innoclique.com','avinash@innoclique.com','kramachandra@innoclique.com','yviswanadh@innoclique.com','pbhargav@innoclique.com']
+          //   mailObject.to =   "brajesh@innoclique.com"
+            }else{
                 mailObject.to = to;
-            // }
+            }
         }
         else
             throw new MailException("To filed is maindatory");

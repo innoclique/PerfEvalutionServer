@@ -61,7 +61,7 @@ const UserSchema = new mongoose.Schema({
     HasActiveEvaluation:{type:String,default:"No"},
     IsProfileUpToDate: { type: Boolean, default: true },
     profile:{type:Object,default:null},
-    CoachingRemainder:{type:Number, default:0}
+    CoachingReminder:{type:Number, default:0}
 },
 {
     usePushEach: true

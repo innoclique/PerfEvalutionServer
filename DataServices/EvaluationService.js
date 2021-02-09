@@ -64,7 +64,7 @@ exports.AddEvaluation = async (evaluation) => {
         var _deliveremails = [];
 
 
-        await this.sendmail(_currentEvaluation.CreatedBy);
+        await this.sendmail(evaluation,false);
         _currentEvaluation.Employees.map(e => {
             _deliveremails.push({
                 User: e._id._id,
@@ -1296,23 +1296,30 @@ exports.ReleaseKpiForm = async (evaluation) => {
     const g = await KpiFormRepo.insertMany(evaluation);
     // const _evaluation = await KpiFormRepo(evaluation);
     // var savedEvauation = await _evaluation.save();
+    await this.sendmail(evaluation,true);
 
     return true;
 }
 
-exports.sendmail = async (user) => {
+exports.sendmail = async (ev,isKpi) => {
+
+    let user = await UserRepo.findById(ev.CreatedBy);
     fs.readFile("./EmailTemplates/EmailTemplate.html", async function read(err, bufcontent) {
         var content = bufcontent.toString();
 
-        let des = `Evaluation has been successfully created.`
+        let des = `Congratulations, you have successfully setup the roll-out for the 
+        ${isKpi?'Performance Goals Setting':'Evaluations'} for the year ${ev.EvaluationPeriodText}.
+
+       <br> To view details, <a href=" ${config.APP_BASE_REDIRECT_URL}=/ea/evaluation-list" >click here</a>.
+        `
         content = content.replace("##FirstName##", user.FirstName);
         content = content.replace("##ProductName##", config.ProductName);
         content = content.replace("##Description##", des);
-        content = content.replace("##Title##", "Evaluation Initiated");
+        content = content.replace("##Title##", "Evaluation roll-out successfully scheduled");
 
         var mailObject = SendMail.GetMailObject(
             user.Email,
-            "Evaluation Initiated",
+            "Evaluation roll-out successfully scheduled",
             content,
             null,
             null

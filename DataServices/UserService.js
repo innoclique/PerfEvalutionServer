@@ -578,11 +578,11 @@ await SendMail.SendEmail(mailObject, function (res) {
        
    
    
-   mailBody="Dear " + csaDetails.FirstName +",<br>"
+   mailBody="Dear " + EvalAdmin.FirstName +",<br>"
    mailBody = mailBody + "The Client Super Admin has updated the details for <b>" + newemp.FirstName + " " + newemp.LastName  + "<br>"
    mailBody=mailBody + "<br>To view details,  "+ " <a href="+ config.APP_BASE_REDIRECT_URL+"=/ea/setup-employee" + ">click here</a> <br><br>Thanks,<br> "+config.ProductName+" Administrator<br><br>"
    var mailObject = SendMail.GetMailObject(
-       csaDetails.Email,
+    EvalAdmin.Email,
              "Employee details updated by Admin",
 mailBody
             ,
@@ -657,7 +657,7 @@ exports.sendEmpCreateEmails = async (newemp,_temppwd) =>{
 
     var mailObject = SendMail.GetMailObject(
         newemp.Email,
-        config.ProductName+" account password",
+        config.ProductName+" account created",
 mailBody
               ,
               null,
@@ -676,7 +676,7 @@ mailBody=mailBody + "<br>Please  "+ " <a href=" + config.APP_URL +">click here</
 
     var mailObject = SendMail.GetMailObject(
         newemp.Email,
-        config.ProductName + " account created",
+        config.ProductName + " account password",
 mailBody
              ,
               null,
@@ -718,11 +718,11 @@ mailBody
        
    
    
-   mailBody="Dear " + csaDetails.FirstName +",<br>"
+   mailBody="Dear " + EvalAdmin.FirstName +",<br>"
    mailBody = mailBody + "The Client Super Admin has added <b>" + newemp.FirstName + " " + newemp.LastName  + "</b> to the system.<br>"
    mailBody=mailBody + "<br>To view details,  "+ " <a href="+ config.APP_BASE_REDIRECT_URL+"=/ea/setup-employee" + ">click here</a> <br><br>Thanks,<br> "+config.ProductName+" Administrator<br><br>"
    var mailObject = SendMail.GetMailObject(
-       csaDetails.Email,
+    EvalAdmin.Email,
              "Employee successfully added by Admin",
 mailBody
             ,

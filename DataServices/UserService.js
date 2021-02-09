@@ -496,7 +496,7 @@ exports.UpdateEmployeeProfile = async (employee) => {
             employee.profile = null;
             var empId = employee._id;
             delete employee._id;
-            const emp = await UserRepo.update({ _id: empId }, employee);
+            const emp = await UserRepo.update({ _id: Mongoose.Types.ObjectId(empId) }, {$set:employee});
         }
 
         if (!employee.IsDraft) {

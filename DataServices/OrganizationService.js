@@ -340,7 +340,7 @@ exports.UpdateOrgProfile = async (organization) => {
                 Object.assign(toupdateOrg, organization);
                 var ff = await toupdateOrg.save();
                 const userRecord = {
-                    // Email: organization.AdminEmail,
+                    Email: organization.AdminEmail,
                     ContactPhone: organization.AdminPhone,
                     Role: organization.ClientType === 'Client' ? 'CSA' : 'RSA',
                     FirstName: organization.AdminFirstName,
@@ -360,6 +360,7 @@ exports.UpdateOrgProfile = async (organization) => {
                 var ff = await toupdateOrg.save();
                 //save user account for this organization
                 const userRecord = {
+                    Email: organization.AdminEmail,
                     ContactPhone: organization.AdminPhone,
                     Role: 'RSA',
                     FirstName: organization.AdminFirstName,
@@ -374,7 +375,7 @@ exports.UpdateOrgProfile = async (organization) => {
                 }
                 await UserRepo.findOneAndUpdate({ id: ff.Admin }, { userRecord });
             }
-            const user = await UserRepo.findOneAndUpdate({ Email: organization.AdminEmail });
+            const user = await UserRepo.findOne({ Email: organization.AdminEmail });
             let mailBody = "Dear " + user.FirstName + ",<br><br>"
             mailBody = mailBody + "You have successfully updated your organization’s profile." + "<br><br>"
              if (organization.ClientType === 'Client') {

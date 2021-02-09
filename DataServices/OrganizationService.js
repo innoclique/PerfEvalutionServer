@@ -216,6 +216,7 @@ exports.CreateOrganization = async (organization) => {
     }
 }
 const loadOrganizationModels = async (OrganizationId,ModelsList)=>{
+    console.log("Inside:loadOrganizationModels");
     let modelMappingList = [];
     let competencyMappingList = [];
     for(var i=0;i<ModelsList.length;i++){
@@ -225,9 +226,12 @@ const loadOrganizationModels = async (OrganizationId,ModelsList)=>{
         let competencyIdList = [];
         for(var j=0;j<Competencies.length;j++){
             let competency = Competencies[j];
+            console.log(`competency.toString() : `+competency.toString())
             let competencyDomain = await CompetencyRepo.findOne({"_id":""+competency.toString()},{_id:0});
+            console.log(competencyDomain)
             if(competencyDomain){
                 competencyDomain = competencyDomain.toObject();
+                //delete competencyDomain._id;
                 competencyDomain['Organization'] = OrganizationId;
                 let id = Mongoose.Types.ObjectId().toString();
                 competencyDomain['_id']=id;
@@ -243,7 +247,7 @@ const loadOrganizationModels = async (OrganizationId,ModelsList)=>{
         modelMappingList.push(_modelDomain);
     }
     //console.log(modelMappingList);
-    //console.log(competencyMappingList);
+    console.log(competencyMappingList.length);
     //ModelMappingRepo,CompetencyMappingRepo
     await ModelMappingRepo.insertMany(modelMappingList);
     await CompetencyMappingRepo.insertMany(competencyMappingList);

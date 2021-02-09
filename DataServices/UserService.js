@@ -529,7 +529,7 @@ exports.sendEmpProfileUpdated = async (emp) => {
     // `;
     let mailBody = "Dear " + emp.FirstName + ",<br><br>"
     mailBody = mailBody + "You have successfully updated your profile." + "<br><br>"
-    mailBody = mailBody + "<br>To view details  " + " <a href=" + config.APP_URL + ">click here</a> to login<br><br>Thanks,<br>" + config.ProductName + " Administrator<br>"
+    mailBody = mailBody + "<br>To view details  " + " <a href=" + config.APP_BASE_REDIRECT_URL+"=/ea/profile" + ">click here</a> to login<br><br>Thanks,<br>" + config.ProductName + " Administrator <br>"
     var mailObject = SendMail.GetMailObject(
         emp.Email,
         "Profile updated successfully",

@@ -66,8 +66,8 @@ exports.SendEmail = async function (contents, cb) {
     _deliveremails.push({
         Type: contents.subject,
         IsDelivered: true,
-        // Email: env==='dev'? contents.to[0]: contents.to ,
-        Email: contents.to ,
+         Email: env==='dev'? contents.to[0]: contents.to ,
+        //Email: contents.to ,
         Template: contents.html,
         Subject: contents.subject
     })

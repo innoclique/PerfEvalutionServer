@@ -1,7 +1,7 @@
 const Express = require("express");
 require('dotenv').config();
 const mongoose = require("mongoose");
-const { boolean, string } = require("joi");
+const { boolean, string, number } = require("joi");
 
 const UserSchema = new mongoose.Schema({
     Email: { type: String, unique: true },
@@ -17,14 +17,14 @@ const UserSchema = new mongoose.Schema({
     City:{ type: String },
     Country:{ type: String },
     ZipCode:{ type: String },
-    Title:{ type: String },
+    Title:{ type: String, default:null },
     MiddleName:{type:String},
     FirstName: { type: String },
     LastName: { type: String },
-    ExtNumber: { type: String },
-      AltPhoneNumber: { type: String },
-      MiddleName: { type: String },
-      MobileNumber: { type: String },
+    ExtNumber: { type: String ,default:null},
+    AltPhoneNumber: { type: String, default:null },
+    MiddleName: { type: String },
+    MobileNumber: { type: String },
     DateCreated: { type: String, default: Date() },
     JoiningDate: { type: String, default: Date() },
     RoleEffFrom: { type: String },
@@ -43,22 +43,25 @@ const UserSchema = new mongoose.Schema({
     IsDraft:{ type: Boolean, default:false },
     IsSubmit: { type: Boolean, default: false },
     ParentUser:{ type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-    JobRole:{type: String },
+    JobRole:{type: String , default:null},
     JobLevel:{ type: mongoose.Schema.Types.ObjectId, ref: 'JobLevels' },
     Department:{type: String },
     TnCAccepted:{type:Boolean},
     TnCAcceptedOn:{type:Date,default: Date() },
     CreatedOn:{type:Date },
     CreatedBy:{ type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-    Manager:{ type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    Manager:{ type: mongoose.Schema.Types.ObjectId, ref: 'User', default:null },
     Organization:{ type: mongoose.Schema.Types.ObjectId, ref: 'Organization' },
-    DirectReports:{ type: mongoose.Schema.Types.ObjectId,default:'5f60f96d08967f4688416a00', ref: 'User' },
-    CopiesTo:{ type: mongoose.Schema.Types.ObjectId,default:'5f60f96d08967f4688416a00', ref: 'User' },
-    ThirdSignatory:{ type: mongoose.Schema.Types.ObjectId,default:'5f60f96d08967f4688416a00', ref: 'User' },
+    DirectReports:{ type: mongoose.Schema.Types.ObjectId,default:null, ref: 'User' },
+    CopiesTo:{ type: mongoose.Schema.Types.ObjectId,default:null, ref: 'User' },
+    ThirdSignatory:{ type: mongoose.Schema.Types.ObjectId,default:null, ref: 'User' },
     UpdatedOn:{type:Date },
     UpdatedBy:{ type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     Permissions:[],
-    HasActiveEvaluation:{type:String,default:"No"}
+    HasActiveEvaluation:{type:String,default:"No"},
+    IsProfileUpToDate: { type: Boolean, default: true },
+    profile:{type:Object,default:null},
+    CoachingReminder:{type:Number, default:0}
 },
 {
     usePushEach: true

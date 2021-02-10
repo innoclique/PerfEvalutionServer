@@ -85,6 +85,32 @@ exports.ValidateCreateAccountModel = ( data)=>{
 }
 
 
+exports.ValidateEmployeeProfile = ( data)=>{
+   if(!data.IsDraft){
+      const schema = Joi.object().keys({
+         FirstName: Joi.string().required(),
+         LastName: Joi.string().required(),
+         PhoneNumber: Joi.optional(),
+         Address: Joi.string().required(),
+         MiddleName: Joi.optional(),
+         ExtNumber:Joi.optional(),
+         AltPhoneNumber:Joi.optional(),
+         MobileNumber:Joi.optional(),
+         IsDraft:Joi.optional(),
+         _id:Joi.optional(),
+         CoachingReminder:Joi.optional(),
+     });
+     return schema;
+   }else{
+      const schema = Joi.object().keys({
+         FirstName: Joi.string().required(),
+//          Email: Joi.string().email().required(),
+         CreatedBy:Joi.optional() 
+      }).unknown(true);
+      return schema;
+   }
+   }
+
 exports.ValidateCreateEmployeeModel = ( data)=>{
 
 if(data.IsDraft!='true'){
@@ -439,8 +465,8 @@ exports.UpdateOrganizationSchema=(schema)=>{
       
       EvaluationModels:Joi.array().items(Joi.string().required()).min(1).required(),
       PhoneExt:Joi.string().allow(['',null]),
-      EmployeeBufferCount:Joi.string().optional(),
-      DownloadBufferDays:Joi.string().optional(),
+      EmployeeBufferCount:Joi.optional(),
+      DownloadBufferDays:Joi.optional(),
       CoachingReminder:Joi.string().allow(['']),
       IsActive:Joi.optional(),
       UpdatedBy:Joi.string().required().trim(),

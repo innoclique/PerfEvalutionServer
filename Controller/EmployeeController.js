@@ -90,6 +90,24 @@ exports.GetSetupBasicData = async (req, res, next) => {
         .catch(err => next(err => { next(err) }));
 
 }
+exports.UpdateEmployeeProfile = async (req, res, next) => {
+    Joi.validate(req.body, Validation_Helper.ValidateEmployeeProfile(req.body), async (err, result) => {
+        if (err) { res.status(400).json({ message: err.details.map(i => i.message).join(" / ") }) }
+        else {
+            await UserService.UpdateEmployeeProfile(req.body)
+                .then((Response) => {
+                    res.status(200).json({ message: "Success" });
+                })
+                .catch(err => { next(err) });
+        }
+    });
+}
+
+exports.GetEmployeeProfile = async (req, res, next) => {
+    var empProfile = await UserService.getEmpProfile(req.body);
+    console.log('getEmpProfile :: ',JSON.stringify(empProfile));
+    res.json(empProfile);
+}
 
 
 
@@ -237,10 +255,14 @@ exports.GetAllKpis = async (req, res, next) => {
     await EmployeeService.GetAllKpis(req.body)
         .then(Response => Response ? res.status(200).json(Response) : res.status(404).json("Kpi Not Found"))
         .catch(err => next(err));
-
-      
-
 }
+
+exports.CheckEvaluationPgRollout = async (req, res, next) => {
+    await EmployeeService.hasEvaluationPgRollout(req.body)
+        .then(Response => Response ? res.status(200).json(Response) : res.status(404).json("Kpi Not Found"))
+        .catch(err => next(err));
+}
+
 exports.GetEmpCurrentEvaluation = async (req, res, next) => {
     await EmployeeService.GetEmployeeCurrentEvaluationYear(req.body).then(Response => Response ? res.status(200).json(Response) : res.status(404).json("Kpi Not Found"))
     .catch(err => next(err));
@@ -270,7 +292,7 @@ exports.GetKpisByManagerId = async (req, res, next) => {
 
 exports.SubmitAllKpisByManager = async (req, res, next) => {
     await EmployeeService.SubmitAllKpisByManager(req.body)
-        .then(Response => Response ? res.status(200).json({message: "Your sign-off is successful."}) : res.status(404).json("Kpi Not Found"))
+        .then(Response => Response ? res.status(200).json({message: "The Performance Goals have been submitted successfully."}) : res.status(404).json("Kpi Not Found"))
         .catch(err => next(err));
 }
 

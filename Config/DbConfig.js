@@ -5,6 +5,7 @@ var config = require(`../Config/${env}.config`);
 Mongoose.connect(config.database, { useNewUrlParser:true, useCreateIndex:true ,useUnifiedTopology:true})
 .then( con=>{console.error(" Connection Successful  "+config.database);})
 .catch( err=>{console.error(" Failed To Connect to Db " + err);}); 
+//Mongoose.set("debug",true);
 Mongoose.Promise = global.Promise;  
 
 exports.UserRepository = require('../SchemaModels/UserSchema');

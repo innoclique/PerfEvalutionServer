@@ -16,6 +16,11 @@ route.post('/CreateEmployee', EmployeeController.CreateEmployee);
 route.post('/UpdateEmployee', EmployeeController.UpdateEmployee);
 route.post('/GetEmployeeDataById',EmployeeController.GetEmployeeDataById);
 route.post('/GetAllEmployees',EmployeeController.GetAllEmployees);
+route.post('/GetEmployeeProfile',EmployeeController.GetEmployeeProfile);
+route.post('/UpdateEmployeeProfile',EmployeeController.UpdateEmployeeProfile);
+route.post('/GetOrgProfile',ApplicationController.GetOrgProfile);
+route.post('/UpdateOrgProfile',ApplicationController.UpdateOrgProfile);
+
 
 route.post('/AddStrength',EmployeeController.AddStrength);
 route.post('/GetAllStrengths',EmployeeController.GetAllStrengths);
@@ -31,6 +36,7 @@ route.post('/GetTSReleasedAccomplishments',EmployeeController.GetTSReleasedAccom
 route.post('/AddKpi', EmployeeController.AddKpi);
 route.post('/GetKpiDataById',EmployeeController.GetKpiDataById);
 route.post('/GetAllKpis',EmployeeController.GetAllKpis);
+route.post('/FindEvaluationPgRollout',EmployeeController.CheckEvaluationPgRollout);
 route.post('/GetEmployeeCurrentEvaluation',EmployeeController.GetEmpCurrentEvaluation);
 route.post('/GetKpisByManager',EmployeeController.GetKpisByManager);
 route.post('/GetKpisByManagerId',EmployeeController.GetKpisByManagerId);

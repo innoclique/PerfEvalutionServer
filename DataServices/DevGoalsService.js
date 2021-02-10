@@ -215,7 +215,7 @@ exports.SubmitAllActionPlan = async (data) => {
         let submited = await DevGoalsRepo.updateMany({
             'Owner': Mongoose.Types.ObjectId(data.empId),
             'IsDraft': false,
-            'CreatedYear': new Date().getFullYear(),
+            'CreatedYear': data.currentEvaluationYear,
             'IsGoalSubmited': false
         },
             {
@@ -230,7 +230,7 @@ exports.SubmitAllActionPlan = async (data) => {
             let submitedStrengths = await strengthRepo.updateMany({
                 'Owner': Mongoose.Types.ObjectId(data.empId),
                 'IsDraft': false,
-                'CreatedYear': new Date().getFullYear(),
+                'CreatedYear': data.currentEvaluationYear,
                 'IsStrengthSubmited': false
             },
                 {
@@ -338,7 +338,7 @@ exports.sendEmailOnDevGoalSubmit = async (manager,devGoalOwnerInfo) => {
             var content = bufcontent.toString();
     
             let des= `You have successfully submitted the action plan.
-            To view details, <a href="${config.APP_BASE_URL}#/employee/action-plan">click here</a>.`
+            To view details, <a href="${config.APP_BASE_REDIRECT_URL}=/employee/action-plan">click here</a>.`
             content = content.replace("##FirstName##",devGoalOwnerInfo.FirstName);
             content = content.replace("##ProductName##", config.ProductName);
             content = content.replace("##Description##", des);
@@ -365,17 +365,17 @@ exports.sendEmailOnDevGoalSubmit = async (manager,devGoalOwnerInfo) => {
             var content = bufcontent.toString();
     
             let des= `  Your direct report, ${devGoalOwnerInfo.FirstName} ${devGoalOwnerInfo.LastName}, has submitted the action plan.
-            You may login to review. To view details, <a href="${config.APP_BASE_URL}#/em/review-action-plan">click here</a>.
+            You may login to review. To view details, <a href="${config.APP_BASE_REDIRECT_URL}=/em/review-action-plan">click here</a>.
                `
             content = content.replace("##FirstName##",manager.FirstName);
             content = content.replace("##ProductName##", config.ProductName);
             content = content.replace("##Description##", des);
-            content = content.replace("##Title##", "Action Plan Submitted");
+            content = content.replace("##Title##", `${devGoalOwnerInfo.FirstName} ${devGoalOwnerInfo.LastName}, has submitted the action plan`);
 
       
             var mailObject = SendMail.GetMailObject(
             manager.Email,
-                  "Action Plan Submitted",
+            `${devGoalOwnerInfo.FirstName} ${devGoalOwnerInfo.LastName}, has submitted the action plan`,
                  content,
                   null,
                   null
@@ -396,11 +396,11 @@ exports.sendEmailOnManagerSignoff = async (manager, kpiOwnerInfo) => {
     if (manager) {
         // send email to manager 
         let mailBody= "Dear "+ manager.FirstName +", <br><br>"
-        mailBody = mailBody + "You have successfully added comments to the action plan for  " + kpiOwnerInfo.FirstName +  ".<br><br>"
-        mailBody=mailBody + "<br>To view details  "+ " <a href="+ config.APP_URL + ">click here</a><br><br>Thanks,<br>Administrator " + config.ProductName + "<br>"
+        mailBody = mailBody + "You have successfully added comments to the action plan for  " + kpiOwnerInfo.FirstName +" "+ kpiOwnerInfo.LastName + ".<br><br>"
+        mailBody=mailBody + "<br>To view details  "+ " <a href="+ config.APP_BASE_REDIRECT_URL +"=/employee/review-action-plan-list"+ ">click here</a><br><br>Thanks,<br>" + config.ProductName + " Administrator <br>"
         var mailObject = SendMail.GetMailObject(
             manager.Email,
-            "Developmental Goal signed-off",
+            "Action Plan ("+ kpiOwnerInfo.FirstName +" "+ kpiOwnerInfo.LastName +") comments have been added",
             mailBody,
             null,
             null
@@ -412,9 +412,10 @@ exports.sendEmailOnManagerSignoff = async (manager, kpiOwnerInfo) => {
 
 
         // send email to User 
-        mailBody = "Dear "+ kpiOwnerInfo.FirstName +", <br><br>"
+        if (kpiOwnerInfo) {
+       let mailBody = "Dear "+ kpiOwnerInfo.FirstName +", <br><br>"
         mailBody = mailBody + "Your manager "+ manager.FirstName + " successfully added comments. <br><br>"
-        mailBody = mailBody +"Thank you, <br>Administrator" +config.ProductName+  "<br>"
+        mailBody = mailBody +"<br>To view details  "+ " <a href="+ config.APP_BASE_REDIRECT_URL +"=/employee/review-action-plan-list"+ ">click here</a><br> Thank you, <br>" +config.ProductName+  " Administrator<br>"
         var mailObject = SendMail.GetMailObject(
             kpiOwnerInfo.Email,
             "Developmental Goal sign-off",
@@ -427,6 +428,7 @@ exports.sendEmailOnManagerSignoff = async (manager, kpiOwnerInfo) => {
             console.log(res);
         });
     }
+    }
 
 }
 
@@ -438,10 +440,10 @@ exports.sendEmailEmpOnManagerViewed = async (manager, kpiOwnerInfo) => {
        
         // send email to User
                 mailBody= "Dear "+kpiOwnerInfo.FirstName + ", <br><br>Your manager  has opened your action plan. You may want to initiate a offline discussion for this.<br><br>" 
-                mailBody = mailBody + "Thank you,<br>Administrator "+config.ProductName+"<br>"
+                mailBody = mailBody + "<br>To view details  "+ " <a href="+ config.APP_BASE_REDIRECT_URL +"=/employee/review-action-plan-list"+ ">click here</a><br> Thank you,<br>"+config.ProductName+" Administrator <br>"
         var mailObject = SendMail.GetMailObject(
             kpiOwnerInfo.Email,
-            "Action plan viewed",
+            "Your manager has viewed you action plan",
             mailBody,
             null,
             null

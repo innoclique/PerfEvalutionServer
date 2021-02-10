@@ -25,7 +25,6 @@ const EvaluationUtils = require("../utils/EvaluationUtils")
 const statusRepo=require('../SchemaModels/Statuses');
 const EvaluationService=require('../DataServices/EvaluationService');
 const { cli } = require("winston/lib/winston/config");
-const months = ["Jan", "Feb", "Mar", "Apr", "May", "June", "July","Aug", "Sep", "Oct", "Nov", "Dec"];
 
 exports.AddEvaluation = async (evaluation) => {
     try {
@@ -64,23 +63,23 @@ exports.AddEvaluation = async (evaluation) => {
             .populate('Employees._id Employees.Peers.EmployeeId Employees.DirectReportees.EmployeeId CreatedBy').sort({ CreatedDate: -1 })
         var _deliveremails = [];
 
-
-        await this.sendmail(_currentEvaluation.CreatedBy);
+        await this.sendmail(evaluation,false);
         _currentEvaluation.Employees.map(e => {
             _deliveremails.push({
                 User: e._id._id,
                 Type: 'Employee Evaluation',
                 IsDelivered: false,
                 Email: e._id.Email,
-                Template: `<h1>Dear ${e._id.FirstName} <br/>
-            New Evaluation form has been rolledout. Please access Portal to submit the review.
-            <br/>
-            <br/>
-            Thank you
-            ${config.ProductName}
-            `,
+                Template: `<p>Dear ${e._id.FirstName} <br/></p><br/><br/>
+                            Your Evaluation is ready.
+                            <br/>
+                            Please <a href="${config.APP_BASE_REDIRECT_URL}">click here</a> to login and complete the process.
+                            <br/>
+                            </p>
+                            <p>Thank you <br/>
+                            ${config.ProductName} Administrator</br></p>`,
                 Company: _currentEvaluation.Company,
-                Subject: 'New Evaluation Rolledout'
+                Subject: 'Your evaluation has been released'
             })
 
             e.Peers.map(p => {
@@ -89,15 +88,16 @@ exports.AddEvaluation = async (evaluation) => {
                     Type: 'Peer Review',
                     IsDelivered: false,
                     Email: p.EmployeeId.Email,
-                    Template: `<h1>Dear ${p.EmployeeId.FirstName} <br/>
-            New Evaluation form has been rolledout. Please access Portal to submit the review.
-            <br/>
-            <br/>
-            Thank you
-            OPAssess Admin
-            `,
+                    Template: `<p>Dear ${p.EmployeeId.FirstName} <br/></p>
+                                <p>Rating for your peer ${e._id.FirstName} ${e._id.LastName} has been requested. Please login to provide your rating.
+                                <br/>
+                                <a href="${config.APP_BASE_REDIRECT_URL}">click here</a>  to login.
+                                <br/>
+                                </p>
+                                <p>Thank you <br/>
+                                ${config.ProductName} Administrator</br></p>`,
                     Company: _currentEvaluation.Company,
-                    Subject: 'New Peer Review Requested'
+                    Subject: 'Peer Rating requested'
                 })
             })
             e.DirectReportees.map(d => {
@@ -106,20 +106,20 @@ exports.AddEvaluation = async (evaluation) => {
                     Type: 'Direct Reportee Review',
                     IsDelivered: false,
                     Email: d.EmployeeId.Email,
-                    Template: `<h1>Dear ${d.EmployeeId.FirstName} <br/>
-            New Evaluation form has been rolledout. Please access Portal to submit the review.
-            <br/>
-            <br/>
-            Thank you
-            OPAssess Admin
-            `,
+                    Template: `<p>Dear ${d.EmployeeId.FirstName} <br/></p>
+                                <p>Rating for your manager ${e._id.FirstName} ${e._id.LastName} has been requested. Please login to provide your rating..
+                                <br/>
+                                <a href="${config.APP_BASE_REDIRECT_URL}">click here</a>  to login.
+                                <br/>
+                                </p>
+                                <p>Thank you <br/>
+                                ${config.ProductName} Administrator</br></p>`,
                     Company: _currentEvaluation.Company,
-                    Subject: 'Your Reportee Evaluation Rolledout'
+                    Subject: 'Direct Report Rating requested'
                 })
             })
         })
-        
-         _empMgrs.map(mgr => {
+         _Mgrs.map(mgr => {
             var empTable = `<p><table style="margin:20px 0px;" width="100%" border="2px" cellspacing="0" cellpadding="0">
             <thead>
                 <th>
@@ -141,10 +141,82 @@ exports.AddEvaluation = async (evaluation) => {
 
             for (let emp of _currentEvaluation.Employees) {
 
-                var manager = _Mgrs.find(mgr => mgr._id.toString() == emp._id.Manager.toString())
+                if ((mgr._id && emp._id && emp._id.Manager && emp._id.Manager.toString() == mgr._id.toString())) {
+                    var peers = '';
+                    var directReportees = '';
 
-                if (emp._id.DirectReports.toString() == mgr._id.toString() || emp._id.ThirdSignatory.toString() == mgr._id.toString()) {
+                    emp.Peers.map(p => {
+                        peers = peers + p.EmployeeId.FirstName + ' ' + p.EmployeeId.LastName + ', ';
+                    });
+                    emp.DirectReportees.map(d => {
+                        directReportees = directReportees + d.EmployeeId.FirstName + ' ' + d.EmployeeId.LastName + ', ';
+                    });
 
+                    empTable = `${empTable} 
+                <tr>
+                <td>
+                ${emp._id.FirstName} ${emp._id.LastName}
+                </td>
+                <td>
+                ${emp._id.Email}
+                </td>
+                <td>
+                ${mgr.FirstName} ${mgr.LastName}
+                </td>
+                <td>
+               ${peers}
+                </td>
+                <td>
+                ${directReportees}
+                </td>
+                </tr>`;
+                }
+            }
+
+
+            empTable = empTable + ` </table></p>`;
+            _deliveremails.push({
+                User: mgr._id,
+                Type: 'Evaluation Released',
+                IsDelivered: false,
+                Email: mgr.Email,
+                Template: `<p>Dear ${mgr.FirstName} <br/></p>
+                            <p>The Evaluations has been released for the following employees. This is for your information.</p>
+
+                            <br/>
+                            ${empTable}
+                            <br/>
+                            <p>Thank you,<br/>
+                            ${config.ProductName}  Administrator</p>`,
+                Company: _currentEvaluation.Company,
+                Subject: 'Evaluations for your direct reports has been released'
+            });
+
+        });
+        _empMgrs.map(mgr => {
+            var empTable = `<p><table style="margin:20px 0px;" width="100%" border="2px" cellspacing="0" cellpadding="0">
+            <thead>
+                <th>
+                    Name
+                </th>
+                <th>
+                    Email
+                </th>
+                <th>
+                    Manager
+                </th>
+                <th>
+                    Peers
+                </th>
+                <th>
+                    Direct Reports
+                </th>
+            </thead>`;
+
+            for (let emp of _currentEvaluation.Employees) {
+
+                if ((mgr._id && emp._id && emp._id.DirectReports && emp._id.DirectReports.toString() == mgr._id.toString()) || ( mgr._id && emp._id && emp._id.ThirdSignatory && emp._id.ThirdSignatory.toString() == mgr._id.toString())) {
+                    var manager = _Mgrs.find(mgr => mgr._id.toString() == emp._id.Manager.toString())
                     var peers = '';
                     var directReportees = '';
 
@@ -184,13 +256,13 @@ exports.AddEvaluation = async (evaluation) => {
                 IsDelivered: false,
                 Email: mgr.Email,
                 Template: `<p>Dear ${mgr.FirstName} <br/></p>
-                <p>The Evaluations has been released for the following employees. This is for your information.</p>
+                            <p>The Evaluations has been released for the following employees. This is for your information.</p>
 
-                <br/>
-                ${empTable}
-                <br/>
-                <p>Thank you,<br/>
-                OPAssess Admin</p>`,
+                            <br/>
+                            ${empTable}
+                            <br/>
+                            <p>Thank you,<br/>
+                            ${config.ProductName}  Administrator</p>`,
                 Company: _currentEvaluation.Company,
                 Subject: 'Evaluations for your direct reports has been released'
             });
@@ -412,6 +484,7 @@ exports.UpdatePeers = async (evaluation) => {
     }
 
 };
+
     
 //Brij -Start
 
@@ -725,9 +798,6 @@ exports.GetEmpCurrentEvaluation = async (emp) => {
     returnObject["PeerScoreCard"] = {}
     returnObject["DirectReporteeScoreCard"] = {}
     returnObject["OverallCompetencyRatings"] = []
-    //added by brij - start
-    returnObject["PreviousEvaluationYear"] = []
-    //added by brij - end
     let status = ['Active', 'InProgress','Completed'];
     const EmpUserDomain = await UserRepo.findOne({ "_id": emp.EmployeeId });
     let evaluationYear = await EvaluationUtils.GetOrgEvaluationYear(EmpUserDomain.Organization);
@@ -735,7 +805,7 @@ exports.GetEmpCurrentEvaluation = async (emp) => {
         const evaluationForm = await EvaluationRepo.findOne(
             {
                 Employees: { $elemMatch: { _id: ObjectId(emp.EmployeeId) }},
-                EvaluationYear: emp.EvaluationYear.toString()
+                EvaluationYear: evaluationYear
             }
         ).populate("Employees.PeersCompetencyList._id").select({ "Employees.Peers": 0 });
         if (!evaluationForm) {
@@ -748,12 +818,11 @@ exports.GetEmpCurrentEvaluation = async (emp) => {
         var returnObject = {};
         if (employee) {
         
-       // console.log(`evaluationYear = ${evaluationYear}`);
+        console.log(`evaluationYear = ${evaluationYear}`);
         const Kpi = await KpiRepo.find({
                 'Owner': emp.EmployeeId,
                 'IsDraftByManager': false,
-              //  'EvaluationYear': new Date().getFullYear(),
-                'EvaluationYear' : emp.EvaluationYear.toString(),
+                'EvaluationYear': evaluationYear,
                 // 'EvaluationId': evaluationForm._id.toString()
             }).populate('MeasurementCriteria.measureId Owner')
                 .sort({ UpdatedOn: -1 });
@@ -766,8 +835,6 @@ exports.GetEmpCurrentEvaluation = async (emp) => {
             returnObject.ManagerCompetencies = await this.GetEmpCompetenciesForManager({ EvaluationId: evaluationForm._id, employeeId: employee._id.toString() })
             returnObject.OverallCompetencyRating = await EmployeeService.GetOverallRatingByCompetency({ EvaluationId: evaluationForm._id, ForEmployeeId: employee._id.toString() })
             returnObject.Employee_Evaluation = employee;
-            returnObject.PreviousEvaluationYear = await this.getPreviousEvaluationYears({ EmployeeId: employee._id.toString()});
-            console.log(returnObject);
             return returnObject;
         }
     } catch (error) {
@@ -1402,23 +1469,30 @@ exports.ReleaseKpiForm = async (evaluation) => {
     const g = await KpiFormRepo.insertMany(evaluation);
     // const _evaluation = await KpiFormRepo(evaluation);
     // var savedEvauation = await _evaluation.save();
+    await this.sendmail(evaluation,true);
 
     return true;
 }
 
-exports.sendmail = async (user) => {
+exports.sendmail = async (ev,isKpi) => {
+
+    let user = await UserRepo.findById(ev.CreatedBy);
     fs.readFile("./EmailTemplates/EmailTemplate.html", async function read(err, bufcontent) {
         var content = bufcontent.toString();
 
-        let des = `Evaluation has been successfully created.`
+        let des = `Congratulations, you have successfully setup the roll-out for the 
+        ${isKpi?'Performance Goals Setting':'Evaluations'} for the year ${ev.EvaluationPeriodText}.
+
+       <br> To view details, <a href=" ${config.APP_BASE_REDIRECT_URL}=/ea/evaluation-list" >click here</a>.
+        `
         content = content.replace("##FirstName##", user.FirstName);
         content = content.replace("##ProductName##", config.ProductName);
         content = content.replace("##Description##", des);
-        content = content.replace("##Title##", "Evaluation Initiated");
+        content = content.replace("##Title##", "Evaluation roll-out successfully scheduled");
 
         var mailObject = SendMail.GetMailObject(
             user.Email,
-            "Evaluation Initiated",
+            "Evaluation roll-out successfully scheduled",
             content,
             null,
             null

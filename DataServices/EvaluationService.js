@@ -25,6 +25,7 @@ const EvaluationUtils = require("../utils/EvaluationUtils")
 const statusRepo=require('../SchemaModels/Statuses');
 const EvaluationService=require('../DataServices/EvaluationService');
 const { cli } = require("winston/lib/winston/config");
+const months = ["Jan", "Feb", "Mar", "Apr", "May", "June", "July","Aug", "Sep", "Oct", "Nov", "Dec"];
 
 exports.AddEvaluation = async (evaluation) => {
     try {
@@ -798,6 +799,9 @@ exports.GetEmpCurrentEvaluation = async (emp) => {
     returnObject["PeerScoreCard"] = {}
     returnObject["DirectReporteeScoreCard"] = {}
     returnObject["OverallCompetencyRatings"] = []
+    //added by brij - start
+    returnObject["PreviousEvaluationYear"] = []
+    //added by brij - end
     let status = ['Active', 'InProgress','Completed'];
     const EmpUserDomain = await UserRepo.findOne({ "_id": emp.EmployeeId });
     let evaluationYear = await EvaluationUtils.GetOrgEvaluationYear(EmpUserDomain.Organization);
@@ -805,7 +809,7 @@ exports.GetEmpCurrentEvaluation = async (emp) => {
         const evaluationForm = await EvaluationRepo.findOne(
             {
                 Employees: { $elemMatch: { _id: ObjectId(emp.EmployeeId) }},
-                EvaluationYear: evaluationYear
+                EvaluationYear: emp.EvaluationYear.toString()
             }
         ).populate("Employees.PeersCompetencyList._id").select({ "Employees.Peers": 0 });
         if (!evaluationForm) {
@@ -818,11 +822,12 @@ exports.GetEmpCurrentEvaluation = async (emp) => {
         var returnObject = {};
         if (employee) {
         
-        console.log(`evaluationYear = ${evaluationYear}`);
+       // console.log(`evaluationYear = ${evaluationYear}`);
         const Kpi = await KpiRepo.find({
                 'Owner': emp.EmployeeId,
                 'IsDraftByManager': false,
-                'EvaluationYear': evaluationYear,
+              //  'EvaluationYear': new Date().getFullYear(),
+                'EvaluationYear' : emp.EvaluationYear.toString(),
                 // 'EvaluationId': evaluationForm._id.toString()
             }).populate('MeasurementCriteria.measureId Owner')
                 .sort({ UpdatedOn: -1 });
@@ -835,6 +840,8 @@ exports.GetEmpCurrentEvaluation = async (emp) => {
             returnObject.ManagerCompetencies = await this.GetEmpCompetenciesForManager({ EvaluationId: evaluationForm._id, employeeId: employee._id.toString() })
             returnObject.OverallCompetencyRating = await EmployeeService.GetOverallRatingByCompetency({ EvaluationId: evaluationForm._id, ForEmployeeId: employee._id.toString() })
             returnObject.Employee_Evaluation = employee;
+            returnObject.PreviousEvaluationYear = await this.getPreviousEvaluationYears({ EmployeeId: employee._id.toString()});
+            console.log(returnObject);
             return returnObject;
         }
     } catch (error) {

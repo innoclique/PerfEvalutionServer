@@ -63,7 +63,6 @@ exports.AddEvaluation = async (evaluation) => {
             .populate('Employees._id Employees.Peers.EmployeeId Employees.DirectReportees.EmployeeId CreatedBy').sort({ CreatedDate: -1 })
         var _deliveremails = [];
 
-
         await this.sendmail(evaluation,false);
         _currentEvaluation.Employees.map(e => {
             _deliveremails.push({
@@ -71,25 +70,26 @@ exports.AddEvaluation = async (evaluation) => {
                 Type: 'Employee Evaluation',
                 IsDelivered: false,
                 Email: e._id.Email,
-                Template: `<h1>Dear ${e._id.FirstName} <br/>
-            New Evaluation form has been rolledout. Please access Portal to submit the review.
-            <br/>
-            <br/>
-            Thank you
-            ${config.ProductName}
-            `,
+                Template: `<p>Dear ${e._id.FirstName} <br/></p><br/><br/>
+                            Your Evaluation is ready.
+                            <br/>
+                            Please <a href="${config.APP_BASE_REDIRECT_URL}">click here</a> to login and complete the process.
+                            <br/>
+                            </p>
+                            <p>Thank you <br/>
+                            ${config.ProductName} Administrator</br></p>`,
                 Company: _currentEvaluation.Company,
-                Subject: 'New Evaluation Rolledout'
+                Subject: 'Your evaluation has been released'
             })
 
-           e.Peers.map(p => {
+            e.Peers.map(p => {
                 _deliveremails.push({
                     User: p.EmployeeId._id,
                     Type: 'Peer Review',
                     IsDelivered: false,
                     Email: p.EmployeeId.Email,
                     Template: `<p>Dear ${p.EmployeeId.FirstName} <br/></p>
-                                <p>Rating for your peer <Employee firstname lastname> has been requested. Please login to provide your rating.
+                                <p>Rating for your peer ${e._id.FirstName} ${e._id.LastName} has been requested. Please login to provide your rating.
                                 <br/>
                                 <a href="${config.APP_BASE_REDIRECT_URL}">click here</a>  to login.
                                 <br/>
@@ -106,20 +106,94 @@ exports.AddEvaluation = async (evaluation) => {
                     Type: 'Direct Reportee Review',
                     IsDelivered: false,
                     Email: d.EmployeeId.Email,
-                    Template: `<h1>Dear ${d.EmployeeId.FirstName} <br/>
-            New Evaluation form has been rolledout. Please access Portal to submit the review.
-            <br/>
-            <br/>
-            Thank you
-            OPAssess Admin
-            `,
+                    Template: `<p>Dear ${d.EmployeeId.FirstName} <br/></p>
+                                <p>Rating for your manager ${e._id.FirstName} ${e._id.LastName} has been requested. Please login to provide your rating..
+                                <br/>
+                                <a href="${config.APP_BASE_REDIRECT_URL}">click here</a>  to login.
+                                <br/>
+                                </p>
+                                <p>Thank you <br/>
+                                ${config.ProductName} Administrator</br></p>`,
                     Company: _currentEvaluation.Company,
-                    Subject: 'Your Reportee Evaluation Rolledout'
+                    Subject: 'Direct Report Rating requested'
                 })
             })
         })
-        
-         _empMgrs.map(mgr => {
+         _Mgrs.map(mgr => {
+            var empTable = `<p><table style="margin:20px 0px;" width="100%" border="2px" cellspacing="0" cellpadding="0">
+            <thead>
+                <th>
+                    Name
+                </th>
+                <th>
+                    Email
+                </th>
+                <th>
+                    Manager
+                </th>
+                <th>
+                    Peers
+                </th>
+                <th>
+                    Direct Reports
+                </th>
+            </thead>`;
+
+            for (let emp of _currentEvaluation.Employees) {
+
+                if ((mgr._id && emp._id && emp._id.Manager && emp._id.Manager.toString() == mgr._id.toString())) {
+                    var peers = '';
+                    var directReportees = '';
+
+                    emp.Peers.map(p => {
+                        peers = peers + p.EmployeeId.FirstName + ' ' + p.EmployeeId.LastName + ', ';
+                    });
+                    emp.DirectReportees.map(d => {
+                        directReportees = directReportees + d.EmployeeId.FirstName + ' ' + d.EmployeeId.LastName + ', ';
+                    });
+
+                    empTable = `${empTable} 
+                <tr>
+                <td>
+                ${emp._id.FirstName} ${emp._id.LastName}
+                </td>
+                <td>
+                ${emp._id.Email}
+                </td>
+                <td>
+                ${mgr.FirstName} ${mgr.LastName}
+                </td>
+                <td>
+               ${peers}
+                </td>
+                <td>
+                ${directReportees}
+                </td>
+                </tr>`;
+                }
+            }
+
+
+            empTable = empTable + ` </table></p>`;
+            _deliveremails.push({
+                User: mgr._id,
+                Type: 'Evaluation Released',
+                IsDelivered: false,
+                Email: mgr.Email,
+                Template: `<p>Dear ${mgr.FirstName} <br/></p>
+                            <p>The Evaluations has been released for the following employees. This is for your information.</p>
+
+                            <br/>
+                            ${empTable}
+                            <br/>
+                            <p>Thank you,<br/>
+                            ${config.ProductName}  Administrator</p>`,
+                Company: _currentEvaluation.Company,
+                Subject: 'Evaluations for your direct reports has been released'
+            });
+
+        });
+        _empMgrs.map(mgr => {
             var empTable = `<p><table style="margin:20px 0px;" width="100%" border="2px" cellspacing="0" cellpadding="0">
             <thead>
                 <th>
@@ -182,13 +256,13 @@ exports.AddEvaluation = async (evaluation) => {
                 IsDelivered: false,
                 Email: mgr.Email,
                 Template: `<p>Dear ${mgr.FirstName} <br/></p>
-                <p>The Evaluations has been released for the following employees. This is for your information.</p>
+                            <p>The Evaluations has been released for the following employees. This is for your information.</p>
 
-                <br/>
-                ${empTable}
-                <br/>
-                <p>Thank you,<br/>
-                OPAssess Admin</p>`,
+                            <br/>
+                            ${empTable}
+                            <br/>
+                            <p>Thank you,<br/>
+                            ${config.ProductName}  Administrator</p>`,
                 Company: _currentEvaluation.Company,
                 Subject: 'Evaluations for your direct reports has been released'
             });

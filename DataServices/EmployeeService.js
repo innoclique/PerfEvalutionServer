@@ -3279,12 +3279,12 @@ exports.sendEmailOnAccompUpdate = async (manager,OwnerInfo,accomplishment) => {
 if (manager) {
     
     mailBody = "Dear "+ manager.FirstName + ",<br><br>"
-    mailBody = mailBody + "You have successfully revised the rating for "+   empoyee.FirstName+" "+empoyee.LastName+"."
+    mailBody = mailBody + "You have successfully revised the rating for "+   employee.FirstName+" "+employee.LastName+"."
     mailBody=mailBody + "<br>To view details  "+ " <a href=" +config.APP_BASE_REDIRECT_URL+"=/employee/review-evaluation-list" +">click here</a> <br><br>Thanks,<br> " + config.ProductName + " Administrator<br>"
     
                         var mailObject = SendMail.GetMailObject(
                             manager.Email,
-                            "Evaluation for "+   empoyee.FirstName+" "+empoyee.LastName+" successfully submitted",
+                            "Evaluation for "+   employee.FirstName+" "+employee.LastName+" successfully submitted",
                            mailBody,
                             null,
                             null
@@ -3294,13 +3294,13 @@ if (manager) {
                             console.log(res);
                         });
                     }
-                    if (empoyee) {
+                    if (employee) {
                       
-                        mailBody = "Dear "+ empoyee.FirstName + ", <br><br>"
+                        mailBody = "Dear "+ employee.FirstName + ", <br><br>"
                         mailBody = mailBody + "Your manager has revised your rating."
                         mailBody=mailBody + "<br>To view and sign-off, please  "+ " <a href=" +config.APP_BASE_REDIRECT_URL+"=/employee/review-evaluation-list" +">click here</a> <br><br>Thanks,<br> " + config.ProductName + " Administrator<br>"
                         var mailObject = SendMail.GetMailObject(
-                            empoyee.Email,
+                            employee.Email,
                             "Your evaluation has been sent for final approval",
                            mailBody,
                              null,

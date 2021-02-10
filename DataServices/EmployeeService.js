@@ -1188,12 +1188,12 @@ exports.sendEmailOnManagerSignoff = async (manager, kpiOwnerInfo) => {
 
     if (manager) {
         // send email to manager 
-let mailBody = mailBody + "Dear " + manager.FirstName + ",<br><br>"
+let mailBody =  "Dear " + manager.FirstName + ",<br><br>"
 mailBody = mailBody + "You have successfully signed-off the Performance Goals for " +  kpiOwnerInfo.FirstName+" "+  kpiOwnerInfo.LastName+".<br>"
 mailBody=mailBody + "<br>To view details  "+ " <a href="+ config.APP_BASE_REDIRECT_URL+"=/employee/review-perf-goals-list" + ">click here</a><br><br>Thanks,<br> " + config.ProductName+ " Administrator<br>"
         var mailObject = SendMail.GetMailObject(
             manager.Email,
-            "Performance successfully signed-off for"+  kpiOwnerInfo.FirstName+" "+  kpiOwnerInfo.LastName,
+            "Performance Goals successfully signed-off for "+  kpiOwnerInfo.FirstName+" "+  kpiOwnerInfo.LastName,
            mailBody,
             null,
             null

@@ -484,6 +484,104 @@ exports.UpdatePeers = async (evaluation) => {
     }
 
 };
+
+    
+//Brij -Start
+
+exports.getYearStart = async (month,evalYear) => {
+    if (months.indexOf(month) > new Date().getMonth()) {
+        var currentYear = (evalYear -1 ).toString();
+        currentYear = currentYear.substring(2);
+        return currentYear;
+    } else {
+        var currentYear = evalYear.toString();
+        currentYear = currentYear.substring(2);
+        return currentYear;
+    }
+}
+
+exports.getYearEnd = async (month,evalYear) => {
+    if (months.indexOf(month) >= new Date().getMonth()) {
+        var currentYear = evalYear.toString();
+        currentYear = currentYear.substring(2);
+        return currentYear;
+    } else {
+        var currentYear = (evalYear + 1 ).toString();
+        currentYear = currentYear.substring(2);
+        return currentYear;
+    }
+}
+
+exports.getPreviousEvaluationYears = async (emp) => {
+    var returnObject = {};
+
+    try{
+        const previousEvalYears = await EvaluationRepo.find(
+            {
+                Employees: { $elemMatch: { _id: ObjectId(emp.EmployeeId) }}
+            },
+            {
+                "EvaluationYear":1,
+                "Company":1,
+                _id:0
+            }
+            
+        )
+        if(!previousEvalYears)
+        {
+            console.log("No Previous Years Evaluation Exists");
+            return null;
+        }
+
+        const Organisation = await OrganizationSchema.findOne(
+            { _id: Mongoose.Types.ObjectId(previousEvalYears[0].Company) },
+            {
+                "StartMonth":1,
+                "EndMonth":1,
+                _id:0
+            }
+            );
+         
+            if(!Organisation)
+            {
+                console.log("Evaluation Period not found for Organization.");
+                return null;
+            }
+          var preEvalYears = [] ;
+         preEvalYears.push(["id","name"]);
+       
+        for(var i=0;i<previousEvalYears.length;i++)
+        {
+            var temp = [];
+           temp[0]=previousEvalYears[i].EvaluationYear;
+           temp[1] = months[Organisation.StartMonth-1] + "'" + await this.getYearStart(months[Organisation.StartMonth-1],previousEvalYears[i].EvaluationYear) + " To " + Organisation.EndMonth.substring(0, 3) + "'" + await this.getYearEnd(Organisation.EndMonth.substring(0, 3),previousEvalYears[i].EvaluationYear);
+             preEvalYears.push(temp);
+        }
+       
+        var keys = preEvalYears[0];
+        var newArr = preEvalYears.slice(1, preEvalYears.length);
+        var formatted = [],
+        data = newArr,
+        cols = keys,
+        l = cols.length;
+        for (var i=0; i<data.length; i++) {
+            var d = data[i],
+                    o = {};
+            for (var j=0; j<l; j++)
+                    o[cols[j]] = d[j];
+            formatted.push(o);
+        }
+        console.log(formatted);
+        return formatted;
+    }
+    catch (error) {
+        logger.error('error occurred ', error)
+        throw error;
+    }
+
+}
+//Brij - End 
+
 exports.GetCompetencyValues = async (evaluation) => {
     try {
         const evaluationForm = await EvaluationRepo.findOne({ _id: Mongoose.Types.ObjectId(evaluation.EvaluationId), "Employees._id": ObjectId(evaluation.employeeId) });

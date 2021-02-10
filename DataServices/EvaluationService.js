@@ -82,21 +82,22 @@ exports.AddEvaluation = async (evaluation) => {
                 Subject: 'New Evaluation Rolledout'
             })
 
-            e.Peers.map(p => {
+           e.Peers.map(p => {
                 _deliveremails.push({
                     User: p.EmployeeId._id,
                     Type: 'Peer Review',
                     IsDelivered: false,
                     Email: p.EmployeeId.Email,
-                    Template: `<h1>Dear ${p.EmployeeId.FirstName} <br/>
-            New Evaluation form has been rolledout. Please access Portal to submit the review.
-            <br/>
-            <br/>
-            Thank you
-            OPAssess Admin
-            `,
+                    Template: `<p>Dear ${p.EmployeeId.FirstName} <br/></p>
+                                <p>Rating for your peer <Employee firstname lastname> has been requested. Please login to provide your rating.
+                                <br/>
+                                <a href="${config.APP_BASE_REDIRECT_URL}">click here</a>  to login.
+                                <br/>
+                                </p>
+                                <p>Thank you <br/>
+                                ${config.ProductName} Administrator</br></p>`,
                     Company: _currentEvaluation.Company,
-                    Subject: 'New Peer Review Requested'
+                    Subject: 'Peer Rating requested'
                 })
             })
             e.DirectReportees.map(d => {

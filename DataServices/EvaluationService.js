@@ -805,6 +805,9 @@ exports.GetEmpCurrentEvaluation = async (emp) => {
     let status = ['Active', 'InProgress','Completed'];
     const EmpUserDomain = await UserRepo.findOne({ "_id": emp.EmployeeId });
     let evaluationYear = await EvaluationUtils.GetOrgEvaluationYear(EmpUserDomain.Organization);
+    if(!emp.EvaluationYear){
+        emp.EvaluationYear = evaluationYear;
+    }
     try {
         const evaluationForm = await EvaluationRepo.findOne(
             {

@@ -412,7 +412,8 @@ exports.sendEmailOnManagerSignoff = async (manager, kpiOwnerInfo) => {
 
 
         // send email to User 
-        mailBody = "Dear "+ kpiOwnerInfo.FirstName +", <br><br>"
+        if (kpiOwnerInfo) {
+       let mailBody = "Dear "+ kpiOwnerInfo.FirstName +", <br><br>"
         mailBody = mailBody + "Your manager "+ manager.FirstName + " successfully added comments. <br><br>"
         mailBody = mailBody +"<br>To view details  "+ " <a href="+ config.APP_BASE_REDIRECT_URL +"=/employee/review-action-plan-list"+ ">click here</a><br> Thank you, <br>" +config.ProductName+  " Administrator<br>"
         var mailObject = SendMail.GetMailObject(
@@ -426,6 +427,7 @@ exports.sendEmailOnManagerSignoff = async (manager, kpiOwnerInfo) => {
         await SendMail.SendEmail(mailObject, function (res) {
             console.log(res);
         });
+    }
     }
 
 }

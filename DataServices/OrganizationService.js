@@ -99,6 +99,32 @@ exports.CreateOrganization = async (organization) => {
             session.endSession();
 
 
+
+            let updatedBy = await UserRepo.findById(organization.CreatedBy);
+            if (updatedBy.Role=="PSA") {
+                
+            
+            let mailBody= "Dear " + updatedBy.FirstName +",<br><br>"
+            mailBody = mailBody + "Congratulations, you have successfully set up an account for <b>" + organization.Name  + "</b><br><br>"
+            mailBody=mailBody + "<br>To view details  "+ " <a href=" +config.APP_BASE_REDIRECT_URL+"=/psa/list" +">click here</a> <br><br>Thanks,<br> " + config.ProductName + " Administrator<br>"
+            
+    
+    
+            var mailObject = SendMail.GetMailObject(
+                updatedBy.Email,
+                "Client successfully added",
+                mailBody,
+                null,
+                null
+            );
+    
+            await SendMail.SendEmail(mailObject, function (res) {
+                console.log(res);
+            });
+    
+        }
+
+
         } catch (error) {
             console.log('came here samba', error)
             // If an error occurred, abort the whole transaction and undo any changes that might have happened
@@ -190,6 +216,7 @@ exports.CreateOrganization = async (organization) => {
     }
 }
 const loadOrganizationModels = async (OrganizationId,ModelsList)=>{
+    console.log("Inside:loadOrganizationModels");
     let modelMappingList = [];
     let competencyMappingList = [];
     for(var i=0;i<ModelsList.length;i++){
@@ -199,9 +226,12 @@ const loadOrganizationModels = async (OrganizationId,ModelsList)=>{
         let competencyIdList = [];
         for(var j=0;j<Competencies.length;j++){
             let competency = Competencies[j];
+            console.log(`competency.toString() : `+competency.toString())
             let competencyDomain = await CompetencyRepo.findOne({"_id":""+competency.toString()},{_id:0});
+            console.log(competencyDomain)
             if(competencyDomain){
                 competencyDomain = competencyDomain.toObject();
+                //delete competencyDomain._id;
                 competencyDomain['Organization'] = OrganizationId;
                 let id = Mongoose.Types.ObjectId().toString();
                 competencyDomain['_id']=id;
@@ -217,7 +247,7 @@ const loadOrganizationModels = async (OrganizationId,ModelsList)=>{
         modelMappingList.push(_modelDomain);
     }
     //console.log(modelMappingList);
-    //console.log(competencyMappingList);
+    console.log(competencyMappingList.length);
     //ModelMappingRepo,CompetencyMappingRepo
     await ModelMappingRepo.insertMany(modelMappingList);
     await CompetencyMappingRepo.insertMany(competencyMappingList);
@@ -245,11 +275,20 @@ exports.UpdateOrganization = async (organization) => {
             City: organization.City
 
         }
-        const user = await UserRepo.findOneAndUpdate({ id: ff.Admin }, { userRecord });
+        let updatedBy = await UserRepo.findById(organization.UpdatedBy);
+        if (updatedBy.Role=="PSA") {
+            
+        
+        let mailBody= "Dear " + updatedBy.FirstName +",<br><br>"
+        mailBody = mailBody + "You have successfully updated the details for <b>" + organization.Name  + "</b><br><br>"
+        mailBody=mailBody + "<br>To view details  "+ " <a href=" +config.APP_BASE_REDIRECT_URL+"=/psa/list" +">click here</a> <br><br>Thanks,<br> " + config.ProductName + " Administrator<br>"
+        
+
+
         var mailObject = SendMail.GetMailObject(
-            userRecord.Email,
-            "Oraganization Updated",
-            "Oraganization updated successfully <br> Thank you",
+            updatedBy.Email,
+            "Client successfully updated",
+            mailBody,
             null,
             null
         );
@@ -257,6 +296,8 @@ exports.UpdateOrganization = async (organization) => {
         await SendMail.SendEmail(mailObject, function (res) {
             console.log(res);
         });
+
+    }
         return true;
     }
     catch (err) {
@@ -269,14 +310,12 @@ exports.UpdateOrganization = async (organization) => {
 
 exports.getOrgProfile = async (req) => {
     try {
-        console.log('inside getOrgProfile :: ',req);
+        console.log('inside getOrgProfile :: ', req);
         var org = await OrganizationRepo.findOne({ _id: Mongoose.Types.ObjectId(req.orgId) });
-        // .select('Address Phone PhoneExt ContactPersonEmail ContactPersonFirstName ContactPersonLastName ContactPersonMiddleName ContactPersonPhone Admin AdminEmail AdminFirstName AdminMiddleName AdminLastName AdminPhone CoachingReminder Industry State City Country ZipCode EvaluationModels EvaluationPeriod EvaluationDuration UsageType LicenceTypeCount EmpTypeCount ');
-        console.log('org.IsProfileUpToDate:::::', org.IsProfileUpToDate);
-        if (org.IsProfileUpToDate) {
+        if (!org.IsProfileUpToDate) {
             org.IsDraft = true;
-        } 
-            return org;
+        }
+        return org;
     } catch (error) {
         logger.error(err)
         console.log(err);
@@ -286,49 +325,77 @@ exports.getOrgProfile = async (req) => {
 
 exports.UpdateOrgProfile = async (organization) => {
     try {
-        if(!organization.IsProfileUpToDate){
-        const toupdateOrg = await OrganizationRepo.findOne({ _id: Mongoose.Types.ObjectId(organization.id) });
-        Object.assign(toupdateOrg, organization);
-        var ff = await toupdateOrg.save();
-        const userRecord = {
-            Email: organization.AdminEmail,
-            ContactPhone: organization.AdminPhone,
-            Role: organization.ClientType === 'Client' ? 'CSA' : 'RSA',
-            FirstName: organization.AdminFirstName,
-            LastName: organization.AdminLastName,
-            MiddleName: organization.AdminMiddleName,
-            Address: organization.Address,
-            PhoneNumber: organization.AdminPhone,
-            Country: organization.Country,
-            State: organization.State,
-            ZipCode: organization.ZipCode,
-            City: organization.City
-
+        if (organization.IsDraft) {
+            var toupdateOrg = await OrganizationRepo.findOne({ _id: Mongoose.Types.ObjectId(organization.id) });
+            toupdateOrg.profile = organization;
+            toupdateOrg.IsProfileUpToDate = false;
+            await OrganizationRepo.update({ _id: Mongoose.Types.ObjectId(organization.id) }, toupdateOrg);
+            return true;
+        } else {
+            console.log( 'inside if ',organization);
+            organization.profile = null;
+            organization.IsProfileUpToDate = true;
+            if (organization.ClientType === 'Client') {
+                const toupdateOrg = await OrganizationRepo.findOne({ _id: Mongoose.Types.ObjectId(organization.id) });
+                Object.assign(toupdateOrg, organization);
+                var ff = await toupdateOrg.save();
+                const userRecord = {
+                    Email: organization.AdminEmail,
+                    ContactPhone: organization.AdminPhone,
+                    Role: organization.ClientType === 'Client' ? 'CSA' : 'RSA',
+                    FirstName: organization.AdminFirstName,
+                    LastName: organization.AdminLastName,
+                    MiddleName: organization.AdminMiddleName,
+                    Address: organization.Address,
+                    PhoneNumber: organization.AdminPhone,
+                    Country: organization.Country,
+                    State: organization.State,
+                    ZipCode: organization.ZipCode,
+                    City: organization.City
+                }
+                await UserRepo.findOneAndUpdate({ id: ff.Admin }, { userRecord });
+            } else {
+                const toupdateOrg = await OrganizationRepo.findOne({ _id: Mongoose.Types.ObjectId(organization.id) });
+                Object.assign(toupdateOrg, organization);
+                var ff = await toupdateOrg.save();
+                //save user account for this organization
+                const userRecord = {
+                    Email: organization.AdminEmail,
+                    ContactPhone: organization.AdminPhone,
+                    Role: 'RSA',
+                    FirstName: organization.AdminFirstName,
+                    LastName: organization.AdminLastName,
+                    MiddleName: organization.AdminMiddleName,
+                    Address: organization.Address,
+                    PhoneNumber: organization.AdminPhone,
+                    Country: organization.Country,
+                    State: organization.State,
+                    ZipCode: organization.ZipCode,
+                    City: organization.City
+                }
+                await UserRepo.findOneAndUpdate({ id: ff.Admin }, { userRecord });
+            }
+            const user = await UserRepo.findOne({ Email: organization.AdminEmail });
+            let mailBody = "Dear " + user.FirstName + ",<br><br>"
+            mailBody = mailBody + "You have successfully updated your organization’s profile." + "<br><br>"
+             if (organization.ClientType === 'Client') {
+            mailBody = mailBody + "<br>To view details  " + " <a href=" + config.APP_BASE_REDIRECT_URL+"=/csa/profile" + ">click here</a> to login<br><br>Thanks,<br>Administrator " + config.ProductName + "<br>"
+             }else{
+                mailBody = mailBody + "<br>To view details  " + " <a href=" + config.APP_BASE_REDIRECT_URL+"=/rsa/profile" + ">click here</a> to login<br><br>Thanks,<br>Administrator " + config.ProductName + "<br>"
+             }
+            var mailObject = SendMail.GetMailObject(
+                user.Email,
+                "Organization’s Profile updated successfully",
+                mailBody
+                ,
+                null,
+                null
+            );
+            await SendMail.SendEmail(mailObject, function (res) {
+                console.log("org profile updated mail :: ", res);
+            });
+            return true;
         }
-        const user = await UserRepo.findOneAndUpdate({ id: ff.Admin }, { userRecord });
-
-        let mailBody = "Dear " + user.FirstName + ",<br><br>"
-        mailBody = mailBody + "You have successfully updated your organization’s profile." + "<br><br>"
-        mailBody = mailBody + "<br>To view details  " + " <a href=" + config.APP_URL + ">click here</a> to login<br><br>Thanks,<br>Administrator " + config.ProductName + "<br>"
-        var mailObject = SendMail.GetMailObject(
-            user.Email,
-            "Organization’s Profile updated successfully",
-            mailBody
-            ,
-            null,
-            null
-        );
-        await SendMail.SendEmail(mailObject, function (res) {
-            console.log("org profile updated mail :: ", res);
-        });
-        return true;
-    }else{
-        const toupdateOrg = await OrganizationRepo.findOne({ _id: Mongoose.Types.ObjectId(organization.id) });
-        toupdateOrg.profile = organization;
-        toupdateOrg.IsProfileUpToDate = false;
-        var ff = await toupdateOrg.save();
-        return true;
-    }
     }
     catch (err) {
         logger.error(err)
@@ -449,12 +516,13 @@ exports.UpdateNote = async (noteModel) => {
    try  {
     noteModel.Action = 'Updated';
     noteModel.UpdatedOn = new Date();
-    const note= await NoteRepo.findByIdAndUpdate(noteModel.NoteId, noteModel);
+    const note= await NoteRepo.findByIdAndUpdate(noteModel.NoteId, noteModel).populate('DiscussedWith');
+    const emp = await UserRepo.findById(note.Owner);
     if(noteModel.isFirstTimeCreateing){
-        const emp = await UserRepo.findById(note.Owner);
         this.sendEmailOnNoteCreate(emp);
     }
-
+    if(noteModel.IsDraft=='false')
+    this.sendEmailOnNoteUpdate(emp,note);
    // this.addNoteTrack(noteModel);
 
 
@@ -657,6 +725,43 @@ exports.UpdateReseller = async (organization) => {
 
 
 
+exports.sendEmailOnNoteUpdate = async (OwnerInfo,note) => {
+
+    // if ( OwnerInfo) {
+    if (OwnerInfo && note) {
+        
+        // send email to User 
+
+        fs.readFile("./EmailTemplates/EmailTemplate.html", async function read(err, bufcontent) {
+            var content = bufcontent.toString();
+    
+            let des= `You have successfully updated a note. <br> <br> ${note.DiscussedWith.FirstName} <br>  ${note.Note} <br> <br>
+            To view details, <a href="${config.APP_BASE_REDIRECT_URL}=/employee/private-notes-list">click here</a>.
+               `
+            content = content.replace("##FirstName##",OwnerInfo.FirstName);
+            content = content.replace("##ProductName##", config.ProductName);
+            content = content.replace("##Description##", des);
+            content = content.replace("##Title##", "Note updated successfully");
+
+        var mailObject = SendMail.GetMailObject(
+            OwnerInfo.Email,
+                  "Note updated successfully",
+                  content,
+                  null,
+                  null
+                );
+
+        await SendMail.SendEmail(mailObject, function (res) {
+            console.log(res);
+        });
+
+    });
+
+
+    }
+
+}
+
 exports.sendEmailOnNoteCreate = async (OwnerInfo) => {
 
     // if ( OwnerInfo) {
@@ -668,7 +773,7 @@ exports.sendEmailOnNoteCreate = async (OwnerInfo) => {
             var content = bufcontent.toString();
     
             let des= `The note has been added successfully. <br>
-            To view details, <a href="${config.APP_BASE_URL}#/employee/private-notes-list">click here</a>.
+            To view details, <a href="${config.APP_BASE_REDIRECT_URL}=/employee/private-notes-list">click here</a>.
                `
             content = content.replace("##FirstName##",OwnerInfo.FirstName);
             content = content.replace("##ProductName##", config.ProductName);

@@ -104,7 +104,7 @@ exports.ValidateEmployeeProfile = ( data)=>{
    }else{
       const schema = Joi.object().keys({
          FirstName: Joi.string().required(),
-         Email: Joi.string().email().required(),
+//          Email: Joi.string().email().required(),
          CreatedBy:Joi.optional() 
       }).unknown(true);
       return schema;
@@ -465,8 +465,8 @@ exports.UpdateOrganizationSchema=(schema)=>{
       
       EvaluationModels:Joi.array().items(Joi.string().required()).min(1).required(),
       PhoneExt:Joi.string().allow(['',null]),
-      EmployeeBufferCount:Joi.string().optional(),
-      DownloadBufferDays:Joi.string().optional(),
+      EmployeeBufferCount:Joi.optional(),
+      DownloadBufferDays:Joi.optional(),
       CoachingReminder:Joi.string().allow(['']),
       IsActive:Joi.optional(),
       UpdatedBy:Joi.string().required().trim(),

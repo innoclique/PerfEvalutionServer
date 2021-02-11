@@ -36,6 +36,7 @@ route.post('/GetTSReleasedAccomplishments',EmployeeController.GetTSReleasedAccom
 route.post('/AddKpi', EmployeeController.AddKpi);
 route.post('/GetKpiDataById',EmployeeController.GetKpiDataById);
 route.post('/GetAllKpis',EmployeeController.GetAllKpis);
+route.post('/FindEvaluationPgRollout',EmployeeController.CheckEvaluationPgRollout);
 route.post('/GetEmployeeCurrentEvaluation',EmployeeController.GetEmpCurrentEvaluation);
 route.post('/GetKpisByManager',EmployeeController.GetKpisByManager);
 route.post('/GetKpisByManagerId',EmployeeController.GetKpisByManagerId);
@@ -60,6 +61,9 @@ route.post('/UpdateNoteDataById',ApplicationController.UpdateNoteDataById);
 route.post('/GetAllDepartments',EmployeeController.GetAllDepartments);
 route.post('/GetEmpSetupBasicData',EmployeeController.GetEmpSetupBasicData);
 route.post('/GetKpiSetupBasicData',EmployeeController.GetKpiSetupBasicData);
+//Added by Brij - Start
+route.post('/GetEmpFinalRatingByYear',EmployeeController.GetEmpFinalRatingByYear);
+//Added by Brij - End
 route.post('/GetSetupBasicData',EmployeeController.GetSetupBasicData);
 route.post('/GetAllMeasurementCriterias',EmployeeController.GetAllMeasurementCriterias);
 route.post('/CreateMeasurementCriteria',EmployeeController.CreateMeasurementCriteria);

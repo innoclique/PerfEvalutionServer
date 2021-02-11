@@ -76,6 +76,13 @@ exports.GetKpiSetupBasicData = async (req, res, next) => {
 
 }
 
+//Added by Brij - Start 
+exports.GetEmpFinalRatingByYear = async (req, res, next) => {
+    await EmployeeService.GetEmpFinalRatingByYear(req.body)
+        .then(Response => Response ? res.status(200).json(Response) : res.status(404).json("Final Rating Not Found"))
+        .catch(err => next(err => { next(err) })) ;
+}
+//Added by Brij - End
 
 exports.GetSetupBasicData = async (req, res, next) => {
     await EmployeeService.GetSetupBasicData(req.body)
@@ -248,10 +255,14 @@ exports.GetAllKpis = async (req, res, next) => {
     await EmployeeService.GetAllKpis(req.body)
         .then(Response => Response ? res.status(200).json(Response) : res.status(404).json("Kpi Not Found"))
         .catch(err => next(err));
-
-      
-
 }
+
+exports.CheckEvaluationPgRollout = async (req, res, next) => {
+    await EmployeeService.hasEvaluationPgRollout(req.body)
+        .then(Response => Response ? res.status(200).json(Response) : res.status(404).json("Kpi Not Found"))
+        .catch(err => next(err));
+}
+
 exports.GetEmpCurrentEvaluation = async (req, res, next) => {
     await EmployeeService.GetEmployeeCurrentEvaluationYear(req.body).then(Response => Response ? res.status(200).json(Response) : res.status(404).json("Kpi Not Found"))
     .catch(err => next(err));
@@ -281,7 +292,7 @@ exports.GetKpisByManagerId = async (req, res, next) => {
 
 exports.SubmitAllKpisByManager = async (req, res, next) => {
     await EmployeeService.SubmitAllKpisByManager(req.body)
-        .then(Response => Response ? res.status(200).json({message: "Your sign-off is successful."}) : res.status(404).json("Kpi Not Found"))
+        .then(Response => Response ? res.status(200).json({message: "The Performance Goals have been submitted successfully."}) : res.status(404).json("Kpi Not Found"))
         .catch(err => next(err));
 }
 

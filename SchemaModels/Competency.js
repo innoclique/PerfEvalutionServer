@@ -4,8 +4,8 @@ const mongoose = require("mongoose");
 
 
 const CompetencySchema = new mongoose.Schema({
-    _id: { type: String, required: true, unique: true },    
-    Name: { type: String, required: true, unique: true },    
+    _id: { type: String},    
+    Name: { type: String},    
     IsActive:Boolean,
     Questions:[{type: mongoose.Schema.Types.ObjectId, ref: 'User',default:null}],
     CreatedOn:{type:Date,default: Date() },

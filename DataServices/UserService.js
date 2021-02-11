@@ -152,7 +152,7 @@ const checkPayment = async (User)=>{
 exports.Authenticate = async (LoginModel) => {
     Email = LoginModel.Email;
     Password = LoginModel.Password;
-    console.log('came into login method', Email, Password)
+    console.log('came into login method', Email)
     try {        
         const User = await  UserRepo.findOne({ 'Email': Email }) .populate('ThirdSignatory CopiesTo DirectReports Manager Organization JobLevel').select("+Password");
         let payInfo;
@@ -496,11 +496,13 @@ exports.UpdateEmployeeProfile = async (employee) => {
             employee.profile = null;
             var empId = employee._id;
             delete employee._id;
-            const emp = await UserRepo.update({ _id: empId }, employee);
+            const emp = await UserRepo.update({ _id: Mongoose.Types.ObjectId(empId) }, {$set:employee});
         }
 
         if (!employee.IsDraft) {
-            this.sendEmpProfileUpdated(employee)
+             const emp = await UserRepo.findOne({ _id: empId });
+            await this.sendEmpProfileUpdated(emp);
+            
         }
         return true;
     }
@@ -527,7 +529,7 @@ exports.sendEmpProfileUpdated = async (emp) => {
     // `;
     let mailBody = "Dear " + emp.FirstName + ",<br><br>"
     mailBody = mailBody + "You have successfully updated your profile." + "<br><br>"
-    mailBody = mailBody + "<br>To view details  " + " <a href=" + config.APP_URL + ">click here</a> to login<br><br>Thanks,<br>Administrator " + config.ProductName + "<br>"
+    mailBody = mailBody + "<br>To view details  " + " <a href=" + config.APP_BASE_REDIRECT_URL+"=/ea/profile" + ">click here</a> to login<br><br>Thanks,<br>" + config.ProductName + " Administrator <br>"
     var mailObject = SendMail.GetMailObject(
         emp.Email,
         "Profile updated successfully",
@@ -548,10 +550,10 @@ exports.sendEmpUpdateEmails = async (newemp) =>{
 let csaDetails = await UserRepo.findById(newemp.CreatedBy);
 let mailBody= "Dear " + csaDetails.FirstName +",<br><br>"
 mailBody = mailBody + "You have successfully updated the details for <b>" + newemp.FirstName + " "+ newemp.LastName + "</b><br><br>"
-mailBody=mailBody + "<br>To view details  "+ " <a href=" +config.APP_URL +">click here</a> to login<br><br>Thanks,<br>Administrator " + config.ProductName + "<br>"
+mailBody=mailBody + "<br>To view details  "+ " <a href=" +config.APP_BASE_REDIRECT_URL+"=/ea/setup-employee" +">click here</a> <br><br>Thanks,<br> " + config.ProductName + " Administrator<br>"
 
 var mailObject = SendMail.GetMailObject(
-    newemp.Email,
+    csaDetails.Email,
     "Employee successfully updated",
 mailBody
           ,
@@ -567,23 +569,72 @@ await SendMail.SendEmail(mailObject, function (res) {
 
 // END CSA MAIL
 
-// MAIL TO EA 
+ // SEND EMAIL TO EA
+ if(csaDetails.Role=="CSA") {
 
-const EvalAdminFound = await UserRepo.findOne({ ParentUser: newemp.ParentUser, ApplicationRole: Messages.constants.EA_ID });
+    const EvalAdmin = await UserRepo.findOne({ ParentUser: newemp.ParentUser, SelectedRoles: { $in: ['EA'] } });
 
-if(EvalAdminFound){
+   if (EvalAdmin) {
+       
+   
+   
+    let  mailBody="Dear " + EvalAdmin.FirstName +",<br>"
+   mailBody = mailBody + "The Client Super Admin has updated the details for <b>" + newemp.FirstName + " " + newemp.LastName  + "<br>"
+   mailBody=mailBody + "<br>To view details,  "+ " <a href="+ config.APP_BASE_REDIRECT_URL+"=/ea/setup-employee" + ">click here</a> <br><br>Thanks,<br> "+config.ProductName+" Administrator<br><br>"
+   var mailObject = SendMail.GetMailObject(
+    EvalAdmin.Email,
+             "Employee details updated by Admin",
+mailBody
+            ,
+             null,
+             null
+           );
 
+
+   await SendMail.SendEmail(mailObject, function (res) {
+       console.log(res);
+   });
+
+   }
+}else{
+    
+
+    const CSA = await UserRepo.findOne({ ParentUser: newemp.ParentUser, Role: "CSA" });
+
+   if (CSA) {
+       
+   
+   
+    let  mailBody="Dear " + csaDetails.FirstName +",<br>"
+   mailBody = mailBody + "The Evaluation Administrator has updated the details for <b>" + newemp.FirstName + " " + newemp.LastName  + "<br>"
+   mailBody=mailBody + "<br>To view details,  "+ " <a href="+ config.APP_BASE_REDIRECT_URL+"=/ea/setup-employee" + ">click here</a> <br><br>Thanks,<br> "+config.ProductName+" Administrator<br><br>"
+   var mailObject = SendMail.GetMailObject(
+       csaDetails.Email,
+             "Employee details updated by Evaluations Administrator",
+mailBody
+            ,
+             null,
+             null
+           );
+
+
+   await SendMail.SendEmail(mailObject, function (res) {
+       console.log(res);
+   });
+   
+   }
 }
-// MAIL TO EA END
+   // END EA MAIL
 
 // MAIL TO EMPLOYEE START
- mailBody= "Dear " + newemp.FirstName +",<br><br>"
+if(newemp){
+let  mailBody= "Dear " + newemp.FirstName +",<br><br>"
  mailBody = mailBody + "Your details have been updated by admin.<br><br>"
- mailBody=mailBody + "<br>To view details  "+ " <a href=" + config.APP_URL +">click here</a> to login<br><br>Thanks,<br>Administrator" + config.ProductName + "<br>"
+ mailBody=mailBody + "<br>To view details  "+ " <a href="+ config.APP_BASE_REDIRECT_URL+"=/dashboard" +">click here</a><br><br>Thanks,<br> " + config.ProductName + " Administrator<br>"
 
  var mailObject = SendMail.GetMailObject(
     newemp.Email,
-    "Your account has been updated.",
+    newemp.FirstName+" account has been updated.",
 mailBody
           ,
           null,
@@ -596,18 +647,20 @@ await SendMail.SendEmail(mailObject, function (res) {
     
 });
 
+}
+
 // MAIL TO EMPLOYEE END
 }
 
 exports.sendEmpCreateEmails = async (newemp,_temppwd) =>{
-    
+    if (newemp) { 
         let mailBody = "Dear " + newemp.FirstName +",<br><br> Congratulations, Employee account has been created. Your login id is your email. You will receive a separate email for password. Please change your password when you login first time."
     mailBody= mailBody + "<br><br>Email:<a href=mailto:"+newemp.Email+">"+ newemp.Email + "</a><br>"
-    mailBody=mailBody + "<br>please  "+ " <a href="+ config.APP_URL+">click here</a> to login<br><br>Thanks,<br>Administrator " + config.ProductName + "<br>"
+    mailBody=mailBody + "<br>Please  "+ " <a href="+ config.APP_BASE_REDIRECT_URL+"=/dashboard" +">click here</a> to login<br><br>Thanks,<br> " + config.ProductName + " Administrator<br>"
 
     var mailObject = SendMail.GetMailObject(
         newemp.Email,
-        "Employee account created",
+        config.ProductName+" account created",
 mailBody
               ,
               null,
@@ -619,14 +672,17 @@ mailBody
     await SendMail.SendEmail(mailObject, function (res) {
         console.log(res);
     });
-     mailBody = "Dear " + newemp.FirstName + "<br><br>"
+}
+
+if (newemp) { 
+   let   mailBody = "Dear " + newemp.FirstName + "<br><br>"
 mailBody=mailBody + " Congratulations, Employee account has been created. Please change your password when you login first time.<br><br>" 
 mailBody = mailBody + "<b>Password:</b> " + _temppwd + "<br><br>"
-mailBody=mailBody + "<br>please  "+ " <a href=" + config.APP_URL +">click here</a> to login<br><br>Thanks,<br>Administrator " +config.ProductName +  "<br><br>"
+mailBody=mailBody + "<br>Please  "+ " <a href=" + config.APP_BASE_REDIRECT_URL+"=/dashboard" +">click here</a> to login<br><br>Thanks,<br> " +config.ProductName +  " Administrator<br><br>"
 
     var mailObject = SendMail.GetMailObject(
         newemp.Email,
-        config.ProductName + " account created",
+        config.ProductName + " account password",
 mailBody
              ,
               null,
@@ -638,11 +694,13 @@ mailBody
         console.log(res);
     });
 
+}
+
    // SEND EMAIL TO CSA
    let csaDetails = await UserRepo.findById(newemp.CreatedBy);
-    mailBody="Dear " + csaDetails.FirstName +",<br>"
+  let  mailBody="Dear " + csaDetails.FirstName +",<br>"
     mailBody = mailBody + "Congratulations, you have successfully added <b>" + newemp.FirstName + " " + newemp.LastName  + "</b> to the system.<br>"
-    mailBody=mailBody + "<br>To view details,  "+ " <a href="+ config.APP_URL + ">click here</a> to login<br><br>Thanks,<br>Administrator "+config.ProductName+"<br><br>"
+    mailBody=mailBody + "<br>To view details,  "+ " <a href="+ config.APP_BASE_REDIRECT_URL+"=/ea/setup-employee" + ">click here</a> to login<br><br>Thanks,<br> "+config.ProductName+" Administrator<br><br>"
     var mailObject = SendMail.GetMailObject(
         csaDetails.Email,
               "Employee successfully added",
@@ -657,6 +715,64 @@ mailBody
         console.log(res);
     });
     // END CSA MAIL
+
+
+     // SEND EMAIL TO EA
+   if(csaDetails.Role=="CSA") {
+
+    const EvalAdmin = await UserRepo.findOne({ ParentUser: newemp.ParentUser, SelectedRoles: { $in: ['EA'] } });
+
+   if (EvalAdmin) {
+       
+   
+   
+  let mailBody="Dear " + EvalAdmin.FirstName +",<br>"
+   mailBody = mailBody + "The Client Super Admin has added <b>" + newemp.FirstName + " " + newemp.LastName  + "</b> to the system.<br>"
+   mailBody=mailBody + "<br>To view details,  "+ " <a href="+ config.APP_BASE_REDIRECT_URL+"=/ea/setup-employee" + ">click here</a> <br><br>Thanks,<br> "+config.ProductName+" Administrator<br><br>"
+   var mailObject = SendMail.GetMailObject(
+    EvalAdmin.Email,
+             "Employee successfully added by Admin",
+mailBody
+            ,
+             null,
+             null
+           );
+
+
+   await SendMail.SendEmail(mailObject, function (res) {
+       console.log(res);
+   });
+
+   }
+}else{
+    
+
+    const CSA = await UserRepo.findOne({ ParentUser: newemp.ParentUser, Role: "CSA" });
+
+   if (CSA) {
+       
+   
+   
+ let  mailBody="Dear " + csaDetails.FirstName +",<br>"
+   mailBody = mailBody + "The Evaluation Administrator has added <b>" + newemp.FirstName + " " + newemp.LastName  + "</b> to the system.<br>"
+   mailBody=mailBody + "<br>To view details,  "+ " <a href="+ config.APP_BASE_REDIRECT_URL+"=/ea/setup-employee" + ">click here</a> <br><br>Thanks,<br> "+config.ProductName+" Administrator<br><br>"
+   var mailObject = SendMail.GetMailObject(
+       csaDetails.Email,
+             "Employee successfully added by Evaluation Administrator",
+mailBody
+            ,
+             null,
+             null
+           );
+
+
+   await SendMail.SendEmail(mailObject, function (res) {
+       console.log(res);
+   });
+   
+   }
+}
+   // END EA MAIL
 }
 
 

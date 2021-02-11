@@ -51,11 +51,11 @@ exports.UpdateOrgProfile = async (req, res, next) => {
             Joi.validate(req.body, Validation_Helper.UpdateOrganizationSchema(req.body), async (err, result) => {
                 if (err) { res.status(400).json({ message: err.details.map(i => i.message).join(" / ") }) }
                 else {
-                    await OrganizaionService.UpdateOrganization(req.body)
-                        .then((Response) => {
-                            res.status(200).json({ message: " Organization added Succeesfully" });
-                        })
-                        .catch(err => { next(err) });
+                    await OrganizaionService.UpdateOrgProfile(req.body)
+                    .then((Response) => {
+                        res.status(200).json({ message: "Profile has been successfully updated." });
+                    })
+                    .catch(err => { next(err) });
                 }
             });
         } else {
@@ -63,18 +63,20 @@ exports.UpdateOrgProfile = async (req, res, next) => {
             Joi.validate(req.body, Validation_Helper.ValidateUpdateReseller(req.body), async (err, result) => {
                 if (err) { res.status(400).json({ message: err.details.map(i => i.message).join(" / ") }) }
                 else {
-                    await OrganizaionService.UpdateReseller(req.body)
-                        .then((Response) => {
-                            res.status(200).json({ message: " Reseller updated Succeesfully" });
-                        })
-                        .catch(err => { next(err) });
+
+                    await OrganizaionService.UpdateOrgProfile(req.body)
+                    .then((Response) => {
+                        res.status(200).json({ message: "Profile has been successfully updated." });
+                    })
+                    .catch(err => { next(err) });
+
                 }
             });
         }
     } else {
         await OrganizaionService.UpdateOrgProfile(req.body)
             .then((Response) => {
-                res.status(200).json({ message: " Reseller updated Succeesfully" });
+                res.status(200).json({ message: "Profile has been successfully saved." });
             })
             .catch(err => { next(err) });
     }
@@ -82,7 +84,8 @@ exports.UpdateOrgProfile = async (req, res, next) => {
 
 exports.GetOrgProfile = async (req, res, next) => {
     var orgProfile = await OrganizaionService.getOrgProfile(req.body);
-    console.log('getOrgProfile :: ', JSON.stringify(orgProfile));
+//     console.log('getOrgProfile :: ', JSON.stringify(orgProfile));
+
     res.json(orgProfile);
 }
 exports.GetOrganizationDataById = async (req, res, next) => {

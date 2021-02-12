@@ -98,6 +98,13 @@ const savePaymentRelease = async (paymentRelease) => {
     let savedObjet;
     let payReleaseId;
     if(!paymentRelease.paymentreleaseId){
+        if(paymentRelease.ClientType && paymentRelease.ClientType!="Reseller"){
+            let currentEvaluationInfo = await EvaluationUtils.getOrganizationStartAndEndDates(paymentRelease.Organization);
+            paymentRelease.EvaluationPeriod = currentEvaluationInfo.EvaluationPeriod;
+            paymentRelease.EvaluationYear = currentEvaluationInfo.start.format("YYYY");
+            paymentRelease.EvaluationStartMonth = currentEvaluationInfo.StartMonth;
+            paymentRelease.EvaluationEndMonth = currentEvaluationInfo.EndMonth;
+        }
         if(!paymentRelease.ClientId){
             delete paymentRelease.ClientId;
         }

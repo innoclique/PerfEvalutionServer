@@ -397,7 +397,7 @@ exports.sendEmailOnManagerSignoff = async (manager, kpiOwnerInfo) => {
         // send email to manager 
         let mailBody= "Dear "+ manager.FirstName +", <br><br>"
         mailBody = mailBody + "You have successfully added comments to the action plan for  " + kpiOwnerInfo.FirstName +" "+ kpiOwnerInfo.LastName + ".<br><br>"
-        mailBody=mailBody + "<br>To view details  "+ " <a href="+ config.APP_BASE_REDIRECT_URL +"=/employee/review-action-plan-list"+ ">click here</a><br><br>Thanks,<br>" + config.ProductName + " Administrator <br>"
+        mailBody=mailBody + "<br>To view details  "+ " <a href="+ config.APP_BASE_REDIRECT_URL +"=/employee/review-action-plan-list"+ ">click here</a><br><br>Thank you,<br>" + config.ProductName + " Administrator <br>"
         var mailObject = SendMail.GetMailObject(
             manager.Email,
             "Action Plan ("+ kpiOwnerInfo.FirstName +" "+ kpiOwnerInfo.LastName +") comments have been added",

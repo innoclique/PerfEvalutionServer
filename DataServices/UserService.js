@@ -160,6 +160,7 @@ exports.Authenticate = async (LoginModel) => {
             payInfo = await checkPayment(User);
         }
         if (User && Bcrypt.compareSync(Password, User.Password)) {
+            if (!User.IsActive)  throw "User not found";
             var AccesToken = AuthHelper.CreateShortAccesstoken(User);
             if (User.IsLoggedIn) {
                 logger.info(`User ::${User.Email} has loggedin already`);
@@ -529,7 +530,7 @@ exports.sendEmpProfileUpdated = async (emp) => {
     // `;
     let mailBody = "Dear " + emp.FirstName + ",<br><br>"
     mailBody = mailBody + "You have successfully updated your profile." + "<br><br>"
-    mailBody = mailBody + "<br>To view details  " + " <a href=" + config.APP_BASE_REDIRECT_URL+"=/ea/profile" + ">click here</a> to login<br><br>Thanks,<br>" + config.ProductName + " Administrator <br>"
+    mailBody = mailBody + "<br>To view details  " + " <a href=" + config.APP_BASE_REDIRECT_URL+"=/ea/profile" + ">click here</a> to login<br><br>Thank you,<br>" + config.ProductName + " Administrator <br>"
     var mailObject = SendMail.GetMailObject(
         emp.Email,
         "Profile updated successfully",
@@ -549,8 +550,8 @@ exports.sendEmpUpdateEmails = async (newemp) =>{
 // MAIL TO CSA
 let csaDetails = await UserRepo.findById(newemp.CreatedBy);
 let mailBody= "Dear " + csaDetails.FirstName +",<br><br>"
-mailBody = mailBody + "You have successfully updated the details for <b>" + newemp.FirstName + " "+ newemp.LastName + "</b><br><br>"
-mailBody=mailBody + "<br>To view details  "+ " <a href=" +config.APP_BASE_REDIRECT_URL+"=/ea/setup-employee" +">click here</a> <br><br>Thanks,<br> " + config.ProductName + " Administrator<br>"
+mailBody = mailBody + "You have successfully updated the details for <b>" + newemp.FirstName + " "+ newemp.LastName + "</b>.<br><br>"
+mailBody=mailBody + "<br>To view details  "+ " <a href=" +config.APP_BASE_REDIRECT_URL+"=/ea/setup-employee" +">click here</a> <br><br>Thank you,<br> " + config.ProductName + " Administrator<br>"
 
 var mailObject = SendMail.GetMailObject(
     csaDetails.Email,
@@ -579,8 +580,8 @@ await SendMail.SendEmail(mailObject, function (res) {
    
    
     let  mailBody="Dear " + EvalAdmin.FirstName +",<br>"
-   mailBody = mailBody + "The Client Super Admin has updated the details for <b>" + newemp.FirstName + " " + newemp.LastName  + "<br>"
-   mailBody=mailBody + "<br>To view details,  "+ " <a href="+ config.APP_BASE_REDIRECT_URL+"=/ea/setup-employee" + ">click here</a> <br><br>Thanks,<br> "+config.ProductName+" Administrator<br><br>"
+   mailBody = mailBody + "The Client Super Admin has updated the details for <b>" + newemp.FirstName + " " + newemp.LastName  + ".<br>"
+   mailBody=mailBody + "<br>To view details,  "+ " <a href="+ config.APP_BASE_REDIRECT_URL+"=/ea/setup-employee" + ">click here</a> <br><br>Thank you,<br> "+config.ProductName+" Administrator<br><br>"
    var mailObject = SendMail.GetMailObject(
     EvalAdmin.Email,
              "Employee details updated by Admin",
@@ -606,8 +607,8 @@ mailBody
    
    
     let  mailBody="Dear " + csaDetails.FirstName +",<br>"
-   mailBody = mailBody + "The Evaluation Administrator has updated the details for <b>" + newemp.FirstName + " " + newemp.LastName  + "<br>"
-   mailBody=mailBody + "<br>To view details,  "+ " <a href="+ config.APP_BASE_REDIRECT_URL+"=/ea/setup-employee" + ">click here</a> <br><br>Thanks,<br> "+config.ProductName+" Administrator<br><br>"
+   mailBody = mailBody + "The Evaluation Administrator has updated the details for <b>" + newemp.FirstName + " " + newemp.LastName  + ".<br>"
+   mailBody=mailBody + "<br>To view details,  "+ " <a href="+ config.APP_BASE_REDIRECT_URL+"=/ea/setup-employee" + ">click here</a> <br><br>Thank you,<br> "+config.ProductName+" Administrator<br><br>"
    var mailObject = SendMail.GetMailObject(
        csaDetails.Email,
              "Employee details updated by Evaluations Administrator",
@@ -630,7 +631,7 @@ mailBody
 if(newemp){
 let  mailBody= "Dear " + newemp.FirstName +",<br><br>"
  mailBody = mailBody + "Your details have been updated by admin.<br><br>"
- mailBody=mailBody + "<br>To view details  "+ " <a href="+ config.APP_BASE_REDIRECT_URL+"=/dashboard" +">click here</a><br><br>Thanks,<br> " + config.ProductName + " Administrator<br>"
+ mailBody=mailBody + "<br>To view details  "+ " <a href="+ config.APP_BASE_REDIRECT_URL+"=/dashboard" +">click here</a><br><br>Thank you,<br> " + config.ProductName + " Administrator<br>"
 
  var mailObject = SendMail.GetMailObject(
     newemp.Email,
@@ -654,9 +655,9 @@ await SendMail.SendEmail(mailObject, function (res) {
 
 exports.sendEmpCreateEmails = async (newemp,_temppwd) =>{
     if (newemp) { 
-        let mailBody = "Dear " + newemp.FirstName +",<br><br> Congratulations, Employee account has been created. Your login id is your email. You will receive a separate email for password. Please change your password when you login first time."
+        let mailBody = "Dear " + newemp.FirstName +",<br><br> Congratulations, your "+config.ProductName +" employee account has been created. Your login id is your email. You will receive a separate email with the password. Please change your password when you login first time."
     mailBody= mailBody + "<br><br>Email:<a href=mailto:"+newemp.Email+">"+ newemp.Email + "</a><br>"
-    mailBody=mailBody + "<br>Please  "+ " <a href="+ config.APP_BASE_REDIRECT_URL+"=/dashboard" +">click here</a> to login<br><br>Thanks,<br> " + config.ProductName + " Administrator<br>"
+    mailBody=mailBody + "<br>Please  "+ " <a href="+ config.APP_BASE_REDIRECT_URL+"=/dashboard" +">click here</a> to login<br><br>Thank you,<br> " + config.ProductName + " Administrator<br>"
 
     var mailObject = SendMail.GetMailObject(
         newemp.Email,
@@ -677,8 +678,8 @@ mailBody
 if (newemp) { 
    let   mailBody = "Dear " + newemp.FirstName + "<br><br>"
 mailBody=mailBody + " Congratulations, Employee account has been created. Please change your password when you login first time.<br><br>" 
-mailBody = mailBody + "<b>Password:</b> " + _temppwd + "<br><br>"
-mailBody=mailBody + "<br>Please  "+ " <a href=" + config.APP_BASE_REDIRECT_URL+"=/dashboard" +">click here</a> to login<br><br>Thanks,<br> " +config.ProductName +  " Administrator<br><br>"
+mailBody = mailBody + "<b>Password:</b> " + _temppwd + " <br><br>"
+mailBody=mailBody + "<br>Please  "+ " <a href=" + config.APP_BASE_REDIRECT_URL+"=/dashboard" +">click here</a> to login<br><br> Thank you,<br> " +config.ProductName +  " Administrator<br><br>"
 
     var mailObject = SendMail.GetMailObject(
         newemp.Email,
@@ -700,7 +701,7 @@ mailBody
    let csaDetails = await UserRepo.findById(newemp.CreatedBy);
   let  mailBody="Dear " + csaDetails.FirstName +",<br>"
     mailBody = mailBody + "Congratulations, you have successfully added <b>" + newemp.FirstName + " " + newemp.LastName  + "</b> to the system.<br>"
-    mailBody=mailBody + "<br>To view details,  "+ " <a href="+ config.APP_BASE_REDIRECT_URL+"=/ea/setup-employee" + ">click here</a> to login<br><br>Thanks,<br> "+config.ProductName+" Administrator<br><br>"
+    mailBody=mailBody + "<br>To view details,  "+ " <a href="+ config.APP_BASE_REDIRECT_URL+"=/ea/setup-employee" + ">click here</a> to login<br><br>Thank you,<br> "+config.ProductName+" Administrator<br><br>"
     var mailObject = SendMail.GetMailObject(
         csaDetails.Email,
               "Employee successfully added",
@@ -728,7 +729,7 @@ mailBody
    
   let mailBody="Dear " + EvalAdmin.FirstName +",<br>"
    mailBody = mailBody + "The Client Super Admin has added <b>" + newemp.FirstName + " " + newemp.LastName  + "</b> to the system.<br>"
-   mailBody=mailBody + "<br>To view details,  "+ " <a href="+ config.APP_BASE_REDIRECT_URL+"=/ea/setup-employee" + ">click here</a> <br><br>Thanks,<br> "+config.ProductName+" Administrator<br><br>"
+   mailBody=mailBody + "<br>To view details,  "+ " <a href="+ config.APP_BASE_REDIRECT_URL+"=/ea/setup-employee" + ">click here</a> <br><br>Thank you,<br> "+config.ProductName+" Administrator<br><br>"
    var mailObject = SendMail.GetMailObject(
     EvalAdmin.Email,
              "Employee successfully added by Admin",
@@ -755,7 +756,7 @@ mailBody
    
  let  mailBody="Dear " + csaDetails.FirstName +",<br>"
    mailBody = mailBody + "The Evaluation Administrator has added <b>" + newemp.FirstName + " " + newemp.LastName  + "</b> to the system.<br>"
-   mailBody=mailBody + "<br>To view details,  "+ " <a href="+ config.APP_BASE_REDIRECT_URL+"=/ea/setup-employee" + ">click here</a> <br><br>Thanks,<br> "+config.ProductName+" Administrator<br><br>"
+   mailBody=mailBody + "<br>To view details,  "+ " <a href="+ config.APP_BASE_REDIRECT_URL+"=/ea/setup-employee" + ">click here</a> <br><br>Thank you,<br> "+config.ProductName+" Administrator<br><br>"
    var mailObject = SendMail.GetMailObject(
        csaDetails.Email,
              "Employee successfully added by Evaluation Administrator",

@@ -221,6 +221,13 @@ exports.GetReporteeAccomplishments= async (req, res, next) => {
         .catch(err => next(err));
 }
 
+exports.updateNotificationAsRead= async (req, res, next) => {
+    await EmployeeService.updateNotificationAsRead(req.body)
+        .then(Response => Response ? res.status(200).json(Response) : res.status(404).json("not found"))
+        .catch(err => next(err));
+}
+
+
 
 exports.GetTSReleasedAccomplishments= async (req, res, next) => {
     await EmployeeService.GetTSReleasedAccomplishments(req.body)
@@ -247,6 +254,13 @@ exports.AddKpi = async (req, res, next) => {
 exports.GetCopiesTo = async (req, res, next) => {
     console.log("inside GetCopiesTo:::::")
     await EmployeeService.getCopiesTo(req.body)
+        .then(Response => Response ? res.status(200).json(Response) : res.status(404).json("copies to Not Found"))
+        .catch(err => next(err));
+}
+
+exports.getCopiesToWithEV = async (req, res, next) => {
+    console.log("inside getCopiesToWithEV:::::")
+    await EmployeeService.getCopiesToWithEV(req.body)
         .then(Response => Response ? res.status(200).json(Response) : res.status(404).json("copies to Not Found"))
         .catch(err => next(err));
 }

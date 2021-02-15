@@ -4,6 +4,7 @@ var env = process.env.NODE_ENV || "dev";
 const Mongoose = require("mongoose");
 const Bcrypt = require('bcrypt');
 const OrganizationRepo = require('../SchemaModels/OrganizationSchema');
+const DeliverEmailRepo = require('../SchemaModels/DeliverEmail');
 const StrengthRepo = require('../SchemaModels/Strengths');
 const AccomplishmentRepo = require('../SchemaModels/Accomplishments');
 const DepartmentRepo = require('../SchemaModels/DepartmentSchema');
@@ -69,6 +70,94 @@ exports.getCopiesTo = async (userId) => {
     console.log("inside GetCopiesTo service ");
     return await UserRepo
         .find({ "CopiesTo": Mongoose.Types.ObjectId(userId.userId) });
+}
+
+
+//new Date().getFullYear()
+exports.getCopiesToWithEV = async (manager) => {
+    try {
+        let {currentEvaluation} = manager;
+        const ManagerUserDomain = await UserRepo.findOne({ "_id": manager.id });
+        let evaluationYear="";
+        if(!currentEvaluation){
+            evaluationYear = await EvaluationUtils.GetOrgEvaluationYear(ManagerUserDomain.Organization);
+        }else{
+            evaluationYear=currentEvaluation;
+        }
+
+        const reportees = await UserRepo.aggregate([
+            { $match: { CopiesTo: ObjectId(manager.id)} },
+            { $addFields: { EmployeeId: "$_id" } },
+            {
+                $project: {
+                    FirstName: 1,
+                    LastName: 1,
+                    Email: 1,
+                    EmployeeId: 1,
+                    Manager: 1
+                }
+            }
+            ,
+            {
+                $lookup: {
+                    from: "evalutions",
+                    localField: "EmployeeId",
+                    foreignField: "Employees._id",
+                    as: "EvaluationList"
+                }
+            },
+            { $unwind: "$EvaluationList" },
+
+            {
+                $lookup: {
+                    from: "statuses",
+                    localField: "EvaluationList.Employees.Status",
+                    foreignField: "_id",
+                    as: "statuses",
+                }
+            },
+
+            
+            //{$match:{"Evalaution.Status":"Active"}},
+            {
+                $project: {
+                
+                    Email: 1,
+                    FirstName: 1,
+                    LastName: 1,
+                    EmployeeId: 1,
+                    statuses: 1,
+                    EvaluationList:1
+                   
+                }
+            }
+        ]);
+
+        let copieList = await UserRepo.find({ "CopiesTo": Mongoose.Types.ObjectId(manager.id) });
+        let _reportees = [];
+        copieList.forEach((e, i) => {
+            let object=e.toJSON();
+            let ev = reportees.find(c => c.EmployeeId.toString() === e._id.toString() );
+            if(ev){
+                  object['EvStatus'] = ev.statuses[0] 
+                  object['Evaluation'] = ev.EvaluationList 
+                }
+            else {object['EvStatus']="NA"
+            object['Evaluation']="NA"
+        
+        }
+            _reportees[i] = object;
+
+        });
+
+
+
+   return _reportees;
+
+    } catch (error) {
+        console.log('error', error)
+        logger.error(error);
+    }
 }
 
 exports.GetAllStrengths = async (options) => {
@@ -580,7 +669,7 @@ exports.SubmitKpisByEmployee = async (options) => {
             if (User[0].Manager) {
                 let mailBody = "Dear "+ User[0].Manager.FirstName +", <br><br>"
                 mailBody = mailBody + "Your Direct Report, "+ User[0].FirstName + " has submitted the Performance Goals."
-                mailBody=mailBody + "<br>Please   "+ " <a href="+ config.APP_BASE_REDIRECT_URL+"=/employee/review-perf-goals-list" + ">click here</a> to login and review<br><br>Thanks,<br> " + config.ProductName+" Administrator<br>"
+                mailBody=mailBody + "<br>Please   "+ " <a href="+ config.APP_BASE_REDIRECT_URL+"=/employee/review-perf-goals-list" + ">click here</a> to login and review<br><br>Thank you,<br> " + config.ProductName+" Administrator<br>"
                 var mailObject = SendMail.GetMailObject(
                     User[0].Manager.Email,
                     "Performance Goals submitted by "+ User[0].FirstName +" "+  User[0].LastName ,
@@ -599,7 +688,7 @@ exports.SubmitKpisByEmployee = async (options) => {
             // send email to User 
             let emailBody  = "Dear "+ User[0].FirstName +", <br><br>"
             emailBody = emailBody + "Your Performance Goals have been successfully submitted to your manager.<br><br>"
-            mailBody=mailBody + "<br>To view details,  "+ " <a href="+ generatedlink + ">click here</a><br><br>Thanks,<br>" + config.ProductName+ " Administrator<br><br>"
+            mailBody=mailBody + "<br>To view details,  "+ " <a href="+ generatedlink + ">click here</a><br><br>Thank you,<br>" + config.ProductName+ " Administrator<br><br>"
             var mailObject = SendMail.GetMailObject(
                 User[0].Email,
                 "Performance Goals submitted successfully",
@@ -731,7 +820,7 @@ exports.SubmitAllSignOffKpis = async (options) => {
             if (User[0].Manager) {
                 let mailBody = "Dear "+User[0].Manager.FirstName+",<br>"
                 mailBody = mailBody + "Your Direct Report, " + User[0].FirstName + " has submitted the Performance Goals.<br><br>" 
-                mailBody=mailBody + "<br>Please  "+ " <a href="+ config.APP_BASE_REDIRECT_URL+"=/employee/review-perf-goals-list" + ">click here</a> to login and review <br><br>Thanks,<br> " + config.ProductName+" Administrator<br>"
+                mailBody=mailBody + "<br>Please  "+ " <a href="+ config.APP_BASE_REDIRECT_URL+"=/employee/review-perf-goals-list" + ">click here</a> to login and review <br><br>Thank you,<br> " + config.ProductName+" Administrator<br>"
                 var mailObject = SendMail.GetMailObject(
                     User[0].Manager.Email,
                     "Performance Goals submited for review",
@@ -750,7 +839,7 @@ exports.SubmitAllSignOffKpis = async (options) => {
             // send email to User 
            let mailBody = "Dear " + User[0].FirstName + ", <br><br>"
             mailBody = mailBody + "Your Performance Goals have been successfully submitted to your manager."
-            mailBody=mailBody + "<br>To view details  "+ " <a href=" + generatedlink + ">click here</a><br><br>Thanks,<br> " + config.ProductName+ " Administrator<br>"
+            mailBody=mailBody + "<br>To view details  "+ " <a href=" + generatedlink + ">click here</a><br><br>Thank you,<br> " + config.ProductName+ " Administrator<br>"
             var mailObject = SendMail.GetMailObject(
                 User[0].Email,
                 "Performance Goals submited for review",
@@ -826,7 +915,7 @@ exports.SubmitAllKpis = async (options) => {
             if (User[0].Manager) {
               let  mailBody = "Dear " + User[0].Manager.FirstName + ", <br>"
                 mailBody = mailBody + "Your Direct Report, "+ User[0].FirstName+" has submitted the Performance Goals.<br><br>"
-                mailBody=mailBody + "<br>Please   "+ " <a href="+ config.APP_BASE_REDIRECT_URL+"=/employee/review-perf-goals-list" + ">click here</a> to login and review<br><br>Thanks,<br> " + config.ProductName+" Administrator<br>"
+                mailBody=mailBody + "<br>Please   "+ " <a href="+ config.APP_BASE_REDIRECT_URL+"=/employee/review-perf-goals-list" + ">click here</a> to login and review<br><br>Thank you,<br> " + config.ProductName+" Administrator<br>"
                 var mailObject = SendMail.GetMailObject(
                     User[0].Manager.Email,
                     "Performance Goals submitted by "+ User[0].FirstName +" "+  User[0].LastName ,
@@ -847,7 +936,7 @@ exports.SubmitAllKpis = async (options) => {
             // send email to User 
           let  mailBody = "Dear " + User[0].FirstName +", <br><br>"
             mailBody = mailBody + "Your Performance Goals have been successfully submitted to your manager."
-            mailBody=mailBody + "<br>To view details  "+ " <a href="+ generatedlink +">click here</a><br><br>Thanks,<br> "+config.ProductName+" Administrator<br>"
+            mailBody=mailBody + "<br>To view details  "+ " <a href="+ generatedlink +">click here</a><br><br>Thank you,<br> "+config.ProductName+" Administrator<br>"
             var mailObject = SendMail.GetMailObject(
                 User[0].Email,
                 "Performance Goals submitted successfully",
@@ -1190,7 +1279,7 @@ exports.sendEmailOnManagerSignoff = async (manager, kpiOwnerInfo) => {
         // send email to manager 
 let mailBody =  "Dear " + manager.FirstName + ",<br><br>"
 mailBody = mailBody + "You have successfully signed-off the Performance Goals for " +  kpiOwnerInfo.FirstName+" "+  kpiOwnerInfo.LastName+".<br>"
-mailBody=mailBody + "<br>To view details  "+ " <a href="+ config.APP_BASE_REDIRECT_URL+"=/employee/review-perf-goals-list" + ">click here</a><br><br>Thanks,<br> " + config.ProductName+ " Administrator<br>"
+mailBody=mailBody + "<br>To view details  "+ " <a href="+ config.APP_BASE_REDIRECT_URL+"=/employee/review-perf-goals-list" + ">click here</a><br><br>Thank you,<br> " + config.ProductName+ " Administrator<br>"
         var mailObject = SendMail.GetMailObject(
             manager.Email,
             "Performance Goals successfully signed-off for "+  kpiOwnerInfo.FirstName+" "+  kpiOwnerInfo.LastName,
@@ -1208,7 +1297,7 @@ mailBody=mailBody + "<br>To view details  "+ " <a href="+ config.APP_BASE_REDIRE
         if(kpiOwnerInfo){
       let  mailBody = "Dear "+ kpiOwnerInfo.FirstName + ", <br><br>"
         mailBody = mailBody + "Your manager, "+  manager.FirstName + " has <edited> and signed-off your Performance Goals.<br><br>"
-        mailBody=mailBody + "<br>Please  "+ " <a href="+config.APP_BASE_REDIRECT_URL+"=/employee/kpi-setup" + ">click here</a> to login and review. You may want to discuss the updates, if any, with your manager.<br><br>Thanks,<br> "+config.ProductName+" Administrator<br>"
+        mailBody=mailBody + "<br>Please  "+ " <a href="+config.APP_BASE_REDIRECT_URL+"=/employee/kpi-setup" + ">click here</a> to login and review. You may want to discuss the updates, if any, with your manager.<br><br>Thank you,<br> "+config.ProductName+" Administrator<br>"
         var mailObject = SendMail.GetMailObject(
             kpiOwnerInfo.Email,
             "Your Performance Goals are signed off",
@@ -1305,7 +1394,7 @@ exports.GetUnlistedEmployees = async (search) => {
                     Manager:{$ne: null},
                     _id: { $in: response.map(x => { return x.EmployeeId }) }
 
-                }).populate("Manager").sort({ CreatedOn: -1 })
+                }).populate("Manager").sort({ FirstName: 1 })
 
 
             return { IsSuccess: true, Message: "", Data: Employees }
@@ -1340,7 +1429,7 @@ exports.GetUnlistedEmployees = async (search) => {
                     HasActiveEvaluation: { $ne: "Yes" },
                     Manager:{$ne: null}
 
-                }).populate("Manager").sort({ CreatedOn: -1 })
+                }).populate("Manager").sort({ FirstName: 1 })
             return { IsSuccess: true, Message: "", Data: Employees }
         }
     } catch (error) {
@@ -1369,7 +1458,7 @@ exports.GetDirectReporteesOfManager = async (manager) => {
         }
 
 
-    ]);
+    ]).sort({ FirstName: 1 });
 
     return managers;
 }
@@ -1393,7 +1482,7 @@ exports.GetPeers = async (employee) => {
         }
 
 
-    ]);
+    ]).sort({ FirstName: 1 });;
     // const Employees = await UserRepo.find({
     //     Organization: Mongoose.Types.ObjectId(employee.company),
     //     _id: { $ne: Mongoose.Types.ObjectId(employee.id) }
@@ -2061,7 +2150,7 @@ exports.SaveTSFinalRating = async (finalRating) => {
                     let mailBody = "Dear "+ ts.FirstName +", <br><br>"
                     mailBody=mailBody+ finalRating.ReqRevision? "Revision request has been successfully sent for "  +empoyee.FirstName+" "+empoyee.LastName 
                      :"You have successfully signed-off the rating for " +empoyee.FirstName+" "+empoyee.LastName
-                    mailBody=mailBody + "<br>To view details  "+ " <a href=" +config.APP_BASE_REDIRECT_URL+"=/employee/review-evaluation-list" +">click here</a> <br><br>Thanks,<br> " + config.ProductName + " Administrator<br>"
+                    mailBody=mailBody + "<br>To view details  "+ " <a href=" +config.APP_BASE_REDIRECT_URL+"=/employee/review-evaluation-list" +">click here</a> <br><br>Thank you,<br> " + config.ProductName + " Administrator<br>"
 
                     var mailObject = SendMail.GetMailObject(
                         ts.Email,
@@ -2081,7 +2170,7 @@ exports.SaveTSFinalRating = async (finalRating) => {
                     
                  let   mailBody="Dear " + empoyee.FirstName + ", <br><br>"
                     mailBody = mailBody + finalRating.ReqRevision?"Revision has been requested for your rating.":"Your evaluation has been signed-off."
-                    mailBody=mailBody + "<br>To view details  "+ " <a href=" +config.APP_BASE_REDIRECT_URL+"=/employee/current-evaluation" +">click here</a> <br><br>Thanks,<br> " + config.ProductName + " Administrator<br>"
+                    mailBody=mailBody + "<br>To view details  "+ " <a href=" +config.APP_BASE_REDIRECT_URL+"=/employee/current-evaluation" +">click here</a> <br><br>Thank you,<br> " + config.ProductName + " Administrator<br>"
 
                     var mailObject = SendMail.GetMailObject(
                         empoyee.Email,
@@ -2103,8 +2192,8 @@ exports.SaveTSFinalRating = async (finalRating) => {
                     mailBody = mailBody + finalRating.ReqRevision? ts.FirstName+" "+ts.LastName+" has requested a revision in the rating for "+empoyee.FirstName+" "+empoyee.LastName :
                     ts.FirstName+" "+ts.LastName+" has signed-off the rating for "+empoyee.FirstName+" "+empoyee.LastName+""
                    
-                    if(finalRating.ReqRevision)  mailBody=mailBody + "<br>Please "+ " <a href=" +config.APP_BASE_REDIRECT_URL+"=/employee/review-evaluation-list" +">click here</a> to make the changes. <br><br>Thanks,<br> " + config.ProductName + " Administrator<br>"
-                    else  mailBody=mailBody + "<br>To view details  "+ " <a href=" +config.APP_BASE_REDIRECT_URL+"=/employee/review-evaluation-list" +">click here</a> <br><br>Thanks,<br> " + config.ProductName + " Administrator<br>"
+                    if(finalRating.ReqRevision)  mailBody=mailBody + "<br>Please "+ " <a href=" +config.APP_BASE_REDIRECT_URL+"=/employee/review-evaluation-list" +">click here</a> to make the changes. <br><br>Thank you,<br> " + config.ProductName + " Administrator<br>"
+                    else  mailBody=mailBody + "<br>To view details  "+ " <a href=" +config.APP_BASE_REDIRECT_URL+"=/employee/review-evaluation-list" +">click here</a> <br><br>Thank you,<br> " + config.ProductName + " Administrator<br>"
 
                     var mailObject = SendMail.GetMailObject(
                         manager.Email,
@@ -2251,7 +2340,7 @@ exports.SaveManagerFinalRating = async (finalRating) => {
 let frate = finalRating?"Request Revision":"Submitted"
 let mailBody = "Dear "+ manager.FirstName + ",<br><br>"
 mailBody = mailBody + "You have successfully submitted evaluation for "+   empoyee.FirstName+" "+empoyee.LastName+"."
-mailBody=mailBody + "<br>To view details  "+ " <a href=" +config.APP_BASE_REDIRECT_URL+"=/employee/review-evaluation-list" +">click here</a> <br><br>Thanks,<br> " + config.ProductName + " Administrator<br>"
+mailBody=mailBody + "<br>To view details  "+ " <a href=" +config.APP_BASE_REDIRECT_URL+"=/employee/review-evaluation-list" +">click here</a> <br><br>Thank you,<br> " + config.ProductName + " Administrator<br>"
 
                     var mailObject = SendMail.GetMailObject(
                         manager.Email,
@@ -2269,7 +2358,7 @@ mailBody=mailBody + "<br>To view details  "+ " <a href=" +config.APP_BASE_REDIRE
                     let rev = finalRating.ReqRevision ? 'Request Revision' : 'Submitted'
                     let  mailBody = "Dear "+ empoyee.FirstName + ", <br><br>"
                     mailBody = mailBody + "Your manager has submitted your evaluation for final approval."
-                    mailBody=mailBody + "<br>To view and sign-off, please  "+ " <a href=" +config.APP_BASE_REDIRECT_URL+"=/employee/current-evaluation" +">click here</a> <br><br>Thanks,<br> " + config.ProductName + " Administrator<br>"
+                    mailBody=mailBody + "<br>To view and sign-off, please  "+ " <a href=" +config.APP_BASE_REDIRECT_URL+"=/employee/current-evaluation" +">click here</a> <br><br>Thank you,<br> " + config.ProductName + " Administrator<br>"
                     var mailObject = SendMail.GetMailObject(
                         empoyee.Email,
                         "Your evaluation has been sent for final approval",
@@ -2390,7 +2479,7 @@ exports.SaveEmployeeFinalRating = async (finalRating) => {
                     if (employee) {
                         let mailBody = "Dear " + employee.FirstName +",<br>"
 mailBody= mailBody + "Your sign-off for the Final Rating for "+finalRating.EvaluationPeriodText+" has been successfully registered."
-mailBody=mailBody + "<br>To view details  "+ " <a href=" +config.APP_BASE_REDIRECT_URL+"=/employee/current-evaluation" +">click here</a> <br><br>Thanks,<br> " + config.ProductName + " Administrator<br>"
+mailBody=mailBody + "<br>To view details  "+ " <a href=" +config.APP_BASE_REDIRECT_URL+"=/employee/current-evaluation" +">click here</a> <br><br>Thank you,<br> " + config.ProductName + " Administrator<br>"
                     var mailObject = SendMail.GetMailObject(
                         employee.Email,
                         "Final Rating for "+finalRating.EvaluationPeriodText+" Signed-off",
@@ -2407,7 +2496,7 @@ mailBody=mailBody + "<br>To view details  "+ " <a href=" +config.APP_BASE_REDIRE
                 if (manager) {
                     let    mailBody="Dear "+ manager.FirstName +",<br><br>"
                     mailBody = mailBody +  employee.FirstName+" "+employee.LastName+", has signed-off the final rating. <br>"
-                    mailBody=mailBody + "<br>To view details  "+ " <a href=" +config.APP_BASE_REDIRECT_URL+"=/employee/review-evaluation-list" +">click here</a> <br><br>Thanks,<br> " + config.ProductName + " Administrator<br>"
+                    mailBody=mailBody + "<br>To view details  "+ " <a href=" +config.APP_BASE_REDIRECT_URL+"=/employee/review-evaluation-list" +">click here</a> <br><br>Thank you,<br> " + config.ProductName + " Administrator<br>"
                     
                     var mailObject = SendMail.GetMailObject(
                         manager.Email,
@@ -2426,7 +2515,7 @@ mailBody=mailBody + "<br>To view details  "+ " <a href=" +config.APP_BASE_REDIRE
                     let    mailBody="Dear "+ ts.FirstName +",<br><br>"
                     
                     mailBody = mailBody +"Evaluation for "+  employee.FirstName+" "+employee.LastName+" is ready for your sign-off. <br>"
-                    mailBody=mailBody + "<br>To review and sign-off, please "+ " <a href=" +config.APP_BASE_REDIRECT_URL+"=/employee/review-evaluation-list" +">click here</a> <br><br>Thanks,<br> " + config.ProductName + " Administrator<br>"
+                    mailBody=mailBody + "<br>To review and sign-off, please "+ " <a href=" +config.APP_BASE_REDIRECT_URL+"=/employee/review-evaluation-list" +">click here</a> <br><br>Thank you,<br> " + config.ProductName + " Administrator<br>"
                     
                     var mailObject = SendMail.GetMailObject(
                         ts.Email,
@@ -3282,7 +3371,7 @@ if (manager) {
     
     let  mailBody = "Dear "+ manager.FirstName + ",<br><br>"
     mailBody = mailBody + "You have successfully revised the rating for "+   employee.FirstName+" "+employee.LastName+"."
-    mailBody=mailBody + "<br>To view details  "+ " <a href=" +config.APP_BASE_REDIRECT_URL+"=/employee/review-evaluation-list" +">click here</a> <br><br>Thanks,<br> " + config.ProductName + " Administrator<br>"
+    mailBody=mailBody + "<br>To view details  "+ " <a href=" +config.APP_BASE_REDIRECT_URL+"=/employee/review-evaluation-list" +">click here</a> <br><br>Thank you,<br> " + config.ProductName + " Administrator<br>"
     
                         var mailObject = SendMail.GetMailObject(
                             manager.Email,
@@ -3300,7 +3389,7 @@ if (manager) {
                       
                         let   mailBody = "Dear "+ employee.FirstName + ", <br><br>"
                         mailBody = mailBody + "Your manager has revised your rating."
-                        mailBody=mailBody + "<br>To view and sign-off, please  "+ " <a href=" +config.APP_BASE_REDIRECT_URL+"=/employee/review-evaluation-list" +">click here</a> <br><br>Thanks,<br> " + config.ProductName + " Administrator<br>"
+                        mailBody=mailBody + "<br>To view and sign-off, please  "+ " <a href=" +config.APP_BASE_REDIRECT_URL+"=/employee/review-evaluation-list" +">click here</a> <br><br>Thank you,<br> " + config.ProductName + " Administrator<br>"
                         var mailObject = SendMail.GetMailObject(
                             employee.Email,
                             "Your evaluation has been sent for final approval",
@@ -3324,7 +3413,7 @@ if (manager) {
         if (employee) {
             let   mailBody = "Dear " + employee.FirstName +",<br>"
             mailBody= mailBody + "You have successfully submitted your evaluation."
-            mailBody=mailBody + "<br>To view details  "+ " <a href=" +config.APP_BASE_REDIRECT_URL+"=/employee/current-evaluation" +">click here</a> <br><br>Thanks,<br> " + config.ProductName + " Administrator<br>"
+            mailBody=mailBody + "<br>To view details  "+ " <a href=" +config.APP_BASE_REDIRECT_URL+"=/employee/current-evaluation" +">click here</a> <br><br>Thank you,<br> " + config.ProductName + " Administrator<br>"
                                 var mailObject = SendMail.GetMailObject(
                                     employee.Email,
                                     "Evaluation successfully submitted",
@@ -3341,7 +3430,7 @@ if (manager) {
                             if (manager) {
                               let  mailBody="Dear "+ manager.FirstName +",<br><br>"
                                 mailBody = mailBody + "Your direct report, " + employee.FirstName+" "+employee.LastName+", has submitted the evaluation.<br>"
-                                mailBody=mailBody + "<br>Please  "+ " <a href=" +config.APP_BASE_REDIRECT_URL+"=/employee/review-evaluation-list" +">click here</a> to login and review.<br><br>Thanks,<br> " + config.ProductName + " Administrator<br>"
+                                mailBody=mailBody + "<br>Please  "+ " <a href=" +config.APP_BASE_REDIRECT_URL+"=/employee/review-evaluation-list" +">click here</a> to login and review.<br><br>Thank you,<br> " + config.ProductName + " Administrator<br>"
                                 
                                 var mailObject = SendMail.GetMailObject(
                                     manager.Email,
@@ -3357,6 +3446,21 @@ if (manager) {
                             }
     }
 
+
+    exports.updateNotificationAsRead = async (options) => {
+       try{
+
+        console.log('inside updateNotificationAsRead');
+        let { id,email } = options
+         await DeliverEmailRepo.findByIdAndUpdate(id, {IsRead:true});
+        return await DeliverEmailRepo.find({'Email':email,'IsDelivered':true}).sort({ CreatedOn: -1 });;
+       }  catch (err) {
+        logger.error(err)
+
+        console.log(err);
+        throw (err);
+    }
+    }
 
 function calcAverage(arr) {
     if(arr && arr.length===0){

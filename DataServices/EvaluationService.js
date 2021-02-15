@@ -70,6 +70,7 @@ exports.AddEvaluation = async (evaluation) => {
                 User: e._id._id,
                 Type: 'Employee Evaluation',
                 IsDelivered: false,
+                CreatedOn: new Date(),
                 Email: e._id.Email,
                 Template: `<p>Dear ${e._id.FirstName} <br/></p><br/><br/>
                             Your Evaluation is ready.
@@ -88,6 +89,7 @@ exports.AddEvaluation = async (evaluation) => {
                     User: p.EmployeeId._id,
                     Type: 'Peer Review',
                     IsDelivered: false,
+                    CreatedOn: new Date(),
                     Email: p.EmployeeId.Email,
                     Template: `<p>Dear ${p.EmployeeId.FirstName} <br/></p>
                                 <p>Rating for your peer ${e._id.FirstName} ${e._id.LastName} has been requested. Please login to provide your rating.
@@ -106,6 +108,7 @@ exports.AddEvaluation = async (evaluation) => {
                     User: d.EmployeeId._id,
                     Type: 'Direct Reportee Review',
                     IsDelivered: false,
+                    CreatedOn: new Date(),
                     Email: d.EmployeeId.Email,
                     Template: `<p>Dear ${d.EmployeeId.FirstName} <br/></p>
                                 <p>Rating for your manager ${e._id.FirstName} ${e._id.LastName} has been requested. Please login to provide your rating..
@@ -180,6 +183,7 @@ exports.AddEvaluation = async (evaluation) => {
                 User: mgr._id,
                 Type: 'Evaluation Released',
                 IsDelivered: false,
+                CreatedOn: new Date(),
                 Email: mgr.Email,
                 Template: `<p>Dear ${mgr.FirstName} <br/></p>
                             <p>The Evaluations has been released for the following employees. This is for your information.</p>
@@ -255,6 +259,7 @@ exports.AddEvaluation = async (evaluation) => {
                 User: mgr._id,
                 Type: 'Evaluation Released',
                 IsDelivered: false,
+                CreatedOn: new Date(),
                 Email: mgr.Email,
                 Template: `<p>Dear ${mgr.FirstName} <br/></p>
                             <p>The Evaluations has been released for the following employees. This is for your information.</p>
@@ -428,6 +433,7 @@ exports.UpdateDirectReportees = async (evaluation) => {
                 User: p.EmployeeId._id,
                 Type: 'Direct Reportee Review',
                 IsDelivered: false,
+                CreatedOn: new Date(),
                 Email: p.EmployeeId.Email,
                 Template: `<h1>Dear ${p.EmployeeId.FirstName} <br/>
         New Evaluation form has been rolledout. Please access Portal to submit the review.
@@ -465,6 +471,7 @@ exports.UpdatePeers = async (evaluation) => {
                 User: p.EmployeeId._id,
                 Type: 'Peer Review',
                 IsDelivered: false,
+                CreatedOn: new Date(),
                 Email: p.EmployeeId.Email,
                 Template: `<h1>Dear ${p.EmployeeId.FirstName} <br/>
         New Evaluation form has been rolledout. Please access Portal to submit the review.

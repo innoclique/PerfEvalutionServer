@@ -105,8 +105,8 @@ exports.CreateOrganization = async (organization) => {
                 
             
             let mailBody= "Dear " + updatedBy.FirstName +",<br><br>"
-            mailBody = mailBody + "Congratulations, you have successfully set up an account for <b>" + organization.Name  + "</b><br><br>"
-            mailBody=mailBody + "<br>To view details  "+ " <a href=" +config.APP_BASE_REDIRECT_URL+"=/psa/list" +">click here</a> <br><br>Thanks,<br> " + config.ProductName + " Administrator<br>"
+            mailBody = mailBody + "Congratulations, you have successfully set up an account for <b>" + organization.Name  + "</b>.<br><br>"
+            mailBody=mailBody + "<br>To view details  "+ " <a href=" +config.APP_BASE_REDIRECT_URL+"=/psa/list" +">click here</a> <br><br> Thank you,<br> " + config.ProductName + " Administrator<br>"
             
     
     
@@ -280,8 +280,8 @@ exports.UpdateOrganization = async (organization) => {
             
         
         let mailBody= "Dear " + updatedBy.FirstName +",<br><br>"
-        mailBody = mailBody + "You have successfully updated the details for <b>" + organization.Name  + "</b><br><br>"
-        mailBody=mailBody + "<br>To view details  "+ " <a href=" +config.APP_BASE_REDIRECT_URL+"=/psa/list" +">click here</a> <br><br>Thanks,<br> " + config.ProductName + " Administrator<br>"
+        mailBody = mailBody + "You have successfully updated the details for <b>" + organization.Name  + "</b>.<br><br>"
+        mailBody=mailBody + "<br>To view details  "+ " <a href=" +config.APP_BASE_REDIRECT_URL+"=/psa/list" +">click here.</a> <br><br>Thank you,<br> " + config.ProductName + " Administrator<br>"
         
 
 
@@ -379,9 +379,9 @@ exports.UpdateOrgProfile = async (organization) => {
             let mailBody = "Dear " + user.FirstName + ",<br><br>"
             mailBody = mailBody + "You have successfully updated your organization’s profile." + "<br><br>"
              if (organization.ClientType === 'Client') {
-            mailBody = mailBody + "<br>To view details  " + " <a href=" + config.APP_BASE_REDIRECT_URL+"=/csa/profile" + ">click here</a> to login<br><br>Thanks,<br>Administrator " + config.ProductName + "<br>"
+            mailBody = mailBody + "<br>To view details  " + " <a href=" + config.APP_BASE_REDIRECT_URL+"=/csa/profile" + ">click here</a> to login<br><br>Thank you,<br>Administrator " + config.ProductName + "<br>"
              }else{
-                mailBody = mailBody + "<br>To view details  " + " <a href=" + config.APP_BASE_REDIRECT_URL+"=/rsa/profile" + ">click here</a> to login<br><br>Thanks,<br>Administrator " + config.ProductName + "<br>"
+                mailBody = mailBody + "<br>To view details  " + " <a href=" + config.APP_BASE_REDIRECT_URL+"=/rsa/profile" + ">click here</a> to login<br><br>Thank you,<br>Administrator " + config.ProductName + "<br>"
              }
             var mailObject = SendMail.GetMailObject(
                 user.Email,

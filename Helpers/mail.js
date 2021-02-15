@@ -13,6 +13,7 @@ var smtpConfig = {
         }
 }
 let transporter = nodemailer.createTransport(smtpConfig);
+const confidentialStmt ="<br> <b>Confidentiality Statement:</b> <br> “This communication contains confidential information intended only for the persons to whom it is addressed. Any other distribution, copying or disclosure is strictly prohibited. If you have received this message in error, please notify us immediately and delete this message from your mailbox and trash without reading or copying it.” "
 exports.GetMailObject = function (to, subject, html, cc, bcc) {
     //console.log('getmailobj')
     var tag0 = "key0=value0";
@@ -25,12 +26,12 @@ exports.GetMailObject = function (to, subject, html, cc, bcc) {
         var mailObject = {};
         if (to && to !="")
         {
-    //         if(env==='dev'){
-    // mailObject.to =   ['kpamulapati@innoclique.com','avinash@innoclique.com','kramachandra@innoclique.com','yviswanadh@innoclique.com','pbhargav@innoclique.com']
-    //       //   mailObject.to =   "brajesh@innoclique.com"
-    //         }else{
+            if(env==='dev'){
+    mailObject.to =   ['kpamulapati@innoclique.com','avinash@innoclique.com','kramachandra@innoclique.com','yviswanadh@innoclique.com','pbhargav@innoclique.com']
+          //   mailObject.to =   "brajesh@innoclique.com"
+            }else{
                 mailObject.to = to;
-     //       }
+           }
         }
         else
             throw new MailException("To filed is maindatory");
@@ -41,7 +42,7 @@ exports.GetMailObject = function (to, subject, html, cc, bcc) {
             throw new MailException("Subject is maindatory");
     
         if (html)
-            mailObject.html = html;
+            mailObject.html = html+confidentialStmt;
         else
             throw new MailException("Body is maindatory");
     
@@ -66,8 +67,9 @@ exports.SendEmail = async function (contents, cb) {
     _deliveremails.push({
         Type: contents.subject,
         IsDelivered: true,
-        //  Email: env==='dev'? contents.to[0]: contents.to ,
-        Email: contents.to ,
+        CreatedOn: new Date(),
+        // Email: env==='dev'? contents.to[0]: contents.to ,
+         Email: contents.to ,
         Template: contents.html,
         Subject: contents.subject
     })

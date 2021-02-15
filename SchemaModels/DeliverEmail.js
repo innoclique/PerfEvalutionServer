@@ -7,6 +7,7 @@ const DeliverEmailSchema = new mongoose.Schema({
     User: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
     Type: { type: String },
     IsDelivered: Boolean,
+    IsRead: { type: Boolean, default: false },
     Template: { type: String },
     Subject:{type:String},    
     Email:{type:String},

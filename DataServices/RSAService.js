@@ -1,5 +1,12 @@
 const userSchema = require("../SchemaModels/UserSchema");
 const organizationSchema = require("../SchemaModels/OrganizationSchema");
+const RsaAccountDetailsSchema = require("../SchemaModels/RsaAccountDetailsSchema");
+
+const fetchRSAAccountDetailsService = async(options) => {
+    let {orgId} = options;
+    let organizationList = await RsaAccountDetailsSchema.find({Organization:orgId}).populate("RangeId");
+    return organizationList;
+}
 
 const dashboardService =  async ()=>{
     let response = {};
@@ -117,5 +124,6 @@ const getStatusAggregateQuery = ()=>{
     };
 }
 module.exports = {
-    DashboardService:dashboardService
+    DashboardService:dashboardService,
+    FetchRSAAccountDetailsService:fetchRSAAccountDetailsService,
 }

@@ -78,7 +78,7 @@ exports.AddEvaluation = async (evaluation) => {
                             Please <a href="${config.APP_BASE_REDIRECT_URL}">click here</a> to login and complete the process.
                             <br/>
                             </p>
-                            <p>Thank you <br/>
+                            <p>Thank you, <br/>
                             ${config.ProductName} Administrator</br></p>`,
                 Company: _currentEvaluation.Company,
                 Subject: 'Your evaluation has been released'
@@ -97,7 +97,7 @@ exports.AddEvaluation = async (evaluation) => {
                                 <a href="${config.APP_BASE_REDIRECT_URL}">click here</a>  to login.
                                 <br/>
                                 </p>
-                                <p>Thank you <br/>
+                                <p>Thank you, <br/>
                                 ${config.ProductName} Administrator</br></p>`,
                     Company: _currentEvaluation.Company,
                     Subject: 'Peer Rating requested'
@@ -116,7 +116,7 @@ exports.AddEvaluation = async (evaluation) => {
                                 <a href="${config.APP_BASE_REDIRECT_URL}">click here</a>  to login.
                                 <br/>
                                 </p>
-                                <p>Thank you <br/>
+                                <p>Thank you, <br/>
                                 ${config.ProductName} Administrator</br></p>`,
                     Company: _currentEvaluation.Company,
                     Subject: 'Direct Report Rating requested'

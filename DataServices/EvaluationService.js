@@ -821,7 +821,7 @@ exports.GetEmpCurrentEvaluation = async (emp) => {
                 Employees: { $elemMatch: { _id: ObjectId(emp.EmployeeId) }},
                 EvaluationYear: emp.EvaluationYear.toString()
             }
-        ).populate("Employees.PeersCompetencyList._id").select({ "Employees.Peers": 0 });
+        ).populate("Employees.PeersCompetencyList._id Employees.Status").select({ "Employees.Peers": 0 });
         if (!evaluationForm) {
             throw "No Evaluation Found";
         }

@@ -7,6 +7,7 @@ const  OverridePriceScaleRepo= require('../SchemaModels/OverridePriceScale');
 const  PaymentReleaseSchema= require('../SchemaModels/PaymentReleaseSchema');
 const  PriceSchema= require('../SchemaModels/PriceSchema');
 const  UserSchema= require('../SchemaModels/UserSchema');
+const  RsaAccountDetailsSchema= require('../SchemaModels/RsaAccountDetailsSchema');
 const  StateTaxesSchema= require('../SchemaModels/StateTaxesSchema');
 var logger = require('../logger');
 var env = process.env.NODE_ENV || "dev";
@@ -98,6 +99,13 @@ const savePaymentRelease = async (paymentRelease) => {
     let savedObjet;
     let payReleaseId;
     if(!paymentRelease.paymentreleaseId){
+        if(paymentRelease.ClientType && paymentRelease.ClientType!="Reseller"){
+            let currentEvaluationInfo = await EvaluationUtils.getOrganizationStartAndEndDates(paymentRelease.Organization);
+            paymentRelease.EvaluationPeriod = currentEvaluationInfo.EvaluationPeriod;
+            paymentRelease.EvaluationYear = currentEvaluationInfo.start.format("YYYY");
+            paymentRelease.EvaluationStartMonth = currentEvaluationInfo.StartMonth;
+            paymentRelease.EvaluationEndMonth = currentEvaluationInfo.EndMonth;
+        }
         if(!paymentRelease.ClientId){
             delete paymentRelease.ClientId;
         }
@@ -111,7 +119,8 @@ const savePaymentRelease = async (paymentRelease) => {
         savedObjet = await PaymentReleaseSchema.updateOne({_id:paymentreleaseId},paymentRelease);
     }
     if(payReleaseId){
-        console.log("Processing Emails")
+        await modifyResellerAccountDetails(payReleaseId);
+        console.log("Processing Emails");
         await processPaymentEmails({_id:payReleaseId});
         console.log("==End Process Emails==")
     }
@@ -119,6 +128,40 @@ const savePaymentRelease = async (paymentRelease) => {
         return savedObjet;
     }
     return savedObjet;
+}
+
+const modifyResellerAccountDetails = async (payReleaseId)=>{
+    console.log("Inside:modifyResellerAccountDetails")
+   let paymentRelease =  await PaymentReleaseSchema.findOne({_id:payReleaseId});
+   let {Type,Status,RangeId,UsageType,NoNeeded,Organization,ClientType} = paymentRelease;
+   console.log(`${Type} - ${Status} - ${ClientType}`)
+    if(Type=="Initial" && Status=="Complete" && ClientType == "Reseller"){
+        let TotalUsageType = NoNeeded;
+        let Balance = NoNeeded;
+        let accountInfo = {Organization,RangeId,UsageType,TotalUsageType,Balance};
+        const _accountInfo = await RsaAccountDetailsSchema(accountInfo);
+        await _accountInfo.save();
+    }
+    if(Type=="NewPurchase" && Status=="Complete" && ClientType == "Reseller"){
+        let whereObj = {
+            Organization,
+            UsageType,
+            RangeId
+        };
+        console.log(whereObj);
+        let rsaAccountDetails = await RsaAccountDetailsSchema.findOne(whereObj);
+        if(rsaAccountDetails){
+            console.log("Update RsaAccountDetailsSchema")
+            await RsaAccountDetailsSchema.update(whereObj,{ $inc: { Balance: NoNeeded,TotalUsageType:NoNeeded }});
+        }else{
+            let TotalUsageType = NoNeeded;
+            let Balance = NoNeeded;
+            let accountInfo = {Organization,RangeId,UsageType,TotalUsageType,Balance};
+            const _accountInfo = await RsaAccountDetailsSchema(accountInfo);
+            await _accountInfo.save();
+        }
+        
+    }
 }
 
 const deletePaymentRelease = async (request) => {

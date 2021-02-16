@@ -6,7 +6,7 @@ const PaymentReleasesSchema = new mongoose.Schema({
 
     Organization: { type: mongoose.Schema.Types.ObjectId, ref: 'Organization', default: null },
     ActivationDate: { type: Date },
-    UserType: { type: String },
+    UsageType: { type: String },
     isAnnualPayment: { type: Boolean},
     NoNeeded: { type: Number, required: true },
     NoOfEmployees: { type: Number, required: true, default:0 },
@@ -28,6 +28,12 @@ const PaymentReleasesSchema = new mongoose.Schema({
     Type : { type: String},/* Initial,  */
     Paymentdate:{type:Date,default:new Date()},
     ClientId: { type: mongoose.Schema.Types.ObjectId, ref: 'Organization', default: null },
+    EvaluationPeriod:{ type: String,default: null  },
+    EvaluationYear:{ type: String ,default: null },
+    EvaluationStartMonth:{ type: String ,default: null },
+    EvaluationEndMonth:{ type: String ,default: null },
+    ClientType:{ type: String ,default: null },
+
 });
 
 PaymentReleasesSchema.set('toJSON', { versionKey: false });

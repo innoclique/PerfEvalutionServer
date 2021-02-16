@@ -30,6 +30,7 @@ route.post('/AddAccomplishment', EmployeeController.AddAccomplishment);
 route.post('/GetAccomplishmentDataById',EmployeeController.GetAccomplishmentDataById);
 route.post('/GetAllAccomplishments',EmployeeController.GetAllAccomplishments);
 route.post('/UpdateAccomplishmentDataById',EmployeeController.UpdateAccomplishmentDataById);
+route.post('/updateNotificationAsRead',EmployeeController.updateNotificationAsRead);
 route.post('/GetReporteeAccomplishments',EmployeeController.GetReporteeAccomplishments);
 route.post('/GetTSReleasedAccomplishments',EmployeeController.GetTSReleasedAccomplishments);
 
@@ -53,6 +54,7 @@ route.post('/dashboard',EmployeeController.Dashboard);
 route.post('/PG/Signoff', EmployeeController.PGSignoffCtrl);
 route.post('/Find/PG/Signoff', EmployeeController.GetPGSignoffByOwnerCtrl);
 route.post('/getCopiesTo',EmployeeController.GetCopiesTo);
+route.post('/getCopiesToWithEV',EmployeeController.getCopiesToWithEV);
 
 route.post('/AddNote', ApplicationController.AddNote);
 route.post('/GetNoteDataById',ApplicationController.GetNoteDataById);

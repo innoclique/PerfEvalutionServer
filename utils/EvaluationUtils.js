@@ -92,7 +92,10 @@ exports.getOrganizationStartAndEndDates = async (organizationId) => {
     }
     return {
       start:evaluationStartMoment,
-      end:evaluationEndMoment
+      end:evaluationEndMoment,
+      EvaluationPeriod:EvaluationPeriod,
+      StartMonth:StartMonth,
+      EndMonth:EndMonth
     }
   }
   return null;

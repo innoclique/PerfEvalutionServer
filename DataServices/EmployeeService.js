@@ -1067,12 +1067,23 @@ exports.addKpiTrack = async (kpi) => {
     reportOBJ.tracks = reportOBJ.tracks || [];
 
     const actor = await UserRepo.findOne({ "_id": kpi.UpdatedBy })
+    let commentTest="";
+    if (kpi.Action=='Create') {
+        commentTest=`Created by ${actor.FirstName} on ${moment().format('lll')}`
+    } else if (kpi.Action=='Viewed')  {
+        commentTest=`${actor.FirstName} has viewed ${actor.FirstName} on ${moment().format('lll')}`
+    } else if (kpi.Action=='Review')  {
+        commentTest=`${actor.FirstName} has reviewed on ${moment().format('lll')}`
+    }else{
+        commentTest=`${actor.FirstName} has ${kpi.Action} on ${moment().format('lll')}`
+    }
 
     var track = {
         actorId: kpi.UpdatedBy,
         CreatedOn: new Date(),
         action: kpi.Action,
-        comment: actor.FirstName + " " + "has been " + kpi.Action=="Review"?"reviewed":kpi.Action + " at "  + moment().format('lll')
+        comment: commentTest, 
+        //actor.FirstName + " " + "has been " + kpi.Action=="Review"?"reviewed":kpi.Action + " at "  + moment().format('lll')
     }
     reportOBJ.tracks.push(track);
     return await reportOBJ.save();

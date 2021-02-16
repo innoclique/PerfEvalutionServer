@@ -8,6 +8,7 @@ const ModelRepo = require('../SchemaModels/Model');
 const CompetencyRepo = require('../SchemaModels/Competency');
 const ModelMappingRepo = require('../SchemaModels/ModelMappings');
 const CompetencyMappingRepo = require('../SchemaModels/CompetencyMappings');
+const RsaAccountDetailsSchema = require('../SchemaModels/RsaAccountDetailsSchema');
 const RoleRepo = require('../SchemaModels/Roles');
 const NoteRepo = require('../SchemaModels/Notes');
 const AuthHelper = require('../Helpers/Auth_Helper');
@@ -17,7 +18,7 @@ const ObjectId = Mongoose.Types.ObjectId;
 var env = process.env.NODE_ENV || "dev";
 var config = require(`../Config/${env}.config`);
 var fs = require("fs");
-const EvaluationUtils = require("../utils/EvaluationUtils")
+const EvaluationUtils = require("../utils/EvaluationUtils");
 
 exports.CreateOrganization = async (organization) => {
     try {
@@ -80,14 +81,16 @@ exports.CreateOrganization = async (organization) => {
             var createdUser = await user.save()
             organization.Admin = createdUser.id;
 
-            const Organization = new OrganizationRepo(organization);
-            let _orgDomain = await Organization.save();
-            const userObj = await UserRepo.findByIdAndUpdate(createdUser.id, { 'Organization': Organization._id });
+            const _Organization = new OrganizationRepo(organization);
+            let _orgDomain = await _Organization.save();
+            const userObj = await UserRepo.findByIdAndUpdate(createdUser.id, { 'Organization': _Organization._id });
+            let updatedBy = await UserRepo.findById(organization.CreatedBy);
             console.log(`${_orgDomain._id} : ${organization.IsDraft}`);
-
              if(_orgDomain._id && !organization.IsDraft){
                  console.log("Creating models");
-            //if(!organization.IsDraft){
+                 if (updatedBy.Role && updatedBy.Role=="RSA") {
+                    await updateResellerAccountDetails(organization)
+                 }
                 await loadOrganizationModels(_orgDomain._id,organization.EvaluationModels)
             }else{
                 console.log("Models are not created ");
@@ -100,7 +103,7 @@ exports.CreateOrganization = async (organization) => {
 
 
 
-            let updatedBy = await UserRepo.findById(organization.CreatedBy);
+            
             if (updatedBy.Role=="PSA") {
                 
             
@@ -138,74 +141,7 @@ exports.CreateOrganization = async (organization) => {
         }
 
 
-        /*fs.readFile("./EmailTemplates/EmailTemplate.html", async function read(err, bufcontent) {
-            var content = bufcontent.toString();
-
-            var des ="Congratulations, you have successfully set up an account for " + organization.Name + "  To view details, <a href="+ config.APP_URL +">click here</a><br><br>"
-            content = content.replace("##FirstName##", "PSA");
-            content = content.replace("##ProductName##", config.ProductName);
-            content = content.replace("##Description##", des);
-            content = content.replace("##Title##", "New Organization added");
-
-            var mailObject = SendMail.GetMailObject(
-                config.PSAEmail,
-                "Client successfully added",
-                content,
-                null,
-                null
-            );
-
-            await SendMail.SendEmail(mailObject, function (res) {
-                console.log(res);
-            });
-
-            var content = bufcontent.toString();
-
-            des = `Congratulations, Organization:  ${organization.Name} has been added successfully. 
-    Email: ${userRecord.Email}
-    You will receive another email having temporary password to login.
-    `
-
-            content = content.replace("##FirstName##", userRecord.FirstName);
-            content = content.replace("##ProductName##", config.ProductName);
-            content = content.replace("##Description##", des);
-            content = content.replace("##Title##", "New Organization added");
-
-
-            var mailObject = SendMail.GetMailObject(
-                userRecord.Email,
-                "Client successfully updated",
-                content,
-                null,
-                null
-            );
-
-            await SendMail.SendEmail(mailObject, function (res) { 
-                console.log(res);
-            });
-            var content = bufcontent.toString();
-            des = "Dear " + userRecord.FirstName +", <br>"+"Please use below temporary password to login into portal. <br><br>" +"Password: "+ _temppwd +"<br><br>"
-  des= des + "    You will be redirected to change password upon your First Login.<br><br>"  
-    des = des + "Please " +" <a href="+ config.APP_URL + ">+Click here to login.<br>   Thank you,<br>Administrator" + config.ProductName + "<br>"
-
-            content = content.replace("##FirstName##", userRecord.FirstName);
-            content = content.replace("##ProductName##", config.ProductName);
-            content = content.replace("##Description##", des);
-            content = content.replace("##Title##", "New Organization added");
-
-
-            var mailObject = SendMail.GetMailObject(
-                userRecord.Email,
-                "Organization Created-Temporary Password",
-                content,
-                null,
-                null
-            );
-            await SendMail.SendEmail(mailObject, function (res) {
-                console.log(res);
-            });
-
-        });*/
+        
 
         return true;
     }
@@ -214,6 +150,16 @@ exports.CreateOrganization = async (organization) => {
         console.log(err);
         throw (err);
     }
+}
+const updateResellerAccountDetails = async (Organization)=>{
+    console.log("Inside:updateResellerAccountDetails");
+    let {UsageType,ParentOrganization,Range} = Organization;
+    let whereObj = {UsageType};
+    whereObj.RangeId = Range;
+    whereObj.Organization = ParentOrganization;
+    console.log(whereObj);
+    await RsaAccountDetailsSchema.findOneAndUpdate(whereObj,{ $inc: { Balance: -1}});
+
 }
 const loadOrganizationModels = async (OrganizationId,ModelsList)=>{
     console.log("Inside:loadOrganizationModels");

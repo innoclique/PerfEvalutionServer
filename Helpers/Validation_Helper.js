@@ -750,6 +750,7 @@ else if (data.Action=='Review') {
       CoachingReminder: Joi.string().optional(),
       ManagerComments: Joi.optional(),
       IsManaFTSubmited: Joi.any().optional(),
+      KpiBase64data: Joi.any().optional(),
       UpdatedBy: Joi.string().required(),
       IsActive: Joi.any().required(),
       EvaluationYear: Joi.string().optional(),

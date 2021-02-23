@@ -30,7 +30,7 @@ const userActivityRoute=require('./Routes/UserActivityRoute');
 /////////////////////////////////////////////////////
 var logger=require('./logger');
 App.use(Cors());
-App.use(Express.json());  
+App.use(Express.json({limit:'50mb'}));  
 App.use(BodyParser.json());
 App.use(BodyParser.urlencoded({extended:true}));
 

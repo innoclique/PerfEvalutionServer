@@ -1648,7 +1648,7 @@ const PerformanceGoalStatus = async (employeeId) =>{
             if(!ManagerSignOff.SignOffBy){
                 return "Submitted for Sign-off";
             }else{
-                return "Sign-off";
+                return "Signed-off";
             }
             
         }

@@ -26,6 +26,9 @@ const statusRepo=require('../SchemaModels/Statuses');
 const EvaluationService=require('../DataServices/EvaluationService');
 const { cli } = require("winston/lib/winston/config");
 const months = ["Jan", "Feb", "Mar", "Apr", "May", "June", "July","Aug", "Sep", "Oct", "Nov", "Dec"];
+const jobLevelConfig = require('../SchemaModels/jobLevelConfig');
+const RatingScore = require('../SchemaModels/RatingScore');
+const principlesRepo = require('../SchemaModels/principles');
 
 exports.AddEvaluation = async (evaluation) => {
     try {
@@ -311,6 +314,26 @@ exports.GetAvailableOrgEvaluations = async (req) => {
         result['pgs'] = pgs;
         result['evaluations'] = evaluations;
       //  result['client'] = client;
+        return result;
+    } catch (error) {
+        console.log(error);
+    }
+
+}
+exports.GetAppendix = async (req) => {
+    console.log('inside GetAppendix', req);
+    try {
+        var result = {};
+        const ratingScores = await RatingScore.find({'organization':req.clientId});
+        const jobLevelConfigs = await jobLevelConfig.find({'organization':req.clientId});
+        const principles = await principlesRepo.find({'organization':req.clientId});
+   
+        result['ratingScores'] = ratingScores;
+        result['jobLevelConfigs'] = jobLevelConfigs;
+        result['principles'] = principles;
+
+        console.log('result :::', JSON.stringify(result));
+
         return result;
     } catch (error) {
         console.log(error);

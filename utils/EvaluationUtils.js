@@ -65,22 +65,20 @@ exports.GetEmployeeEvaluationYears = async (userId) => {
   let index=0;
   //EndMonth = Number(EndMonth);
   while(yearsStartFrom<=yearsEndValue){
+    console.log(`${yearsStartFrom}+"<="+${yearsEndValue}`);
     let yearLabel="";
     if(EvaluationPeriod === "FiscalYear"){
-      console.log("Inside:ffff")
       let startDate;
       let endDate;
-      console.log(`${currentMonth} <= ${StartMonth}`);
       if(currentMonth <= StartMonth){
-          startDate = moment([yearsStartFrom-1, StartMonth - 1]);
-          endDate = moment([yearsStartFrom]).month(EndMonth);
+          startDate = moment([yearsStartFrom, StartMonth - 1]);
+          endDate = moment([yearsStartFrom+1]).month(EndMonth);
       }else{
           startDate = moment([yearsStartFrom, StartMonth - 1]);
           endDate = moment([yearsStartFrom+1, EndMonth]);
       }
       yearLabel = startDate.format("MMM'YY")+" - "+endDate.format("MMM'YY");
     }else{
-      console.log("inside : else");
       let startDate = moment([yearsStartFrom, StartMonth - 1]);
       let endDate = moment([yearsStartFrom, 11]);
       yearLabel = startDate.format("MMM'YY")+" - "+endDate.format("MMM'YY");

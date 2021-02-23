@@ -512,7 +512,49 @@ const sendPaymentEmailToCSA  = async (options)=>{
         }
     
 }
-
+const sendPaymentInfoEmail = async (options)=>{
+    console.log("Inside: sendPaymentInfoEmail");
+    let redirectURL = config.APP_BASE_REDIRECT_URL;
+    let {currentUser,paymentModel,paymentStructure,organization,paymentSummary} = options;
+    let mailBody= `Dear ${currentUser.FirstName},<br><br>`;
+    let subject = "";
+    let evaluationYear = await EvaluationUtils.getOrganizationStartAndEndDates(organization._id);
+    let evaluationPeriod="";
+    if(evaluationYear){
+            evaluationPeriod = evaluationYear.start.format("MMM-YYYY");
+            evaluationPeriod+=" - "+ evaluationYear.end.format("MMM-YYYY");
+    }
+    if(evaluationPeriod && evaluationPeriod!=""){
+        subject = "Payment info for " + organization.Name +" for "+evaluationPeriod+"";
+        mailBody = mailBody +" Payment information for "+evaluationPeriod+" of "+ organization.Name+ ".";
+    }
+    else{
+        subject = "Payment info for " + organization.Name +"";
+        mailBody = mailBody +" Payment information for "+ organization.Name+ ".";
+    }
+    mailBody+="<br>";
+    mailBody+="Usage Type: "+paymentModel.UsageType;
+    mailBody+="<br>";
+    mailBody+="Activation Date: "+paymentModel.ActivationDate;
+    mailBody+="<br>";
+    mailBody+="Total Amount: "+paymentSummary.TOTAL_PAYABLE_AMOUNT;
+    mailBody+="<br>";
+    mailBody=mailBody + "<br>To login,"+ " <a href=" +redirectURL +">click here</a> <br><br>Thank you,<br>" + config.ProductName + " Administrator<br>";
+    console.log(subject)
+    console.log(mailBody);
+    console.log(`To Email = ${currentUser.Email}`);
+    var mailObject = SendMail.GetMailObject(
+        "venu.rai@innoclique.com",
+        subject,
+        mailBody,
+        null,
+        null
+        );
+    await SendMail.SendEmail(mailObject, function (res) {
+        console.log(JSON.stringify(res));
+    });
+    return true
+}
 const findAdhocRequestList = async () => {
     let responseObj=[];
     console.log("Inside:Adhoc Request list")
@@ -582,5 +624,6 @@ module.exports = {
     FindPriceList:findPriceList,
     FindTaxRateByName:getTaxRateByName,
     DeletePaymentRelease:deletePaymentRelease,
+    SendPaymentInfoEmailService:sendPaymentInfoEmail
 }
 

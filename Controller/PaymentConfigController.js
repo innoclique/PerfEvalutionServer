@@ -9,9 +9,14 @@ const {AddPaymentConfiguration,
     FindRangeList,
     FindPriceList,
     FindTaxRateByName,
-    DeletePaymentRelease
+    DeletePaymentRelease,
+    SendPaymentInfoEmailService
 } = require('../DataServices/PaymentConfigService');
 
+const sendPaymentInfoEmailCtrl = async (req,res,next)=>{
+    let EmailResponse = await SendPaymentInfoEmailService(req.body);
+    res.json(EmailResponse);
+}
 const addPaymentConfiguartion = async (req,res,next)=>{
     let paymentConfigResponse = await AddPaymentConfiguration(req.body);
     res.json(paymentConfigResponse);
@@ -86,6 +91,7 @@ module.exports = {
     FindRangeListCtrl:findRangeListCtrl,
     FindPriceListCtrl:findPriceListCtrl,
     FindTaxRateByNameCtrl:findTaxRateByNameCtrl,
-    DeletePaymentReleaseCtrl:deletePaymentReleaseCtrl
+    DeletePaymentReleaseCtrl:deletePaymentReleaseCtrl,
+    SendPaymentInfoEmailCtrl:sendPaymentInfoEmailCtrl
     
 }

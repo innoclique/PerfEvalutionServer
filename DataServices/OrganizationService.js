@@ -188,6 +188,7 @@ const loadOrganizationModels = async (OrganizationId,ModelsList)=>{
         }
         _modelDomain = _modelDomain.toObject();
         delete _modelDomain._id;
+        _modelDomain._id = Mongoose.Types.ObjectId();
         _modelDomain.Competencies = competencyIdList;
         _modelDomain.Organization = OrganizationId;
         modelMappingList.push(_modelDomain);
@@ -197,7 +198,13 @@ const loadOrganizationModels = async (OrganizationId,ModelsList)=>{
     //ModelMappingRepo,CompetencyMappingRepo
     await ModelMappingRepo.insertMany(modelMappingList);
     await CompetencyMappingRepo.insertMany(competencyMappingList);
+    await updateOrganizationModels(OrganizationId,modelMappingList);
+
     
+}
+const updateOrganizationModels = async (OrganizationId,modelMappingList)=>{
+    let modelsArray = modelMappingList.map(m=>""+m._id);
+    await OrganizationRepo.update({_id:OrganizationId},{$set:{EvaluationModels:modelsArray}})
 }
 exports.UpdateOrganization = async (organization) => {
     try {

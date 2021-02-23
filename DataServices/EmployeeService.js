@@ -976,7 +976,7 @@ exports.UpdateKpi = async (kpi) => {
         kpi.Action = 'Updated';
         console.log(`kpi.Score = ${kpi.Score}`);
         const kpiOwnerInfo = await this.GetKpiDataById(kpi.kpiId)
-       // if (kpi.IsManaFTSubmited) {
+       if (kpi.IsManaFTSubmited) {
             const Manager = await UserRepo.findById(kpi.UpdatedBy);
             kpi.ManagerFTSubmitedOn = new Date()
             kpi.ManagerSignOff = { SignOffBy: Manager.FirstName+" "+Manager.LastName, SignOffOn: new Date() }
@@ -985,7 +985,7 @@ exports.UpdateKpi = async (kpi) => {
             this.sendEmailOnManagerSignoff(Manager, kpiOwnerInfo,kpi);
 
 
-       // }
+       }
 
         if (kpi.ViewedByEmpOn) {
 

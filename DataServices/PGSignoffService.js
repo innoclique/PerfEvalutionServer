@@ -44,6 +44,100 @@ exports.PGSignOffSave =  async (options)=>{
     return true;
 }
 
+
+
+// exports.sendEmailOnManagerSignoff = async (manager, kpiOwnerInfo) => {
+
+
+//     if (manager) {
+//         // send email to manager 
+// let mailBody =  "Dear " + manager.FirstName + ",<br><br>"
+// mailBody = mailBody + "You have signed-off performance goals for " +  kpiOwnerInfo.FirstName+" "+  kpiOwnerInfo.LastName+".<br>"
+// mailBody=mailBody + "<br>To view, "+ " <a href="+config.APP_BASE_REDIRECT_URL+"=/employee/review-perf-goals-list" + ">click here</a>.<br><br>Thank you,<br> "+config.ProductName+" Administrator<br>"
+//         var mailObject = SendMail.GetMailObject(
+//             manager.Email,
+//             "Performance Goals signed-off",
+//            mailBody,
+//             null,
+//             null
+//         );
+
+        
+//         await SendMail.SendEmail(mailObject, function (res) {
+//             console.log(res);
+//         });
+
+
+//         // send email to User 
+//         if(kpiOwnerInfo){
+//       let  mailBody = "Dear "+ kpiOwnerInfo.FirstName + ", <br><br>"
+//       //<first name last name> has signed-off your performance evaluation.
+//         mailBody = mailBody +  manager.FirstName +" "+manager.LastName+ " has signed-off your performance evaluation.<br><br>"
+//         mailBody=mailBody + "<br>To view, "+ " <a href="+config.APP_BASE_REDIRECT_URL+"=/employee/kpi-setup" + ">click here</a>.<br><br>Thank you,<br> "+config.ProductName+" Administrator<br>"
+//         var mailObject = SendMail.GetMailObject(
+//             kpiOwnerInfo.Email,
+//             "Performance Goals signed-off",
+//             mailBody,
+//             null,
+//             null
+//         );
+
+//         await SendMail.SendEmail(mailObject, function (res) {
+//             console.log(res);
+//         });
+//     }
+//     }
+
+// }
+
+
+
+
+// exports.sendEmailOnEmpSignoff = async (manager, kpiOwnerInfo) => {
+
+
+//     if (manager) {
+//         // send email to manager 
+// let mailBody =  "Dear " + manager.FirstName + ",<br><br>"
+// //<first name last name> has signed-off their performance evaluation.
+// mailBody = mailBody  +  kpiOwnerInfo.FirstName+" "+  kpiOwnerInfo.LastName+" has signed-off their performance evaluation.<br>"
+// mailBody=mailBody + "<br>To view, "+ " <a href="+config.APP_BASE_REDIRECT_URL+"=/employee/review-perf-goals-list" + ">click here</a>.<br><br>Thank you,<br> "+config.ProductName+" Administrator<br>"
+//         var mailObject = SendMail.GetMailObject(
+//             manager.Email,
+//             "Performance Goals signed-off",
+//            mailBody,
+//             null,
+//             null
+//         );
+
+        
+//         await SendMail.SendEmail(mailObject, function (res) {
+//             console.log(res);
+//         });
+
+
+//         // send email to User 
+//         if(kpiOwnerInfo){
+//       let  mailBody = "Dear "+ kpiOwnerInfo.FirstName + ", <br><br>"
+//         mailBody = mailBody + "You have signed-off your performance goals.<br><br>"
+//         mailBody=mailBody + "<br>To view, "+ " <a href="+config.APP_BASE_REDIRECT_URL+"=/employee/kpi-setup" + ">click here</a>.<br><br>Thank you,<br> "+config.ProductName+" Administrator<br>"
+//         var mailObject = SendMail.GetMailObject(
+//             kpiOwnerInfo.Email,
+//             "Performance Goals signed-off",
+//             mailBody,
+//             null,
+//             null
+//         );
+
+//         await SendMail.SendEmail(mailObject, function (res) {
+//             console.log(res);
+//         });
+//     }
+//     }
+
+// }
+
+
 exports.GetPGSignoffByOwner =  async (options)=>{
     console.log("Inside:GetPGSignoffByOwner")
     console.log(options);

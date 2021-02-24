@@ -7,6 +7,8 @@ const RatingScore = new mongoose.Schema({
 
     Text: { type: String, required: true },
     value: { type: String, required: true },
+    scale: { type: String, required: true },
+    definition: { type: String, required: true },
     organization: { type: mongoose.Schema.Types.ObjectId, ref: 'Organization', default: null },
     CreatedOn: { type: Date },
     CreatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User'},

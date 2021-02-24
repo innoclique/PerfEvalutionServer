@@ -669,7 +669,7 @@ exports.SubmitKpisByEmployee = async (options) => {
             if (User[0].Manager) {
                 let mailBody = "Dear "+ User[0].Manager.FirstName +", <br><br>"
                 mailBody = mailBody + "Your Direct Report, "+ User[0].FirstName + " has submitted the Performance Goals."
-                mailBody=mailBody + "<br>Please   "+ " <a href="+ config.APP_BASE_REDIRECT_URL+"=/employee/review-perf-goals-list" + ">click here</a> to login and review<br><br>Thank you,<br> " + config.ProductName+" Administrator<br>"
+                mailBody=mailBody + "<br>Please   "+ " <a href="+ config.APP_BASE_REDIRECT_URL+"=/employee/review-perf-goals-list" + ">click here</a> to login and review.<br><br>Thank you,<br> " + config.ProductName+" Administrator<br>"
                 var mailObject = SendMail.GetMailObject(
                     User[0].Manager.Email,
                     "Performance Goals submitted by "+ User[0].FirstName +" "+  User[0].LastName ,
@@ -820,7 +820,7 @@ exports.SubmitAllSignOffKpis = async (options) => {
             if (User[0].Manager) {
                 let mailBody = "Dear "+User[0].Manager.FirstName+",<br>"
                 mailBody = mailBody + "Your Direct Report, " + User[0].FirstName + " has submitted the Performance Goals.<br><br>" 
-                mailBody=mailBody + "<br>Please  "+ " <a href="+ config.APP_BASE_REDIRECT_URL+"=/employee/review-perf-goals-list" + ">click here</a> to login and review <br><br>Thank you,<br> " + config.ProductName+" Administrator<br>"
+                mailBody=mailBody + "<br>Please  "+ " <a href="+ config.APP_BASE_REDIRECT_URL+"=/employee/review-perf-goals-list" + ">click here</a> to login and review.<br><br>Thank you,<br> " + config.ProductName+" Administrator<br>"
                 var mailObject = SendMail.GetMailObject(
                     User[0].Manager.Email,
                     "Performance Goals submited for review",
@@ -915,7 +915,7 @@ exports.SubmitAllKpis = async (options) => {
             if (User[0].Manager) {
               let  mailBody = "Dear " + User[0].Manager.FirstName + ", <br>"
                 mailBody = mailBody + "Your Direct Report, "+ User[0].FirstName+" has submitted the Performance Goals.<br><br>"
-                mailBody=mailBody + "<br>Please   "+ " <a href="+ config.APP_BASE_REDIRECT_URL+"=/employee/review-perf-goals-list" + ">click here</a> to login and review<br><br>Thank you,<br> " + config.ProductName+" Administrator<br>"
+                mailBody=mailBody + "<br>Please   "+ " <a href="+ config.APP_BASE_REDIRECT_URL+"=/employee/review-perf-goals-list" + ">click here</a> to login and review.<br><br>Thank you,<br> " + config.ProductName+" Administrator<br>"
                 var mailObject = SendMail.GetMailObject(
                     User[0].Manager.Email,
                     "Performance Goals submitted by "+ User[0].FirstName +" "+  User[0].LastName ,
@@ -976,16 +976,16 @@ exports.UpdateKpi = async (kpi) => {
         kpi.Action = 'Updated';
         console.log(`kpi.Score = ${kpi.Score}`);
         const kpiOwnerInfo = await this.GetKpiDataById(kpi.kpiId)
-        if (kpi.IsManaFTSubmited) {
+       if (kpi.IsManaFTSubmited) {
             const Manager = await UserRepo.findById(kpi.UpdatedBy);
             kpi.ManagerFTSubmitedOn = new Date()
             kpi.ManagerSignOff = { SignOffBy: Manager.FirstName+" "+Manager.LastName, SignOffOn: new Date() }
 
            // const kpiOwnerInfo = this.GetKpiDataById(kpi.kpiId)
-            this.sendEmailOnManagerSignoff(Manager, kpiOwnerInfo);
+            this.sendEmailOnManagerSignoff(Manager, kpiOwnerInfo,kpi);
 
 
-        }
+       }
 
         if (kpi.ViewedByEmpOn) {
 
@@ -1070,8 +1070,8 @@ exports.addKpiTrack = async (kpi) => {
     let commentTest="";
     if (kpi.Action=='Create') {
         commentTest=`Created by ${actor.FirstName} on ${moment().format('lll')}`
-    } else if (kpi.Action=='Viewed')  {
-        commentTest=`${actor.FirstName} has viewed ${actor.FirstName} on ${moment().format('lll')}`
+    // } else if (kpi.Action=='Viewed')  {
+    //     commentTest=`${actor.FirstName} has viewed ${actor.FirstName} on ${moment().format('lll')}`
     } else if (kpi.Action=='Review')  {
         commentTest=`${actor.FirstName} has reviewed on ${moment().format('lll')}`
     }else{
@@ -1283,7 +1283,7 @@ exports.SubmitKpisByManager = async (options) => {
 };
 
 
-exports.sendEmailOnManagerSignoff = async (manager, kpiOwnerInfo) => {
+exports.sendEmailOnManagerSignoff = async (manager, kpiOwnerInfo,kpi) => {
 
 
     if (manager) {
@@ -1298,6 +1298,12 @@ mailBody=mailBody + "<br>To view details  "+ " <a href="+ config.APP_BASE_REDIRE
             null,
             null
         );
+
+        mailObject.attachments= [
+            {
+                path:kpi.KpiBase64data
+            }
+          ]
         
         await SendMail.SendEmail(mailObject, function (res) {
             console.log(res);
@@ -1648,7 +1654,7 @@ const PerformanceGoalStatus = async (employeeId) =>{
             if(!ManagerSignOff.SignOffBy){
                 return "Submitted for Sign-off";
             }else{
-                return "Sign-off";
+                return "Signed-off";
             }
             
         }
@@ -2408,8 +2414,8 @@ exports.SaveEmployeeFinalRating = async (finalRating) => {
                     "Employees.$[e].FinalRating.Self.RevComments": finalRating.RevComments,
                     "Employees.$[e].FinalRating.Self.YearEndRating": finalRating.OverallRating,
                     "Employees.$[e].FinalRating.Self.IsSubmitted": !finalRating.IsDraft ,
-                    "Employees.$[e].FinalRating.Self.SubmittedOn": finalRating.IsDraft ? null : new Date(),
-                    "Employees.$[e].FinalRating.Self.SignOff": finalRating.SignOff,
+                    "Employees.$[e].FinalRating.Self.SubmittedOn": (finalRating.IsDraft && !finalRating.IsSigned) ? null : new Date(),
+                    "Employees.$[e].FinalRating.Self.SignOff": finalRating.IsSigned? finalRating.SignOff :"",
                     "Employees.$[e].FinalRating.Status": 'Employee Submitted',
 
                     "Employees.$[e].FinalRating.ThirdSignatory.IsSubmitted": false,

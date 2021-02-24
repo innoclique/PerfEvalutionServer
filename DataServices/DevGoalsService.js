@@ -482,6 +482,92 @@ exports.addDevGoalTrack = async (devGoalModel) => {
 
 
 
+exports.GetEAReporteeReleasedKpiForm = async (manager) => {
+    try {
+        let {currentEvaluation} = manager;
+        const ManagerUserDomain = await UserRepo.findOne({ "_id": manager.id });
+        let evaluationYear="";
+        if(!currentEvaluation){
+            evaluationYear = await EvaluationUtils.GetOrgEvaluationYear(ManagerUserDomain.Organization);
+        }else{
+            evaluationYear=currentEvaluation;
+        }
+        console.log(`GetReporteeReleasedKpiForm:evaluationYear = ${evaluationYear}`);
+
+        const reportees = await UserRepo.aggregate([
+            { $match: { Organization: ObjectId(manager.orgId) } },
+            { $addFields: { EmployeeId: "$_id" } },
+            {
+                $project: {
+                    FirstName: 1,
+                    LastName: 1,
+                    Email: 1,
+                    EmployeeId: 1,
+                    Manager:1
+                }
+            }
+            ,
+            {
+                $lookup: {
+                    from: "kpiforms",
+                    localField: "EmployeeId",
+                    foreignField: "EmployeeId",
+                    as: "ReleasedKpiList"
+                }
+            },
+            {$match:{"ReleasedKpiList.IsActive": true, "ReleasedKpiList.KPIFor": "EA", "ReleasedKpiList.EvaluationYear": evaluationYear+""  }},
+           {$unwind:"$ReleasedKpiList"},
+          
+            
+            {
+                $lookup: {
+                    from: "kpis",
+                    localField: "EmployeeId",
+                    foreignField: "Owner",
+                    as: "KpiList"
+                }
+            },
+            { $addFields: { ReleasedKpis: "$ReleasedKpiList" } },
+            { $addFields: { KpiExist: { $gt: [{ $size: "$KpiList" }, 0] } } },
+            //{$match:{"Evalaution.Status":"Active"}},
+            {
+                $project: {
+                    //KpiList: 1,
+                    Email: 1,
+                    FirstName: 1,
+                    LastName: 1,
+                    EmployeeId: 1,     
+                    Manager:1,               
+                    KpiExist: 1,
+                    ReleasedKpis:1,
+                    KpiList: {
+                        "$filter": {
+                            "input": "$KpiList",
+                            "as": "result",
+                            "cond": {
+                                "$and": [
+                                    { "$eq": ["$$result.EvaluationYear", evaluationYear] },
+                                    { "$eq": ["$$result.IsDraft", false] },
+                                    { "$eq": ["$$result.IsSubmitedKPIs", true] }
+                                ]
+                            }
+                        }
+                    }
+                }
+            }
+        ])
+
+
+       
+return reportees;
+   
+
+    } catch (error) {
+        console.log('error', error)
+        logger.error(error);
+    }
+}
+
 
 
 

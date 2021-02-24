@@ -26,10 +26,11 @@ const MonerisRoute=require('./Routes/MonerisRoute');
 const TransactionsRoute=require('./Routes/TransactionsRoute');
 const ClientConfigRoute=require('./Routes/ClientConfigRoute');
 const notificationsRoute=require('./Routes/NotificationsRoute');
+const userActivityRoute=require('./Routes/UserActivityRoute');
 /////////////////////////////////////////////////////
 var logger=require('./logger');
 App.use(Cors());
-App.use(Express.json());  
+App.use(Express.json({limit:'50mb'}));  
 App.use(BodyParser.json());
 App.use(BodyParser.urlencoded({extended:true}));
 
@@ -50,6 +51,7 @@ App.use("/api/moneris/ticket",MonerisRoute);
 App.use("/api/transactions",TransactionsRoute);
 App.use("/api/clientconfig",ClientConfigRoute);
 App.use("/api/notifications",  notificationsRoute);
+App.use("/api/log/useractivity",  userActivityRoute);
 App.use(Cookieparser());
 ////////////////////global error handler-------
 App.use(AuthHelper.ErrorHandler);  

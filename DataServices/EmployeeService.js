@@ -274,7 +274,7 @@ try{
     const KpiStatus = Messages.constants.KPI_STATUS;
     //const KpiScore = Messages.constants.KPI_SCORE;
     // const coachingRem = Messages.constants.COACHING_REM_DAYS;
-    const KpiScore = await RatingScoreRepo.find();
+    const KpiScore = await RatingScoreRepo.find({ 'organization': Mongoose.Types.ObjectId(orgId) });
     const coachingRem = await CoachingRemainRepo.find();
     var allEvaluation = await EvaluationRepo.find({
         Employees: { $elemMatch: { _id: Mongoose.Types.ObjectId(empId) } },

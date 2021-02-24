@@ -9,6 +9,7 @@ const CompetencyRepo = require('../SchemaModels/Competency');
 const ModelMappingRepo = require('../SchemaModels/ModelMappings');
 const CompetencyMappingRepo = require('../SchemaModels/CompetencyMappings');
 const RsaAccountDetailsSchema = require('../SchemaModels/RsaAccountDetailsSchema');
+const RatingScores = require('../SchemaModels/RatingScore');
 const RoleRepo = require('../SchemaModels/Roles');
 const NoteRepo = require('../SchemaModels/Notes');
 const AuthHelper = require('../Helpers/Auth_Helper');
@@ -88,6 +89,7 @@ exports.CreateOrganization = async (organization) => {
             console.log(`${_orgDomain._id} : ${organization.IsDraft}`);
              if(_orgDomain._id && !organization.IsDraft){
                  console.log("Creating models");
+                  await loadOrganizationRatingScores(_orgDomain._id);
                  if (updatedBy.Role && updatedBy.Role=="RSA") {
                     await updateResellerAccountDetails(organization)
                  }
@@ -713,6 +715,27 @@ exports.sendEmailOnNoteUpdate = async (OwnerInfo,note) => {
 
     }
 
+}
+
+const loadOrganizationRatingScores = async (OrganizationId)=>{
+    console.log("Inside:loadOrganizationRatingScores : ",OrganizationId,config.ProductOrgId);
+    var ratings = [];
+        let _psaRatingScores = await RatingScores.find({'organization':Mongoose.Types.ObjectId(config.ProductOrgId)});
+        
+        for(var j=0;j<_psaRatingScores.length;j++){
+            let rating = _psaRatingScores[j];
+           
+            if(rating){
+                rating = rating.toObject();
+                delete rating._id;
+                rating['organization'] = Mongoose.Types.ObjectId(OrganizationId);
+                ratings.push(rating);
+            }
+            
+        }
+       
+    await RatingScores.insertMany(ratings);
+    
 }
 
 exports.sendEmailOnNoteCreate = async (OwnerInfo) => {

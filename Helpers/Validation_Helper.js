@@ -30,6 +30,7 @@ exports.ValidatePasswordUpdate = ( data)=>{
       userId: Joi.string().required().trim(),
       password: Joi.string().required(),
       oldPassword: Joi.string().required(),
+      isChangePassword: Joi.optional()
   });
   return schema;
 }

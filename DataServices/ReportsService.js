@@ -138,9 +138,11 @@ const getResellerPurchaseHistory = async (client) => {
 const getEvaluationsSummary = async (client) => {
     console.log('inside getEvaluationsSummary ', client);
     let whereObj = {};
-    let clientInfo = await organizationSchema.find({ '_id': client });
+    let clientInfo = await organizationSchema.findOne({ '_id': client });
     // let year = new Date().getFullYear();
-    let year = getYearStart(clientInfo.StartMonth);
+    console.log('clientInfo.StartMonth : ',JSON.stringify(clientInfo));
+    var year =  await getYearStart(clientInfo.StartMonth);
+    console.log(' year : ',year);
     whereObj['EvaluationYear'] = `${year}`;
     whereObj['Company'] = Mongoose.Types.ObjectId(client);
     console.log(whereObj)
@@ -149,15 +151,16 @@ const getEvaluationsSummary = async (client) => {
     clientSummaryResponse = { data: yearEndCount, label: 'Year-end' };
     return clientSummaryResponse;
 }
+var months = ["Jan", "Feb", "Mar", "Apr", "May", "June", "July",
+"Aug", "Sep", "Oct", "Nov", "Dec"];
 
  const getYearStart  = async (month) => {
-    if (this.months.indexOf(month) > new Date().getMonth()) {
+     console.log('month : ',month);
+    if (month > new Date().getMonth()) {
         var currentYear = (new Date().getFullYear() - 1).toString();
-        currentYear = currentYear.substring(2);
         return currentYear;
     } else {
         var currentYear = new Date().getFullYear().toString();
-        currentYear = currentYear.substring(2);
         return currentYear;
     }
 }

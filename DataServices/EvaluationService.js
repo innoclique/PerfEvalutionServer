@@ -1506,12 +1506,98 @@ exports.GetTSReporteeEvaluations = async (ts) => {
 
 
 exports.ReleaseKpiForm = async (evaluation) => {
+ 
+ 
+    try {
+
     const g = await KpiFormRepo.insertMany(evaluation);
     // const _evaluation = await KpiFormRepo(evaluation);
     // var savedEvauation = await _evaluation.save();
+const empIds= evaluation.map(e=>e.EmployeeId);
+
+var _empObjs = await UserRepo.find({  _id: { $in: empIds }  }).populate('Manager');
+
+const empManagers= _empObjs.map(e=>e.Manager);
+
+var _deliveremails=[];
+_empObjs.map(e => {
+    _deliveremails.push({
+        User: e._id,
+        Type: 'Employee Performance Goals',
+        IsDelivered: false,
+        CreatedOn: new Date(),
+        Email: e.Email,
+        Template: `<p>Dear ${e.FirstName} <br/></p><br/><br/>
+                    Your Performance Goals is ready.
+                    <br/>
+                    Please <a href=" ${config.APP_BASE_REDIRECT_URL}=/employee/kpi-setup" >click here</a> to login and complete the process.
+                    <br/>
+                    </p>
+                    <p>Thank you, <br/>
+                    ${config.ProductName} Administrator</br></p>`,
+        Company: e.Organization,
+        Subject: 'Your Performance Goals has been released'
+    })
+
+    _deliveremails.push({
+        User: e._id,
+        Type: 'Employee Performance Goals',
+        IsDelivered: false,
+        CreatedOn: new Date(),
+        Email: e.Manager.Email,
+        Template: `<p>Dear ${e.Manager.FirstName} <br/></p><br/><br/>
+                    Your Direct Reportee ${e.FirstName} ${e.LastName} Performance Goals is ready.
+                    <br/>
+                    Please <a href=" ${config.APP_BASE_REDIRECT_URL}=/employee/review-perf-goals-list">click here</a> to login.
+                    <br/>
+                    </p>
+                    <p>Thank you, <br/>
+                    ${config.ProductName} Administrator</br></p>`,
+        Company: e.Organization,
+        Subject: 'Your Direct Reportee Performance Goals has been released'
+    })
+
+    
+})
+
+
+var de = await DeliverEmailRepo.insertMany(_deliveremails);
+
+// for (let index = 0; index < _deliveremails.length; index++) {
+//     const element = _deliveremails[index];
+//     fs.readFile('./EmailTemplates/EmailTemplatesg.html', function read(
+//         err,
+//         bufcontent
+//     ) {
+//         var content = bufcontent.toString();
+//         content = content.replace("##Title##", element.Subject);
+//         content = content.replace("##subTitle##", element.Subject);
+//         content = content.replace('##Template##', element.Template);
+
+//         var mailObject = SendMail.GetMailObject(
+//             element.Email,
+//             element.Subject,
+//             content,
+//             null, null
+//         );
+
+//         SendMail.SendEmail(mailObject, async function (res) {
+//             // console.log(res);
+//             await DeliverEmailRepo.update({ _id: element._id }, { IsDelivered: true })
+//         });
+
+//     });
+
+// }
+
     await this.sendmail(evaluation,true);
 
     return true;
+
+} catch (error) {
+    console.log('error', error)
+    logger.error(error);
+}
 }
 
 exports.sendmail = async (ev,isKpi) => {

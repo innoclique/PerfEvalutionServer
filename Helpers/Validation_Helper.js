@@ -748,7 +748,7 @@ else if (data.Action=='Review') {
       Action: Joi.string().required(),
       ManagerScore: Joi.optional(),
       YECommManager: Joi.optional(),
-      CoachingReminder: Joi.string().optional(),
+      CoachingReminder: Joi.optional(),
       ManagerComments: Joi.optional(),
       IsManaFTSubmited: Joi.any().optional(),
       KpiBase64data: Joi.any().optional(),

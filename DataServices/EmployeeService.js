@@ -16,6 +16,7 @@ const IndustryRepo = require('../SchemaModels/Industry');
 const AppRoleRepo = require('../SchemaModels/ApplicationRolesSchema');
 const RoleRepo = require('../SchemaModels/Roles');
 const KpiRepo = require('../SchemaModels/KPI');
+const KpiHistoryRepo = require('../SchemaModels/KPIHistory');
 const MeasureCriteriaRepo = require('../SchemaModels/MeasurementCriteria');
 const IndustriesRepo = require('../SchemaModels/Industry');
 const EvaluationRepo = require('../SchemaModels/Evalution');
@@ -274,7 +275,7 @@ try{
     const KpiStatus = Messages.constants.KPI_STATUS;
     //const KpiScore = Messages.constants.KPI_SCORE;
     // const coachingRem = Messages.constants.COACHING_REM_DAYS;
-    const KpiScore = await RatingScoreRepo.find();
+    const KpiScore = await RatingScoreRepo.find({ 'organization': Mongoose.Types.ObjectId(orgId) });
     const coachingRem = await CoachingRemainRepo.find();
     var allEvaluation = await EvaluationRepo.find({
         Employees: { $elemMatch: { _id: Mongoose.Types.ObjectId(empId) } },
@@ -414,6 +415,8 @@ exports.AddKpi = async (kpiModel) => {
         
         var Kpi = new KpiRepo(kpiModel);
         Kpi = await Kpi.save();
+        await  KpiHistoryRepo.insertMany([ {KpiData:Kpi, CreatedBy:kpiModel.CreatedBy,CreatedOn:new Date(),Action:"Created" } ]);
+        
         //Updateing other kpis waiting 
         if (kpiModel.Weighting!='' && kpiModel.IsDraft=='false') {
             let updatedKPIs = await KpiRepo.updateMany({
@@ -557,6 +560,17 @@ exports.GetAllKpis = async (data) => {
 };
 
 
+
+exports.GetKpisHistoryByKpiId = async (data) => {
+    
+
+    const Kpi = await KpiHistoryRepo.find({ 'KpiData._id': Mongoose.Types.ObjectId(data.kpiId)})
+        .populate('KpiData.MeasurementCriteria.measureId CreatedBy')
+        .sort({ CreatedOn: -1 });
+
+
+    return Kpi;
+};
 
 exports.GetKpisByManager = async (data) => {
     let {currentEvaluation} = data;
@@ -951,11 +965,14 @@ exports.SubmitAllKpis = async (options) => {
         }
 
         if (submitedKPIs.nModified >0 && kpis.length>0) {
-            kpis.forEach(e=> {
+            kpis.forEach(async e=> {
                 e.UpdatedBy=empId;
                 e.kpiId=e._id;
                 e.Action="Submitted"
                 this.addKpiTrack(e)
+                const kpiData = await KpiRepo.findById(e._id)
+                await  KpiHistoryRepo.insertMany( { KpiData:kpiData, CreatedBy:empId, CreatedOn:new Date(), Action:"Submitted"  } );
+
             })
         }
 
@@ -973,11 +990,12 @@ exports.SubmitAllKpis = async (options) => {
 
 exports.UpdateKpi = async (kpi) => {
     try {
+        let action=kpi.Action;
         kpi.Action = 'Updated';
         console.log(`kpi.Score = ${kpi.Score}`);
         const kpiOwnerInfo = await this.GetKpiDataById(kpi.kpiId)
+        const Manager = await UserRepo.findById(kpi.UpdatedBy);
        if (kpi.IsManaFTSubmited) {
-            const Manager = await UserRepo.findById(kpi.UpdatedBy);
             kpi.ManagerFTSubmitedOn = new Date()
             kpi.ManagerSignOff = { SignOffBy: Manager.FirstName+" "+Manager.LastName, SignOffOn: new Date() }
 
@@ -995,6 +1013,7 @@ exports.UpdateKpi = async (kpi) => {
 
         kpi.UpdatedOn = new Date();
         let empKpi = await KpiRepo.findByIdAndUpdate(kpi.kpiId, kpi);
+        await  KpiHistoryRepo.insertMany({KpiData:empKpi, CreatedBy:kpi.UpdatedBy,CreatedOn:new Date(),Action:action?action:"Updated" });
         this.addKpiTrack(kpi);
 
         if (kpi.Weighting!='' && kpiOwnerInfo.Weighting==0) {
@@ -1009,6 +1028,10 @@ exports.UpdateKpi = async (kpi) => {
                 { $set: { 'Weighting': kpi.Weighting } });
         }
         
+    if(action=="Review") this.sendEmailOnManagerUpdate(Manager, kpiOwnerInfo,kpi);
+    if(action=="DeActive" &&(kpiOwnerInfo.IsSubmitedKPIs|| kpiOwnerInfo.ManagerSignOff.submited ) && kpi.UpdatedBy==kpiOwnerInfo.ManagerId.toString()) this.sendEmailOnDeactivateByManager(Manager, kpiOwnerInfo.Owner,kpi);
+    if(action=="DeActive" &&(kpiOwnerInfo.IsSubmitedKPIs|| kpiOwnerInfo.ManagerSignOff.submited ) && kpi.UpdatedBy==kpiOwnerInfo.Owner._id.toString()) this.sendEmailOnDeactivateByEmp(Manager, kpiOwnerInfo.Owner,kpi);
+
         if(kpi.ManagerScore && kpi.ManagerScore!=""){
             await EvaluationService.UpdateEvaluationStatus(empKpi.Owner.toString(),"MANAGER_SUBMITTED_PG_SCORE");
         }
@@ -1161,11 +1184,15 @@ exports.SubmitAllKpisByManager = async (options) => {
            
         }
         if (submitedKPIs.nModified >0 && submitingKpis.length>0) {
-            submitingKpis.forEach(e=> {
+            submitingKpis.forEach(async e=> {
                 e.UpdatedBy=e.ManagerId;
                 e.kpiId=e._id;
                 e.Action="Sign-off"
                 this.addKpiTrack(e)
+
+                const kpiData = await KpiRepo.findById(e._id)
+                await  KpiHistoryRepo.insertMany( { KpiData:kpiData, CreatedBy:ManagerId, CreatedOn:new Date(), Action:"Submitted"  } );
+
             })
         }
 
@@ -1299,11 +1326,6 @@ mailBody=mailBody + "<br>To view details  "+ " <a href="+ config.APP_BASE_REDIRE
             null
         );
 
-        mailObject.attachments= [
-            {
-                path:kpi.KpiBase64data
-            }
-          ]
         
         await SendMail.SendEmail(mailObject, function (res) {
             console.log(res);
@@ -1313,7 +1335,7 @@ mailBody=mailBody + "<br>To view details  "+ " <a href="+ config.APP_BASE_REDIRE
         // send email to User 
         if(kpiOwnerInfo){
       let  mailBody = "Dear "+ kpiOwnerInfo.FirstName + ", <br><br>"
-        mailBody = mailBody + "Your manager, "+  manager.FirstName + " has <edited> and signed-off your Performance Goals.<br><br>"
+        mailBody = mailBody + "Your manager, "+  manager.FirstName +" "+manager.LastName + " has <edited> and signed-off your Performance Goals.<br><br>"
         mailBody=mailBody + "<br>Please  "+ " <a href="+config.APP_BASE_REDIRECT_URL+"=/employee/kpi-setup" + ">click here</a> to login and review. You may want to discuss the updates, if any, with your manager.<br><br>Thank you,<br> "+config.ProductName+" Administrator<br>"
         var mailObject = SendMail.GetMailObject(
             kpiOwnerInfo.Email,
@@ -3462,6 +3484,135 @@ if (manager) {
                                 });
                             }
     }
+
+
+    exports.sendEmailOnManagerUpdate = async (manager, kpiOwnerInfo,kpi) => {
+let Owner=kpiOwnerInfo.Owner;
+
+        if (manager) {
+    
+    
+            // send email to User 
+            if(Owner){
+          let  mailBody = "Dear "+ Owner.FirstName + ", <br><br>"
+            mailBody = mailBody + "Your manager, "+  manager.FirstName+" "+manager.LastName + " has updated Performance Goals.<br><br>"
+            mailBody=mailBody + "<br>Please  "+ " <a href="+config.APP_BASE_REDIRECT_URL+"=/employee/kpi-setup" + ">click here</a> to login.<br><br>Thank you,<br> "+config.ProductName+" Administrator<br>"
+            var mailObject = SendMail.GetMailObject(
+                Owner.Email,
+                "Your Performance Goal updated",
+                mailBody,
+                null,
+                null
+            );
+
+            mailObject.attachments= [
+                {
+                    filename: kpiOwnerInfo.Kpi+'.pdf',
+                    path:kpi.KpiBase64data
+                }
+              ]
+
+    
+            await SendMail.SendEmail(mailObject, function (res) {
+                console.log(res);
+            });
+        }
+        }
+    
+    }
+
+    
+    exports.sendEmailOnDeactivateByManager = async (manager, Owner,kpi) => {
+       
+        
+        if (manager) {
+    
+
+              // send email to manager  //A performance goal has been deactivated by <first name last name>.
+              if(Owner){
+                let  mailBody = "Dear "+ manager.FirstName + ", <br><br>"
+                  mailBody = mailBody + "A performance goal has been deactivated.<br><br>"
+                  mailBody=mailBody + "<br>To view, "+ " <a href="+config.APP_BASE_REDIRECT_URL+"=/employee/review-perf-goals-list" + ">click here</a> <br><br>Thank you,<br> "+config.ProductName+" Administrator<br>"
+                  var mailObject = SendMail.GetMailObject(
+                      manager.Email,
+                      "Performance Goal deactivated",
+                      mailBody,
+                      null,
+                      null
+                  );
+      
+                  await SendMail.SendEmail(mailObject, function (res) {
+                      console.log(res);
+                  });
+    
+            // send email to User 
+            if(Owner){
+          let  mailBody = "Dear "+ Owner.FirstName + ", <br><br>"
+            mailBody = mailBody + "A performance goal has been deactivated  by "+  manager.FirstName+" "+manager.LastName + ".<br><br>"
+            mailBody=mailBody + "<br>To view, "+ " <a href="+config.APP_BASE_REDIRECT_URL+"=/employee/kpi-setup" + ">click here</a> <br><br>Thank you,<br> "+config.ProductName+" Administrator<br>"
+            var mailObject = SendMail.GetMailObject(
+                Owner.Email,
+                "Performance Goal deactivated",
+                mailBody,
+                null,
+                null
+            );
+
+            await SendMail.SendEmail(mailObject, function (res) {
+                console.log(res);
+            });
+        }
+        }
+    
+    }
+
+}
+
+    exports.sendEmailOnDeactivateByEmp = async (manager, Owner,kpi) => {
+       
+        
+                if (manager) {
+            
+
+                      // send email to manager  //A performance goal has been deactivated by <first name last name>.
+                      if(Owner){
+                        let  mailBody = "Dear "+ manager.FirstName + ", <br><br>"
+                          mailBody = mailBody + "A performance goal has been deactivated by  "+  Owner.FirstName+" "+Owner.LastName + ".<br><br>"
+                          mailBody=mailBody + "<br>To view, "+ " <a href="+config.APP_BASE_REDIRECT_URL+"=/employee/review-perf-goals-list" + ">click here</a> <br><br>Thank you,<br> "+config.ProductName+" Administrator<br>"
+                          var mailObject = SendMail.GetMailObject(
+                              manager.Email,
+                              "Performance Goal deactivated",
+                              mailBody,
+                              null,
+                              null
+                          );
+              
+                          await SendMail.SendEmail(mailObject, function (res) {
+                              console.log(res);
+                          });
+            
+                    // send email to User 
+                    if(Owner){
+                  let  mailBody = "Dear "+ Owner.FirstName + ", <br><br>"
+                    mailBody = mailBody + "A performance goal has been deactivated.<br><br>"
+                    mailBody=mailBody + "<br>To view, "+ " <a href="+config.APP_BASE_REDIRECT_URL+"=/employee/kpi-setup" + ">click here</a> <br><br>Thank you,<br> "+config.ProductName+" Administrator<br>"
+                    var mailObject = SendMail.GetMailObject(
+                        Owner.Email,
+                        "Performance Goal deactivated",
+                        mailBody,
+                        null,
+                        null
+                    );
+        
+                    await SendMail.SendEmail(mailObject, function (res) {
+                        console.log(res);
+                    });
+                }
+                }
+            
+            }
+
+        }
 
 
     exports.updateNotificationAsRead = async (options) => {

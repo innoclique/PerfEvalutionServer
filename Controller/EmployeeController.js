@@ -271,6 +271,13 @@ exports.GetAllKpis = async (req, res, next) => {
         .catch(err => next(err));
 }
 
+
+exports.GetKpisHistoryByKpiId = async (req, res, next) => {
+    await EmployeeService.GetKpisHistoryByKpiId(req.body)
+        .then(Response => Response ? res.status(200).json(Response) : res.status(404).json("Kpi Not Found"))
+        .catch(err => next(err));
+}
+
 exports.CheckEvaluationPgRollout = async (req, res, next) => {
     await EmployeeService.hasEvaluationPgRollout(req.body)
         .then(Response => Response ? res.status(200).json(Response) : res.status(404).json("Kpi Not Found"))

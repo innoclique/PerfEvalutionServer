@@ -645,6 +645,7 @@ exports.GetReporteeReleasedKpiForm = async (manager) => {
             { $addFields: { ReleasedKpis: "$ReleasedKpiList" } },
             { $addFields: { KpiExist: { $gt: [{ $size: "$KpiList" }, 0] } } },
             //{$match:{"Evalaution.Status":"Active"}},
+            {$match:{"ReleasedKpiList.IsActive": true,"ReleasedKpiList.EvaluationYear": evaluationYear+""  }},
             {
                 $project: {
                     //KpiList: 1,
@@ -763,6 +764,17 @@ const filterEmployeePG = async (pglist) => {
 
 exports.GetTSReleasedKpiForm = async (manager) => {
     try {
+        let {currentEvaluation} = manager;
+        const ManagerUserDomain = await UserRepo.findOne({ "_id": manager.id });
+        let evaluationYear="";
+        if(!currentEvaluation){
+            evaluationYear = await EvaluationUtils.GetOrgEvaluationYear(ManagerUserDomain.Organization);
+        }else{
+            evaluationYear=currentEvaluation;
+        }
+        console.log(`GetTSReleasedKpiForm:evaluationYear = ${evaluationYear}`);
+
+
         const reportees = await UserRepo.aggregate([
             { $match: { ThirdSignatory: ObjectId(manager.id) } },
             { $addFields: { EmployeeId: "$_id" } },
@@ -784,7 +796,8 @@ exports.GetTSReleasedKpiForm = async (manager) => {
                     as: "ReleasedKpiList"
                 }
             },
-            {$match:{"ReleasedKpiList.IsActive": true,"ReleasedKpiList.EvaluationYear": new Date().getFullYear()+""  }},
+            // {$match:{"ReleasedKpiList.IsActive": true,"ReleasedKpiList.EvaluationYear": new Date().getFullYear()+""  }},
+            {$match:{"ReleasedKpiList.IsActive": true,"ReleasedKpiList.EvaluationYear": evaluationYear+""  }},
            {$unwind:"$ReleasedKpiList"},
           
             
@@ -823,6 +836,8 @@ exports.GetTSReleasedKpiForm = async (manager) => {
             { $addFields: { ReleasedKpis: "$ReleasedKpiList" } },
             { $addFields: { KpiExist: { $gt: [{ $size: "$KpiList" }, 0] } } },
             //{$match:{"Evalaution.Status":"Active"}},
+            {$match:{"ReleasedKpiList.IsActive": true,"ReleasedKpiList.EvaluationYear": evaluationYear+""  }},
+            
             {
                 $project: {
                     //KpiList: 1,
@@ -832,7 +847,7 @@ exports.GetTSReleasedKpiForm = async (manager) => {
                             "as": "goalresult",
                             "cond": {
                                 "$and": [
-                                    { "$eq": ["$$goalresult.CreatedYear", new Date().getFullYear()+""] },
+                                    { "$eq": ["$$goalresult.CreatedYear", currentEvaluation+""] },
                                     { "$eq": ["$$goalresult.IsDraft", false] },
                                     { "$eq": ["$$goalresult.IsGoalSubmited", true] }
                                 ]
@@ -845,7 +860,7 @@ exports.GetTSReleasedKpiForm = async (manager) => {
                             "as": "strresult",
                             "cond": {
                                 "$and": [
-                                    { "$eq": ["$$strresult.CreatedYear", new Date().getFullYear()+""] },
+                                    { "$eq": ["$$strresult.CreatedYear", currentEvaluation+""] },
                                     { "$eq": ["$$strresult.IsDraft", false] },
                                     { "$eq": ["$$strresult.IsStrengthSubmited", true] }
                                 ]
@@ -858,7 +873,7 @@ exports.GetTSReleasedKpiForm = async (manager) => {
                             "as": "accompresult",
                             "cond": {
                                 "$and": [
-                                    { "$eq": ["$$accompresult.EvaluationYear", new Date().getFullYear()+""] },
+                                    { "$eq": ["$$accompresult.EvaluationYear", evaluationYear+""] },
                                     { "$eq": ["$$accompresult.IsDraft", false] },
                                     { "$eq": ["$$accompresult.ShowToManager", true] }
                                 ]
@@ -878,7 +893,7 @@ exports.GetTSReleasedKpiForm = async (manager) => {
                             "as": "result",
                             "cond": {
                                 "$and": [
-                                    { "$eq": ["$$result.EvaluationYear", new Date().getFullYear().toString()] },
+                                    { "$eq": ["$$result.EvaluationYear", evaluationYear] },
                                     { "$eq": ["$$result.IsDraft", false] },
                                     { "$eq": ["$$result.IsSubmitedKPIs", true] }
                                 ]

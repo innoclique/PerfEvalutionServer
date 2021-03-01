@@ -280,11 +280,33 @@ exports.UpdatePassword = async (resetModel) => {
             throw Error("Invalid old password");
         }
         await   User.updateOne({$set:{
-        IsPswChangedOnFirstLogin : true,
-        IsActive :true,
-        PswUpdatedOn : new Date(),
-        Password : Bcrypt.hashSync(resetModel.password, 10)
-    }})
+                IsPswChangedOnFirstLogin : true,
+                IsActive :true,
+                PswUpdatedOn : new Date(),
+                Password : Bcrypt.hashSync(resetModel.password, 10)
+        }})
+
+        if (resetModel.isChangePassword) {
+            const curUser = await UserRepo.findById(id);
+
+            if (curUser) {
+                let mailBody = "Dear " + curUser.FirstName + ", <br><br>"
+                mailBody = mailBody + "Your " + config.ProductName + " password was changed successfully. If you did not make this change, please contact your administrator immediately.<br><br>"
+                mailBody = mailBody + "<br>To login," + " <a href=" + config.APP_BASE_REDIRECT_URL + "=/dashboard" + ">click here</a><br><br> Thank you,<br> " + config.ProductName + " Administrator<br><br>"
+
+                var mailObject = SendMail.GetMailObject(
+                    curUser.Email,
+                    config.ProductName + " Password Changed",
+                    mailBody,
+                    null,
+                    null
+                );
+
+                await SendMail.SendEmail(mailObject, function (res) {
+                    console.log(res);
+                });
+            }
+        }
 
         return { status: "success" };
     } else { throw Error("No user found"); }

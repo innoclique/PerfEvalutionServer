@@ -10,8 +10,14 @@ const {AddPaymentConfiguration,
     FindPriceList,
     FindTaxRateByName,
     DeletePaymentRelease,
-    SendPaymentInfoEmailService
+    SendPaymentInfoEmailService,
+    FindOverridePriceScale
 } = require('../DataServices/PaymentConfigService');
+
+const getOverridePriceScaleCtrl = async (req,res,next)=>{
+    let overridePriceScale = await FindOverridePriceScale(req.body);
+    res.json(overridePriceScale);
+}
 
 const sendPaymentInfoEmailCtrl = async (req,res,next)=>{
     let EmailResponse = await SendPaymentInfoEmailService(req.body);
@@ -80,6 +86,7 @@ const deletePaymentReleaseCtrl = async (req,res,next)=>{
 }
 
 module.exports = {
+    GetOverridePriceScaleCtrl:getOverridePriceScaleCtrl,
     AddPaymentConfigCtrl:addPaymentConfiguartion,
     findPaymentSettingCtrl:findPaymentSettingCtrl,
     FindScaleByClientTypeCtrl:findScaleByClientTypeCtrl,

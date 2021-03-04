@@ -606,6 +606,15 @@ const findRangeList = async (options) => {
     let rangeList = await ProductPriceScaleRepo.find(options);
     return rangeList;
 }
+const findOverridePriceScale = async (options) => {
+    console.log("Inside:findOverridePriceScale");
+    let currentEvaluationInfo = await EvaluationUtils.getOrganizationStartAndEndDates(options.Organization);
+    options.EvaluationYear = ""+currentEvaluationInfo.start.format("YYYY");
+    console.log(options)
+    let overrideScale = await OverridePriceScaleRepo.find(options);
+    console.log(overrideScale);
+    return overrideScale;
+};
 /*const init = async ()=>{
     console.log("Loading.....")
     await processPaymentEmails({_id:"601abe02ded5335a5ae34867"})
@@ -624,6 +633,7 @@ module.exports = {
     FindPriceList:findPriceList,
     FindTaxRateByName:getTaxRateByName,
     DeletePaymentRelease:deletePaymentRelease,
-    SendPaymentInfoEmailService:sendPaymentInfoEmail
+    SendPaymentInfoEmailService:sendPaymentInfoEmail,
+    FindOverridePriceScale:findOverridePriceScale
 }
 

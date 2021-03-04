@@ -11,9 +11,11 @@ const {AddPaymentConfigCtrl,
     FindPriceListCtrl,
     FindTaxRateByNameCtrl,
     DeletePaymentReleaseCtrl,
-    SendPaymentInfoEmailCtrl
+    SendPaymentInfoEmailCtrl,
+    GetOverridePriceScaleCtrl
 } = require('../Controller/PaymentConfigController');
 
+router.post("/override/price/scale", GetOverridePriceScaleCtrl);
 router.post("/add/config", AddPaymentConfigCtrl);
 router.post("/range/list", FindRangeListCtrl);
 router.post("/Scale", FindScaleByClientTypeCtrl);

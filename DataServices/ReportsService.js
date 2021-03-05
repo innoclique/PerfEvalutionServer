@@ -1,10 +1,11 @@
 const organizationSchema = require("../SchemaModels/OrganizationSchema");
+const PaymentReleaseSchema = require("../SchemaModels/PaymentReleaseSchema");
 const EvaluationRepo = require('../SchemaModels/Evalution');
 const Mongoose = require("mongoose");
 
 const getReport = async (options) => {
     console.log('inside getReport');
-    let { reportType, orgId } = options
+    let { reportType, orgId, year } = options
     let response = {};
     switch (reportType) {
         case 'RESELLER_INFO':
@@ -37,6 +38,12 @@ const getReport = async (options) => {
         case 'EA_EVALUATIONS':
             response = await getEAEvaluations(orgId);
             break;
+        case 'PURCHASE_SUMMARY':
+            response = await getClientPurchaseSummary(orgId, year);
+            break;
+
+
+
 
         default:
             break;
@@ -68,7 +75,7 @@ const getClientPurchaseInfo = async (whereObj) => {
 
     return await organizationSchema.aggregate([
         {
-            $match:whereObj
+            $match: whereObj
         },
         {
             $lookup: {
@@ -80,8 +87,8 @@ const getClientPurchaseInfo = async (whereObj) => {
         },
         {
             $project: {
-                _id: 0, 
-                Organization: "$$ROOT", 
+                _id: 0,
+                Organization: "$$ROOT",
                 paymentReleases: {
                     $filter: {
                         input: "$paymentReleases",
@@ -89,7 +96,7 @@ const getClientPurchaseInfo = async (whereObj) => {
                         cond: { $eq: ["$$payment.Status", "Complete"] }
                     }
                 },
-    
+
             }
         },
         {
@@ -97,6 +104,71 @@ const getClientPurchaseInfo = async (whereObj) => {
         },
         { $sort: { 'Organization.Name': 1 } }
     ]);
+}
+
+const getClientPurchaseSummary = async (ParentOrganization, year) => {
+    console.log('inside getClientPurchaseSummary ', ParentOrganization, year);
+
+    var paymentSummary = await PaymentReleaseSchema.aggregate(
+        [
+            { $match: { "Paymentdate": { $exists: true }, "TOTAL_PAYABLE_AMOUNT": { $exists: true }, "Status": "Complete" } },
+            {
+                $lookup:
+                {
+                    from: "organizations",
+                    localField: "Organization",
+                    foreignField: "_id",
+                    as: "org"
+                }
+            },
+            {
+                $project: {
+                    month: { $month: "$Paymentdate" },
+                    year: { $year: "$Paymentdate" },
+                    TOTAL_PAYABLE_AMOUNT: 1,
+                    UsageType: 1,
+                    Organization: 1,
+                    org: { $arrayElemAt: ["$org", 0] },
+                }
+            },
+            { $match: { "year": year, "org.ParentOrganization": Mongoose.Types.ObjectId(ParentOrganization) } },
+
+            {
+                $group: {
+                    _id: { month: "$month", UsageType: "$UsageType" },
+                    total: { $sum: "$TOTAL_PAYABLE_AMOUNT" }
+                }
+            },
+            { $sort: { month: 1 } },
+
+        ]
+    );
+    console.log('paymentSummary ::: ', JSON.stringify(paymentSummary));
+    let result = {};
+   
+    let licenseData =[];
+    let employeesData =[];
+
+for (var i =1 ; i<=12;i++){      
+  const employeesItem = paymentSummary.find(item => item._id.month == i && item._id.UsageType=='Employees');
+  const licenseItem = paymentSummary.find(item => item._id.month == i && item._id.UsageType=='License');
+  
+  if (employeesItem) {
+    employeesData.push(parseFloat(employeesItem.total));
+  } else {
+    employeesData.push(0);
+  }
+  if (licenseItem) {
+    licenseData.push(parseFloat(licenseItem.total));
+  } else {
+    licenseData.push(0);
+  }
+  result.license = licenseData;
+  result.employees = employeesData;
+}
+
+console.log(result);
+    return result;
 }
 
 const getClientInfo = async (ParentOrganization) => {
@@ -135,14 +207,15 @@ const getResellerPurchaseHistory = async (client) => {
     return result;
 }
 
+
 const getEvaluationsSummary = async (client) => {
     console.log('inside getEvaluationsSummary ', client);
     let whereObj = {};
     let clientInfo = await organizationSchema.findOne({ '_id': client });
     // let year = new Date().getFullYear();
-    console.log('clientInfo.StartMonth : ',JSON.stringify(clientInfo));
-    var year =  await getYearStart(clientInfo.StartMonth);
-    console.log(' year : ',year);
+    console.log('clientInfo.StartMonth : ', JSON.stringify(clientInfo));
+    var year = await getYearStart(clientInfo.StartMonth);
+    console.log(' year : ', year);
     whereObj['EvaluationYear'] = `${year}`;
     whereObj['Company'] = Mongoose.Types.ObjectId(client);
     console.log(whereObj)
@@ -152,10 +225,10 @@ const getEvaluationsSummary = async (client) => {
     return clientSummaryResponse;
 }
 var months = ["Jan", "Feb", "Mar", "Apr", "May", "June", "July",
-"Aug", "Sep", "Oct", "Nov", "Dec"];
+    "Aug", "Sep", "Oct", "Nov", "Dec"];
 
- const getYearStart  = async (month) => {
-     console.log('month : ',month);
+const getYearStart = async (month) => {
+    console.log('month : ', month);
     if (month > new Date().getMonth()) {
         var currentYear = (new Date().getFullYear() - 1).toString();
         return currentYear;

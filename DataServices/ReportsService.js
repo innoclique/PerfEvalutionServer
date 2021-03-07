@@ -41,10 +41,9 @@ const getReport = async (options) => {
         case 'PURCHASE_SUMMARY':
             response = await getClientPurchaseSummary(orgId, year);
             break;
-
-
-
-
+        case 'RESELLER_PURCHASE_SUMMARY':
+            response = await getResellerClientPurchaseSummary(orgId, year);
+            break;
         default:
             break;
     }
@@ -131,7 +130,7 @@ const getClientPurchaseSummary = async (ParentOrganization, year) => {
                     org: { $arrayElemAt: ["$org", 0] },
                 }
             },
-            { $match: { "year": year, "org.ParentOrganization": Mongoose.Types.ObjectId(ParentOrganization) } },
+            { $match: { "year": year, "org.ParentOrganization": Mongoose.Types.ObjectId(ParentOrganization), "org.ClientType": "Client" } },
 
             {
                 $group: {
@@ -145,29 +144,93 @@ const getClientPurchaseSummary = async (ParentOrganization, year) => {
     );
     console.log('paymentSummary ::: ', JSON.stringify(paymentSummary));
     let result = {};
-   
-    let licenseData =[];
-    let employeesData =[];
 
-for (var i =1 ; i<=12;i++){      
-  const employeesItem = paymentSummary.find(item => item._id.month == i && item._id.UsageType=='Employees');
-  const licenseItem = paymentSummary.find(item => item._id.month == i && item._id.UsageType=='License');
-  
-  if (employeesItem) {
-    employeesData.push(parseFloat(employeesItem.total));
-  } else {
-    employeesData.push(0);
-  }
-  if (licenseItem) {
-    licenseData.push(parseFloat(licenseItem.total));
-  } else {
-    licenseData.push(0);
-  }
-  result.license = licenseData;
-  result.employees = employeesData;
+    let licenseData = [];
+    let employeesData = [];
+
+    for (var i = 1; i <= 12; i++) {
+        const employeesItem = paymentSummary.find(item => item._id.month == i && item._id.UsageType == 'Employees');
+        const licenseItem = paymentSummary.find(item => item._id.month == i && item._id.UsageType == 'License');
+
+        if (employeesItem) {
+            employeesData.push(parseFloat(employeesItem.total));
+        } else {
+            employeesData.push(0);
+        }
+        if (licenseItem) {
+            licenseData.push(parseFloat(licenseItem.total));
+        } else {
+            licenseData.push(0);
+        }
+        result.license = licenseData;
+        result.employees = employeesData;
+    }
+
+    console.log(result);
+    return result;
 }
 
-console.log(result);
+const getResellerClientPurchaseSummary = async (ParentOrganization, year) => {
+    console.log('inside getResellerClientPurchaseSummary ', ParentOrganization, year);
+
+    var paymentSummary = await PaymentReleaseSchema.aggregate(
+        [
+            { $match: { "Paymentdate": { $exists: true }, "TOTAL_PAYABLE_AMOUNT": { $exists: true }, "Status": "Complete" } },
+            {
+                $lookup:
+                {
+                    from: "organizations",
+                    localField: "Organization",
+                    foreignField: "_id",
+                    as: "org"
+                }
+            },
+            {
+                $project: {
+                    month: { $month: "$Paymentdate" },
+                    year: { $year: "$Paymentdate" },
+                    TOTAL_PAYABLE_AMOUNT: 1,
+                    UsageType: 1,
+                    Organization: 1,
+                    org: { $arrayElemAt: ["$org", 0] },
+                }
+            },
+            { $match: { "year": year, "org.ParentOrganization": Mongoose.Types.ObjectId(ParentOrganization), "org.ClientType": "Reseller" } },
+
+            {
+                $group: {
+                    _id: { month: "$month" },
+                    total: { $sum: "$TOTAL_PAYABLE_AMOUNT" }
+                }
+            },
+            { $sort: { month: 1 } },
+
+        ]
+    );
+    console.log('paymentSummary ::: ', JSON.stringify(paymentSummary));
+    let result = {};
+
+    let data = [];
+
+    for (var i = 1; i <= 12; i++) {
+        const item = paymentSummary.find(item => item._id.month == i);
+        // const licenseItem = paymentSummary.find(item => item._id.month == i && item._id.UsageType == 'License');
+
+        if (item) {
+            data.push(parseFloat(item.total));
+        } else {
+            data.push(0);
+        }
+        // if (licenseItem) {
+        //     licenseData.push(parseFloat(licenseItem.total));
+        // } else {
+        //     licenseData.push(0);
+        // }
+        // result.license = licenseData;
+        result.data = data;
+    }
+
+    console.log(result);
     return result;
 }
 

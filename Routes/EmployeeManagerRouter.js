@@ -4,5 +4,6 @@ const EmployeeManagerController = require('../Controller/EmployeeManagerControll
 
 router.post("/dashboard", EmployeeManagerController.Dashboard);
 router.post("/direct/reports", EmployeeManagerController.DirectReposrtsCtrl);
+router.post("/request/peer-direct/reports/save", EmployeeManagerController.SavePeerDirectReportRequestCtrl);
 
 module.exports = router;

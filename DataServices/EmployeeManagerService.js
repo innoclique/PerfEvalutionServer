@@ -29,7 +29,26 @@ var config = require(`../Config/${env}.config`);
 const EvaluationStatus = require('../common/EvaluationStatus');
 const { boolean } = require("joi");
 const EvaluationUtils = require("../utils/EvaluationUtils");
+const PeerDirectReportsRequestRepo = require("../SchemaModels/PeerDirectReportsRequestSchema");
 
+exports.FindPeerDirectReportRequest= async (options) => {
+    let {EvaluationYear,userId} = options;
+    return await PeerDirectReportsRequestRepo.find({EvaluationYear:EvaluationYear,CreatedBy:ObjectId(userId)})
+}
+
+exports.SavePeerDirectReportRequest = async (peerDirectRepoRequest) => {
+    let {EmployeeId,CreatedBy} = peerDirectRepoRequest;
+    peerDirectRepoRequest.EmployeeId = ObjectId(EmployeeId);
+    peerDirectRepoRequest.CreatedBy = ObjectId(CreatedBy);
+    console.log("Inside:SavePeerDirectReportRequest");
+    try{
+        const peerDirectReportsRequest = await PeerDirectReportsRequestRepo(peerDirectRepoRequest);
+        return  await peerDirectReportsRequest.save();
+    }catch(error){
+        console.log(error)
+        return null;
+    }
+}
 exports.DirectReports = async (employee) => {
     let { userId,orgId } = employee;
     let userType= "EM";

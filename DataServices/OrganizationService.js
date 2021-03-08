@@ -24,7 +24,8 @@ const EvaluationUtils = require("../utils/EvaluationUtils");
 exports.CreateOrganization = async (organization) => {
     try {
         //save user account for this organization
-        var allowPhone=false;
+        let allowPhone=false;
+        let allowAdminPhone=false;
         //const _temppwd = AuthHelper.GenerateRandomPassword();
         //const pwd = Bcrypt.hashSync(_temppwd, 10);
         var AppRoles = await RoleRepo.find({ RoleLevel: { $in: ['4', '5'] } })
@@ -50,9 +51,13 @@ exports.CreateOrganization = async (organization) => {
 
         const organizationPhone = await OrganizationRepo.findOne({ Phone: organization.Phone }).sort({ CreatedOn: -1 });
         if (organization.Phone && organizationPhone !== null) { 
+
+            if(organizationPhone.ClientType == 'Reseller')
+            allowPhone=true;
+
             let _PhoneNumberUser = await UserRepo.findOne({Organization:organizationPhone._id, PhoneNumber: userRecord.PhoneNumber });
             if(organizationPhone.ClientType == 'Reseller' && _PhoneNumberUser!==null)
-            allowPhone=true;
+            allowAdminPhone=true;
            
         }
         const EmailUser = await UserRepo.findOne({ Email: userRecord.Email });
@@ -60,7 +65,7 @@ exports.CreateOrganization = async (organization) => {
 
         if (userRecord.Email!="" && EmailUser !== null) { throw Error("Admin Email Already Exist"); }
         if ( userRecord.PhoneNumber && PhoneNumberUser !== null) { 
-            if(allowPhone==false)
+            if(allowAdminPhone==false)
             throw Error("Admin Phone Number Already Exist"); 
         }
 
@@ -72,7 +77,8 @@ exports.CreateOrganization = async (organization) => {
         if (organizationName !== null) { throw Error("Organization Name Already Exist"); }
         if (organizationEmail !== null) { throw Error("Organization Email Already Exist "); }
         if (organization.Phone && organizationPhone !== null) { 
-            if(organizationPhone.ClientType == 'Client')
+            //if(organizationPhone.ClientType == 'Client')
+            if(allowPhone==false)
             throw Error("Organization Phone Number Already Exist"); 
         }
         const session = await Mongoose.startSession();

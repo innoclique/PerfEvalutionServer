@@ -29,7 +29,88 @@ var config = require(`../Config/${env}.config`);
 const EvaluationStatus = require('../common/EvaluationStatus');
 const { boolean } = require("joi");
 const EvaluationUtils = require("../utils/EvaluationUtils");
+const PeerDirectReportsRequestRepo = require("../SchemaModels/PeerDirectReportsRequestSchema");
 
+exports.FindPeerDirectReportRequestByEmployee= async (options) => {
+    let {EmpId,EvaluationYear,owner} = options;
+    return await PeerDirectReportsRequestRepo.findOne({EmployeeId:ObjectId(EmpId),EvaluationYear:EvaluationYear,CreatedBy:ObjectId(owner)}).populate("EmployeeId")
+}
+exports.FindPeerDirectReportRequest= async (options) => {
+    let {EvaluationYear,owner} = options;
+    return await PeerDirectReportsRequestRepo.find({EvaluationYear:EvaluationYear,CreatedBy:ObjectId(owner)}).populate("EmployeeId")
+}
+
+exports.SavePeerDirectReportRequest = async (peerDirectRepoRequest) => {
+    let {EmployeeId,CreatedBy,Type,Employees,Competencies} = peerDirectRepoRequest;
+    peerDirectRepoRequest.EmployeeId = ObjectId(EmployeeId);
+    peerDirectRepoRequest.CreatedBy = ObjectId(CreatedBy);
+    console.log("Inside:SavePeerDirectReportRequest");
+    try{
+        let peerDirectReportsObj = await PeerDirectReportsRequestRepo.
+        findOne({EmployeeId:peerDirectRepoRequest.EmployeeId,EvaluationYear:peerDirectRepoRequest.EvaluationYear,CreatedBy:peerDirectRepoRequest.CreatedBy});
+        if(!peerDirectReportsObj){
+            let addRecordObj = {
+                EmployeeId:peerDirectRepoRequest.EmployeeId,
+                CreatedBy:peerDirectRepoRequest.CreatedBy,
+                EvaluationYear:peerDirectRepoRequest.EvaluationYear
+            }
+            addRecordObj.Peer=[];
+            addRecordObj.DirectReportees=[];
+            if(Type==="Peer"){
+                let peers=[];
+                for(let i=0;i<Employees.length;i++){
+                    let peerObj = Employees[i];
+                    peerObj.Competencies=Competencies;
+                    peers.push(peerObj);
+
+                }
+                addRecordObj.Peer=peers;
+            }else if(Type==="DirectReportees"){
+                let directReportees=[];
+                for(let i=0;i<Employees.length;i++){
+                    let directReporteesObj = Employees[i];
+                    directReporteesObj.Competencies=Competencies;
+                    directReportees.push(directReporteesObj);
+
+                }
+                addRecordObj.DirectReportees=directReportees;
+            }
+            const peerDirectReportsRequest = await PeerDirectReportsRequestRepo(addRecordObj);
+            return await peerDirectReportsRequest.save();
+        }else{
+            let updateRequestObj = peerDirectReportsObj;
+            delete updateRequestObj._id;
+            if(Type==="Peer"){
+                let peers=[];
+                for(let i=0;i<Employees.length;i++){
+                    let peerObj = Employees[i];
+                    peerObj.Competencies=Competencies;
+                    peers.push(peerObj);
+
+                }
+                updateRequestObj.Peer=peers;
+            }else if(Type==="DirectReportees"){
+                let directReportees=[];
+                for(let i=0;i<Employees.length;i++){
+                    let directReporteesObj = Employees[i];
+                    directReporteesObj.Competencies=Competencies;
+                    directReportees.push(directReporteesObj);
+
+                }
+                updateRequestObj.DirectReportees=directReportees;
+            }
+              await PeerDirectReportsRequestRepo.update(
+                {
+                    "_id":peerDirectReportsObj._id,
+                },
+                {$set:updateRequestObj});
+                return true;
+        }
+    }catch(error){
+        console.log(error)
+        return null;
+    }
+}
 exports.DirectReports = async (employee) => {
     let { userId,orgId } = employee;
     let userType= "EM";

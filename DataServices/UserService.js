@@ -440,6 +440,16 @@ console.clear();
         const newemp = new UserRepo(employee);
         await newemp.save();
 
+        //updating manager dir repotes
+        const managerObj = await UserRepo.findOne({ _id: employee.Manager });
+        if(managerObj.DirectReports!=null){
+       await UserRepo.update({ _id: employee.Manager }, {$push:{'DirectReports':newemp._id}});
+        } else {
+            let dirReport=[];
+             dirReport.push(newemp._id);
+         await UserRepo.update({ _id: employee.Manager }, {$set:{'DirectReports':dirReport }});
+        }
+
         //send email to employee
          //send email to  user
          if(employee.IsDraft=='false'){

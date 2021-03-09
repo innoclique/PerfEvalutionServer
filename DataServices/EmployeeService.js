@@ -3107,7 +3107,9 @@ exports.GetOverallRatingByCompetency = async (emp) => {
                     }
                 }
                 var _overallScore=calcAverage(_pcScore)+calcAverage(_drScore)+_managerScore[0];
-                _clist.push({ competencyId: element, allSubmitted: true, overallScore: (_overallScore/3).toFixed(2) })
+                let noOfItems=1;
+                noOfItems= noOfItems+ (_pcScore.length >0 ?1:0 ) +  (_drScore.length >0 ?1:0);
+                _clist.push({ competencyId: element, allSubmitted: true, overallScore: (_overallScore/noOfItems).toFixed(1) })
             }
         }
         return _clist
@@ -3640,7 +3642,7 @@ function calcAverage(arr) {
     }
 
     var avg = sum / arr.length;
-    return parseFloat(avg.toFixed(2));
+    return parseFloat(avg.toFixed(1));
 }
 
 

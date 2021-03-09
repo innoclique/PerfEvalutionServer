@@ -52,7 +52,7 @@ const UserSchema = new mongoose.Schema({
     CreatedBy:{ type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     Manager:{ type: mongoose.Schema.Types.ObjectId, ref: 'User', default:null },
     Organization:{ type: mongoose.Schema.Types.ObjectId, ref: 'Organization' },
-    DirectReports:{ type: mongoose.Schema.Types.ObjectId,default:null, ref: 'User' },
+    DirectReports:[{ type: mongoose.Schema.Types.ObjectId,default:null, ref: 'User' }],
     CopiesTo:{ type: mongoose.Schema.Types.ObjectId,default:null, ref: 'User' },
     ThirdSignatory:{ type: mongoose.Schema.Types.ObjectId,default:null, ref: 'User' },
     UpdatedOn:{type:Date },

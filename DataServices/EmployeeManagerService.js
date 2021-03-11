@@ -31,6 +31,10 @@ const { boolean } = require("joi");
 const EvaluationUtils = require("../utils/EvaluationUtils");
 const PeerDirectReportsRequestRepo = require("../SchemaModels/PeerDirectReportsRequestSchema");
 
+exports.findRequestPeerInfoByEmpId= async (options) => {
+    let {EmpId,EvaluationYear} = options;
+    return await PeerDirectReportsRequestRepo.findOne({EmployeeId:ObjectId(EmpId),EvaluationYear:EvaluationYear});
+}
 exports.FindPeerDirectReportRequestByEmployee= async (options) => {
     let {EmpId,EvaluationYear,owner} = options;
     return await PeerDirectReportsRequestRepo.findOne({EmployeeId:ObjectId(EmpId),EvaluationYear:EvaluationYear,CreatedBy:ObjectId(owner)}).populate("EmployeeId")

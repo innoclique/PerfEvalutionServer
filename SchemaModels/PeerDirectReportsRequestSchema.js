@@ -7,6 +7,7 @@ const PeerDirectReportsRequestsSchema = new mongoose.Schema({
             EmployeeId: { type: mongoose.Schema.Types.ObjectId, ref: 'User',default:null },  
             displayTemplate:{type:String},
             Competencies:[{_id:{type:String},Name:{type:String}}],
+            message:{type:String}
         }
     ],
     DirectReportees:[
@@ -14,6 +15,7 @@ const PeerDirectReportsRequestsSchema = new mongoose.Schema({
             EmployeeId: { type: mongoose.Schema.Types.ObjectId, ref: 'User',default:null },  
             displayTemplate:{type:String},
             Competencies:[{_id:{type:String},Name:{type:String}}],
+            message:{type:String}
         }
     ],
     CreatedBy:{ type: mongoose.Schema.Types.ObjectId, ref: 'User',default:null },

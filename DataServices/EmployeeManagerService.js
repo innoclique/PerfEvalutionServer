@@ -45,6 +45,10 @@ exports.FindPeerDirectReportRequest= async (options) => {
 }
 
 exports.SavePeerDirectReportRequest = async (peerDirectRepoRequest) => {
+    let IsDraft = false;
+    if(peerDirectRepoRequest.IsDraft){
+        IsDraft = peerDirectRepoRequest.IsDraft;
+    }
     let {EmployeeId,CreatedBy,Type,Employees,Competencies} = peerDirectRepoRequest;
     peerDirectRepoRequest.EmployeeId = ObjectId(EmployeeId);
     peerDirectRepoRequest.CreatedBy = ObjectId(CreatedBy);
@@ -56,7 +60,8 @@ exports.SavePeerDirectReportRequest = async (peerDirectRepoRequest) => {
             let addRecordObj = {
                 EmployeeId:peerDirectRepoRequest.EmployeeId,
                 CreatedBy:peerDirectRepoRequest.CreatedBy,
-                EvaluationYear:peerDirectRepoRequest.EvaluationYear
+                EvaluationYear:peerDirectRepoRequest.EvaluationYear,
+                IsDraft:IsDraft
             }
             addRecordObj.Peer=[];
             addRecordObj.DirectReportees=[];
@@ -84,6 +89,7 @@ exports.SavePeerDirectReportRequest = async (peerDirectRepoRequest) => {
         }else{
             let updateRequestObj = peerDirectReportsObj;
             delete updateRequestObj._id;
+            updateRequestObj.IsDraft=IsDraft;
             if(Type==="Peer"){
                 let peers=[];
                 for(let i=0;i<Employees.length;i++){
@@ -93,6 +99,7 @@ exports.SavePeerDirectReportRequest = async (peerDirectRepoRequest) => {
 
                 }
                 updateRequestObj.Peer=peers;
+                
             }else if(Type==="DirectReportees"){
                 let directReportees=[];
                 for(let i=0;i<Employees.length;i++){

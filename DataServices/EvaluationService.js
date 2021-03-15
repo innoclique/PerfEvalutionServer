@@ -56,10 +56,9 @@ exports.AddEvaluation = async (evaluation) => {
         var savedEvauation = await _evaluation.save();
         var _emps = evaluation.Employees.map(x => x._id);
         
-        var _empMgrsIds = evaluation.Employees.map(x => x.DirectReports);
         var _Mgrs = evaluation.Employees.map(x => x.Manager);
         var _thirdSignatoryIds = evaluation.Employees.map(x => x.ThirdSignatory);
-        var _empMgrs = await UserRepo.find({ $or: [{ _id: { $in: _empMgrsIds } }, { _id: { $in: _thirdSignatoryIds } }] });
+        var _empMgrs = await UserRepo.find( {_id: { $in: _thirdSignatoryIds } });
        
         await UserRepo.updateMany({ _id: { $in: _emps } }, { $set: { HasActiveEvaluation: "Yes" } });
         await KpiFormRepo.updateMany({ EmployeeId: { $in: _emps } }, { $set: { IsActive: false } });

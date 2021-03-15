@@ -5,7 +5,7 @@ const userActivityCtrl = async (req, res, next) => {
     await LogUserActivity(req.body)
         .then(Response => res.status(200).json(Response))
         .catch(error => {
-            logger.error(error)
+            console.log(error);
             next(error)
         });
 }

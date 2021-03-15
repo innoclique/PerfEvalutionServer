@@ -36,6 +36,7 @@ const { boolean } = require("joi");
 const EvaluationService = require('./EvaluationService');
 const PGSignoffSchema = require('../SchemaModels/PGSignoffSchema');
 const EvaluationUtils = require('../utils/EvaluationUtils');
+const ModelsRepo=require('../SchemaModels/Model');
 
 exports.AddStrength = async (strength) => {
     try {
@@ -307,7 +308,8 @@ exports.GetSetupBasicData = async (data) => {
       
         const KpiScore = await RatingScoreRepo.find();
         const coachingRem = await CoachingRemainRepo.find();
-        return { KpiStatus, KpiScore, coachingRem,Industries };
+        const Models = await ModelsRepo.find({"IsActive":true},{Name:1,_id:1}).sort({Name:1});
+        return { KpiStatus, KpiScore, coachingRem,Industries,Models };
     
         
     

@@ -1602,31 +1602,34 @@ var de = await DeliverEmailRepo.insertMany(_deliveremails);
 exports.sendmail = async (ev,isKpi) => {
 
     let user = await UserRepo.findById(ev.CreatedBy);
-    fs.readFile("./EmailTemplates/EmailTemplate.html", async function read(err, bufcontent) {
-        var content = bufcontent.toString();
+    if(user){
+        fs.readFile("./EmailTemplates/EmailTemplate.html", async function read(err, bufcontent) {
+                var content = bufcontent.toString();
 
-        let des = `Congratulations, you have successfully setup the roll-out for the 
-        ${isKpi?'Performance Goals Setting':'Evaluations'} for the year ${ev.EvaluationPeriodText}.
+                let des = `Congratulations, you have successfully setup the roll-out for the 
+                ${isKpi?'Performance Goals Setting':'Evaluations'} for the year ${ev.EvaluationPeriodText}.
 
-       <br> To view details, <a href=" ${config.APP_BASE_REDIRECT_URL}=/ea/evaluation-list" >click here</a>.
-        `
-        content = content.replace("##FirstName##", user.FirstName);
-        content = content.replace("##ProductName##", config.ProductName);
-        content = content.replace("##Description##", des);
-        content = content.replace("##Title##", "Evaluation roll-out successfully scheduled");
+            <br> To view details, <a href=" ${config.APP_BASE_REDIRECT_URL}=/ea/evaluation-list" >click here</a>.
+                `
+                content = content.replace("##FirstName##", user.FirstName);
+                content = content.replace("##ProductName##", config.ProductName);
+                content = content.replace("##Description##", des);
+                content = content.replace("##Title##", "Evaluation roll-out successfully scheduled");
 
-        var mailObject = SendMail.GetMailObject(
-            user.Email,
-            "Evaluation roll-out successfully scheduled",
-            content,
-            null,
-            null
-        );
+                var mailObject = SendMail.GetMailObject(
+                    user.Email,
+                    "Evaluation roll-out successfully scheduled",
+                    content,
+                    null,
+                    null
+                );
 
-        await SendMail.SendEmail(mailObject, function (res) {
-            console.log(res);
-        });
-    })
+                await SendMail.SendEmail(mailObject, function (res) {
+                    console.log(res);
+                });
+            })
+    }
+    
 }
 
 //new Date().getFullYear()

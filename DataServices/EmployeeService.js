@@ -1640,7 +1640,7 @@ const currentEvaluationProgress = async (userId) => {
     if (currentEvaluation && currentEvaluation.Employees) {
         Employees = currentEvaluation.Employees;
         evaluationOb["overall_status"] = currentEvaluation.status || "N/A";
-        evaluationOb["KPI_Status"] = await PerformanceGoalStatus(userId);
+        evaluationOb["KPI_Status"] = await PerformanceGoalStatus(userId,currentYear);
     } else {
         evaluationOb["status"] = 0;
         evaluationOb["status_title"] = "N/A";
@@ -1663,8 +1663,9 @@ const currentEvaluationProgress = async (userId) => {
     return evaluationOb;
 }
 
-const PerformanceGoalStatus = async (employeeId) =>{
-    let kpiList = await KpiRepo.find({"Owner":Mongoose.Types.ObjectId(employeeId)}).sort({_id:-1});
+const PerformanceGoalStatus = async (employeeId,currentYear) =>{
+    console.log(`${employeeId} - ${currentYear}`)
+    let kpiList = await KpiRepo.find({"Owner":Mongoose.Types.ObjectId(employeeId),"EvaluationYear":""+currentYear}).sort({_id:-1});
     if(kpiList && kpiList.length>0){
         let latestKPI = kpiList[0];
         if(!latestKPI.IsDraft && !latestKPI.IsSubmitedKPIs){

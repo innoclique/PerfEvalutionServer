@@ -556,7 +556,7 @@ exports.GetAllKpis = async (data) => {
                 model: 'JobLevels',
             }
         })
-        .sort({ UpdatedOn: -1 });
+        .sort({ UpdatedOn: -1 }).populate('EvaluationId');;
 
 
     return [...Kpi, ...preKpi];
@@ -1412,7 +1412,7 @@ exports.GetThirdSignatorys = async (data) => {
 /**For getting employees who has not been added to evaluation */
 exports.GetUnlistedEmployees = async (search) => {
     try {
-        console.log(search.company)
+        console.log('inside GetUnlistedEmployees : ',search.company)
         let evaluationYear = await EvaluationUtils.GetOrgEvaluationYear(search.company);
         console.log(`evaluationYear = ${evaluationYear}`);
         
@@ -1514,6 +1514,7 @@ console.log('employees :  ',employees);
             return { IsSuccess: true, Message: "", Data: Employees.concat(employees) }
         }
     } catch (error) {
+        console.log(error);
         logger.error('Error occurred while checking employee count', error)
         throw error;
     }

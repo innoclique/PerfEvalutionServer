@@ -54,6 +54,7 @@ exports.AddEvaluation = async (evaluation) => {
         evaluation.EvaluationYear = evaluationYear;
         const _evaluation = await EvaluationRepo(evaluation);
         var savedEvauation = await _evaluation.save();
+        console.log("Inserted Evaluation");
         var _emps = evaluation.Employees.map(x => x._id);
         
         var _Mgrs = evaluation.Employees.map(x => x.Manager);
@@ -222,8 +223,9 @@ exports.AddEvaluation = async (evaluation) => {
 
             for (let emp of _currentEvaluation.Employees) {
 
-                if ((mgr._id && emp._id && emp._id.DirectReports && emp._id.DirectReports.toString() == mgr._id.toString()) || ( mgr._id && emp._id && emp._id.ThirdSignatory && emp._id.ThirdSignatory.toString() == mgr._id.toString())) {
-                    var manager = _Mgrs.find(mgr => mgr._id.toString() == emp._id.Manager.toString())
+                if ((mgr && emp && mgr._id && emp._id && emp._id.DirectReports && emp._id.Manager && emp._id.DirectReports.toString() == mgr._id.toString()) || 
+                ( mgr && emp && mgr._id && emp._id && emp._id.Manager && emp._id.ThirdSignatory && emp._id.ThirdSignatory.toString() == mgr._id.toString())) {
+                    var manager = _Mgrs.find(mgr => mgr._id && mgr._id.toString() == emp._id.Manager.toString())
                     var peers = '';
                     var directReportees = '';
 
@@ -243,7 +245,7 @@ exports.AddEvaluation = async (evaluation) => {
                 ${emp._id.Email}
                 </td>
                 <td>
-                ${manager.FirstName} ${manager.LastName}
+                ${manager?manager.FirstName:''} ${manager?manager.LastName:''}
                 </td>
                 <td>
                ${peers}
@@ -281,6 +283,7 @@ exports.AddEvaluation = async (evaluation) => {
         var de = await DeliverEmailRepo.insertMany(_deliveremails);
         return true;
     } catch (error) {
+        console.log(error);
         logger.error('error while Adding a Evaluation Form:', error)
         throw error;
     }

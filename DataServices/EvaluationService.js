@@ -53,6 +53,7 @@ exports.AddEvaluation = async (evaluation) => {
         let evaluationYear = await EvaluationUtils.GetOrgEvaluationYear(evaluation.Company);
         evaluation.EvaluationYear = evaluationYear;
         const _evaluation = await EvaluationRepo(evaluation);
+        _evaluation.CreatedDate= new Date();
         var savedEvauation = await _evaluation.save();
         console.log("Inserted Evaluation");
         var _emps = evaluation.Employees.map(x => x._id);
@@ -1511,8 +1512,9 @@ exports.ReleaseKpiForm = async (evaluation) => {
  
  
     try {
-
-    const g = await KpiFormRepo.insertMany(evaluation);
+       const _evaluation = evaluation.map(e=> {e.CreatedDate= new Date(); return e; });
+       
+    const g = await KpiFormRepo.insertMany(_evaluation);
     // const _evaluation = await KpiFormRepo(evaluation);
     // var savedEvauation = await _evaluation.save();
 const empIds= evaluation.map(e=>e.EmployeeId);

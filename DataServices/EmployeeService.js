@@ -29,6 +29,7 @@ const moment = require("moment");
 const ObjectId = Mongoose.Types.ObjectId;
 const KpiFormRepo = require('../SchemaModels/KpiForm');
 const strengthRepo = require('../SchemaModels/Strengths');
+const DevGoalsRepo = require('../SchemaModels/DevGoals');
 var fs = require("fs");
 var config = require(`../Config/${env}.config`);
 const EvaluationStatus = require('../common/EvaluationStatus');
@@ -1682,10 +1683,12 @@ const currentEvaluationProgress = async (userId) => {
         Employees = currentEvaluation.Employees;
         evaluationOb["overall_status"] = currentEvaluation.status || "N/A";
         evaluationOb["KPI_Status"] = await PerformanceGoalStatus(userId,currentYear);
+        evaluationOb["ActionPlan_Status"] = await ActionPlanStatus(userId,currentYear);
     } else {
         evaluationOb["status"] = 0;
         evaluationOb["status_title"] = "N/A";
         evaluationOb["overall_status"] = "N/A";
+        evaluationOb["ActionPlan_Status"] = await ActionPlanStatus(userId,currentYear);
         evaluationOb["KPI_Status"]="Not Initiated"
     }
     if (Employees && Employees.length > 0) {
@@ -1730,6 +1733,61 @@ const PerformanceGoalStatus = async (employeeId,currentYear) =>{
     }else{
         return "Initiated"
     }
+}
+
+
+const ActionPlanStatus = async (employeeId,currentYear) =>{
+    console.log(`${employeeId} - ${currentYear}`)
+
+    const evaluationForm = await EvaluationRepo.findOne(
+        {
+            Employees: { $elemMatch: { _id: ObjectId(employeeId) }},
+            EvaluationYear: currentYear,IsDraft: false
+        }
+    );
+
+    const kpiFormData = await KpiFormRepo.findOne({
+        'EmployeeId': Mongoose.Types.ObjectId(employeeId),
+        IsDraft: false, IsActive: true, EvaluationYear: currentYear
+    });
+
+    if (evaluationForm || kpiFormData) {
+       
+        const devGoals = await DevGoalsRepo.findOne({
+            'Owner': Mongoose.Types.ObjectId(employeeId),
+            CreatedYear: currentYear
+        }).sort({CreatedOn:-1});
+
+        const strengths = await strengthRepo.findOne({
+            'Owner': Mongoose.Types.ObjectId(employeeId),
+            CreatedYear: currentYear
+        }).sort({CreatedOn:-1});
+
+        if (devGoals || strengths) {
+            
+            if ( (devGoals && devGoals.IsGoalSubmited ) || (strengths && strengths.IsGoalSubmited ) ) {
+
+                const devGoalsViewed = await DevGoalsRepo.find({
+                    'Owner': Mongoose.Types.ObjectId(employeeId),
+                    CreatedYear: currentYear
+                })
+
+                if ( (devGoals &&devGoals.ViewedByManagerOn) || (strengths && strengths.ViewedByManagerOn ) || (devGoalsViewed && devGoalsViewed.find(e=> e.ViewedByManagerOn) ) ) {
+                    return "Viewed"
+                }
+
+                return "Submitted"
+            }
+            return "In Progress";
+        }
+       
+       
+        return "Initiated";
+    }else{
+        return "N/A"
+    }
+
+
 }
 
 const previousEvaluationProgress = async (userId) => {

@@ -80,7 +80,10 @@ try{
     //   const Kpi = await KpiRepo.find({'Owner':data.empId,'IsDraftByManager':false, 'EvaluationId':currEvaluation._id})
     const devGoals = await DevGoalsRepo.find({ 'Owner': data.empId, 
             'MakePrivate': {$in: [false,data.fetchAll ] },   'IsDraftByManager': false ,'CreatedYear': ""+devGoalsCreatedYear })
-           .populate('Kpi')
+          .populate({
+            path: 'Kpi',           
+            populate: { path: 'EvaluationId' }
+          })
         .sort({ UpdatedOn: -1 });
 
 

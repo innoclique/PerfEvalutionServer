@@ -8,7 +8,7 @@ const KpiForm = new mongoose.Schema({
 
     EmployeeId:{ type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
     CreatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
-    CreatedDate: { type: Date, default: Date() },
+    CreatedDate: { type: Date },
     UpdatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
     UpdatedDate: { type: Date, default: Date() },
     Company: { type: mongoose.Schema.Types.ObjectId, ref: 'Organization', default: null },

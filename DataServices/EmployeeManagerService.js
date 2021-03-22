@@ -85,7 +85,9 @@ exports.SavePeerDirectReportRequest = async (peerDirectRepoRequest) => {
                 addRecordObj.DirectReportees=directReportees;
             }
             const peerDirectReportsRequest = await PeerDirectReportsRequestRepo(addRecordObj);
-            return await peerDirectReportsRequest.save();
+            let peerDirectionResp =  await peerDirectReportsRequest.save();
+            
+            return peerDirectionResp;
         }else{
             let updateRequestObj = peerDirectReportsObj;
             delete updateRequestObj._id;
@@ -115,12 +117,92 @@ exports.SavePeerDirectReportRequest = async (peerDirectRepoRequest) => {
                     "_id":peerDirectReportsObj._id,
                 },
                 {$set:updateRequestObj});
+                await sendEmailToManager(peerDirectReportsObj._id);
+                await sendEmailToEA(peerDirectReportsObj._id);
                 return true;
         }
     }catch(error){
         console.log(error)
         return null;
     }
+}
+
+const sendEmailToManager = async (peerDrRequestId)=>{
+    console.log("Inside:sendEmailToManager");
+    let peerDrRequestObj = await PeerDirectReportsRequestRepo.findOne({_id:peerDrRequestId}).populate("EmployeeId").populate("CreatedBy");
+    if(peerDrRequestObj && !peerDrRequestObj.IsDraft){
+        let _type = "";
+        let {CreatedBy,EmployeeId,Peer,DirectReportees} = peerDrRequestObj;
+        if(Peer.length>0 && DirectReportees.length==0){
+            _type = "peer"
+        } 
+        if(Peer.length==0 && DirectReportees.length>0){
+            _type = "direct reports"
+        } 
+        if(Peer.length>0 && DirectReportees.length>0){
+            _type = "peers and direct reports"
+        } 
+        
+        let managerEmail = CreatedBy.Email; 
+        let managerFirstName = CreatedBy.FirstName;
+        let employeeName = EmployeeId.FirstName +" "+(EmployeeId.LastName || "");
+        let subject = "Request to add " + _type +" rating sent";
+        let mailBody= `Dear ${managerFirstName},<br><br>`;
+        mailBody = mailBody + "A request to add  " +_type+ " rating for "+employeeName+" has been sent to the evaluation administrator.<br><br>";
+        mailBody=mailBody + "<br>To view, "+ " <a href=" +config.APP_BASE_REDIRECT_URL +">click here</a> <br><br>Thank you,<br>" + config.ProductName + " Administrator<br>";
+        var mailObject = SendMail.GetMailObject(
+            managerEmail,
+            subject,
+            mailBody,
+            null,
+            null
+            );
+        await SendMail.SendEmail(mailObject, function (res) {
+            console.log(JSON.stringify(res))
+        });
+    }
+    /**/
+
+}
+const sendEmailToEA = async (peerDrRequestId)=>{
+    console.log("Inside:sendEmailToEA");
+    let peerDrRequestObj = await PeerDirectReportsRequestRepo.findOne({_id:peerDrRequestId}).populate("EmployeeId").populate("CreatedBy");
+    if(peerDrRequestObj && !peerDrRequestObj.IsDraft){
+        let _type = "";
+        let {CreatedBy,EmployeeId,Peer,DirectReportees} = peerDrRequestObj;
+        let orgId = CreatedBy.Organization;
+        let eaUserObj = await UserRepo.findOne({Organization:orgId,SelectedRoles:{"$elemMatch":{$eq:"EA"}}});
+        if(Peer.length>0 && DirectReportees.length==0){
+            _type = "peer"
+        } 
+        if(Peer.length==0 && DirectReportees.length>0){
+            _type = "direct reports"
+        } 
+        if(Peer.length>0 && DirectReportees.length>0){
+            _type = "peers and direct reports"
+        } 
+        let redirectURL = config.APP_BASE_REDIRECT_URL+"=/ea/evaluation-list";
+        let managerEmail = eaUserObj.Email; 
+        let managerFirstName = eaUserObj.FirstName;
+        let employeeName = EmployeeId.FirstName +" "+(EmployeeId.LastName || "");
+        let subject = "Request to add " + _type +" rating";
+        let mailBody= `Dear ${managerFirstName},<br><br>`;
+        let managerName = CreatedBy.FirstName +" "+ (CreatedBy.LastName || "")
+        mailBody = mailBody + "A request to add  " +_type+ " rating for "+employeeName+" has been sent by the manager - "+managerName+".<br><br>";
+        mailBody=mailBody + "<br>To view and take action, "+ " <a href=" +redirectURL +">click here</a> <br><br>Thank you,<br>" + config.ProductName + " Administrator<br>";
+        var mailObject = SendMail.GetMailObject(
+            managerEmail,
+            subject,
+            mailBody,
+            null,
+            null
+            );
+        await SendMail.SendEmail(mailObject, function (res) {
+            console.log(JSON.stringify(res))
+        });
+    }
+    /**/
+
 }
 exports.DirectReports = async (employee) => {
     let { userId,orgId } = employee;

@@ -31,6 +31,7 @@ const Evalution = new mongoose.Schema({
                 CompetencySubmittedOn: { type: Date, default: Date() }
             }],
         peerCompetenceMapping:[],
+        ActivationDate:{ type: Date},
         DirectReportees: [
             {
                 EmployeeId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },

@@ -1414,6 +1414,45 @@ exports.GetUnlistedEmployees = async (search) => {
         console.log(search.company)
         let evaluationYear = await EvaluationUtils.GetOrgEvaluationYear(search.company);
         console.log(`evaluationYear = ${evaluationYear}`);
+        
+          var evalCompletedStatusIds = await statusesRepo.find({ 'Status': 'Evaluation Complete' });
+        // console.log(`evalCompletedStatusIds = ${evalCompletedStatusIds}`);
+
+        var evalCompletedStatusIds = evalCompletedStatusIds.map(x => Mongoose.Types.ObjectId(x._id));
+        console.log(`evalCompletedStatusIds = ${evalCompletedStatusIds}`);
+var employees = [];
+        var pendingEvaluations = await EvaluationRepo.find(
+            {
+                'Company': Mongoose.Types.ObjectId(search.company),
+                'EvaluationType': { $ne: "Year-end" },
+                'EvaluationYear': evaluationYear,
+                "Employees": {
+                    $elemMatch: {
+                        Status: {
+                            $nin: evalCompletedStatusIds
+                        }
+                    }
+                }
+            }
+        ).populate('Employees._id');
+        // console.log('pendingEvaluations ::: ', JSON.stringify(pendingEvaluations));
+        for (let pendingEvaluation of pendingEvaluations) {
+            for (let emp of pendingEvaluation.Employees) {
+                // console.log('emp ::: ',emp);
+                if (emp.ActivationDate && pendingEvaluation.EvaluationDuration) {
+                    var noOfMonths = parseInt(pendingEvaluation.EvaluationDuration.replace("Months","").trim());
+                    console.log('emp.ActivationDate ::: ',moment(emp.ActivationDate).add(noOfMonths, "months").startOf("day").toDate(),noOfMonths);
+                    var now = moment(); //todays date
+                    var end = moment(moment(emp.ActivationDate).add(noOfMonths, "months").startOf("day").toDate())  ; // another date
+                    var duration = moment.duration(now.diff(end));
+                    console.log(' duration ::: ', duration.asDays());
+                    if(duration.asDays()>=0){
+                        employees.push(emp._id);
+                    }
+                }
+            }
+        }
+console.log('employees :  ',employees);
 
         if (search.allKpi === 'true') {
             var response = await KpiFormRepo.aggregate([{
@@ -1438,7 +1477,7 @@ exports.GetUnlistedEmployees = async (search) => {
                 }).populate("Manager").sort({ FirstName: 1 })
 
 
-            return { IsSuccess: true, Message: "", Data: Employees }
+            return { IsSuccess: true, Message: "", Data: Employees.concat(employees) }
 
 
 
@@ -1471,7 +1510,7 @@ exports.GetUnlistedEmployees = async (search) => {
                     Manager:{$ne: null}
 
                 }).populate("Manager").sort({ FirstName: 1 })
-            return { IsSuccess: true, Message: "", Data: Employees }
+            return { IsSuccess: true, Message: "", Data: Employees.concat(employees) }
         }
     } catch (error) {
         logger.error('Error occurred while checking employee count', error)

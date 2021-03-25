@@ -370,6 +370,16 @@ exports.UpdateOrgProfile = async (organization) => {
 
 exports.GetOrganizationDataById = async (Id) => {
     const Organization = await OrganizationRepo.findById(Id);
+    if(Organization && Organization.EvaluationModels && Organization.EvaluationModels.length>0){
+        let modelNames = [];
+        for(var i=0;i<Organization.EvaluationModels.length;i++){
+            console.log(Organization.EvaluationModels[i]);
+            let modelMappingRepo = await ModelMappingRepo.findOne({_id:ObjectId(Organization.EvaluationModels[i])});
+            let {Name} = modelMappingRepo;
+            modelNames.push(Name);
+        }
+        Organization.EvaluationModels = modelNames;
+    }
     return Organization;
 };
 exports.GetAllOrganizations = async (parent) => {

@@ -28,13 +28,13 @@ exports.CreateOrganization = async (organization) => {
         let allowAdminPhone=false;
         //const _temppwd = AuthHelper.GenerateRandomPassword();
         //const pwd = Bcrypt.hashSync(_temppwd, 10);
-        var AppRoles = await RoleRepo.find({ RoleLevel: { $in: ['4', '5'] } })
+        var AppRoles = await RoleRepo.find({ RoleLevel: { $in: ['4', '5','2'] } })
         const userRecord = {
             Email: organization.AdminEmail,
             ContactPhone: organization.AdminPhone,
             Role: organization.ClientType === 'Client' ? 'CSA' : 'RSA',
-            ApplicationRole:[AppRoles[0]._id,AppRoles[1]._id ],
-            SelectedRoles:[AppRoles[0].RoleCode, AppRoles[1].RoleCode],
+            ApplicationRole:[AppRoles[0]._id,AppRoles[1]._id,AppRoles[2]._id ],
+            SelectedRoles:[AppRoles[0].RoleCode, AppRoles[1].RoleCode, AppRoles[2].RoleCode],
             //Password: pwd,
             FirstName: organization.AdminFirstName,
             LastName: organization.AdminLastName,

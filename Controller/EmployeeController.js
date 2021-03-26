@@ -44,6 +44,20 @@ exports.GetEmployeeDataById = async (req, res, next) => {
         }
     });
 }
+
+
+exports.GetEmployeeDataByIdOnEmpUpdate = async (req, res, next) => {
+    Joi.validate(req.body.id, Validation_Helper.ValidateString(), async (err, Result) => {
+        if (err) { res.status(442).json({ mgs: err.details.map(i => i.message).join(" / ") }) }
+        else {
+            const Id = req.body.id;
+            await UserService.GetEmployeeDataByIdOnEmpUpdate(Id)
+                .then(Response => Response ? res.status(200).json(Response) : res.status(404).json("Employee Not Found"))
+                .catch(err => next(err => { next(err) }));
+        }
+    });
+}
+
 exports.GetAllEmployees = async (req, res, next) => {
     await UserService.GetAllEmployees(req.body)
         .then(Response => Response ? res.status(200).json(Response) : res.status(404).json("Employees Not Found"))

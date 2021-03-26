@@ -559,8 +559,7 @@ const findAdhocRequestList = async () => {
     let responseObj=[];
     console.log("Inside:Adhoc Request list")
     let whereObj={
-        Type:"Adhoc",
-        Status:{$ne:"Complete"}
+        Type:"Adhoc"
     }
     const adhocList = await PaymentReleaseSchema.find(whereObj).populate('Organization');
     for(var i=0;i<adhocList.length;i++){

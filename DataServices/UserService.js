@@ -206,7 +206,7 @@ exports.Authenticate = async (LoginModel) => {
     } catch (error) {
         console.log(error);
         logger.error(error);
-        throw error;
+        throw 'Something went wrong';
     }
 
 }
@@ -817,6 +817,18 @@ exports.GetEmployeeDataById = async (Id) => {
 
 
 };
+
+
+exports.GetEmployeeDataByIdOnEmpUpdate = async (Id) => {
+    
+    const GetEmployee = await UserRepo.findById(Id).populate("ThirdSignatory CopiesTo DirectReports Manager Organization JobLevel");
+
+    return GetEmployee;
+
+
+};
+
+
 exports.GetAllEmployees = async (employee) => {  
      const Employees = await UserRepo.find({ 
         
